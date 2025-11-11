@@ -1,0 +1,8 @@
+{
+  "/api": {
+    "target": "http://${BACKEND_HOST}:${BACKEND_PORT}",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  }
+}
