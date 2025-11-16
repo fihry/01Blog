@@ -9,10 +9,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.zeroOneBlog.Dto.AuthResponseDto;
 import com.zeroOneBlog.Dto.LoginRequestDto;
 import com.zeroOneBlog.Dto.RegisterRequestDto;
-import com.zeroOneBlog.Services.JwtService;
 import com.zeroOneBlog.Services.UserService;
 
 import jakarta.validation.Valid;
@@ -24,9 +22,6 @@ import lombok.RequiredArgsConstructor;
 
 public class AuthController {
     final UserService userService;
-    final JwtService jwtService;
-    final AuthResponseDto authResponseDto;
-
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequestDto dto) {
         return ResponseEntity.ok(userService.login(dto));

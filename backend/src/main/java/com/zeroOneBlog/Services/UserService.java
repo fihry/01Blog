@@ -41,9 +41,9 @@ public class UserService {
 
     // Login
     public AuthResponseDto login(LoginRequestDto dto) {
-        Optional<User> optionalUser = userRepository.findByUsername(dto.getUsernameOrEmail());
+        Optional<User> optionalUser = userRepository.findByUsername(dto.getUsername());
         if (optionalUser.isEmpty())
-            optionalUser = userRepository.findByEmail(dto.getUsernameOrEmail());
+            optionalUser = userRepository.findByEmail(dto.getUsername());
         if (optionalUser.isEmpty())
             throw new RuntimeException("Invalid credentials");
 

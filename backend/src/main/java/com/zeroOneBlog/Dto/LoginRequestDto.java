@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 public class LoginRequestDto {
     @NotBlank(message = "Username or email is required")
     @Size(min = 3, max = 50, message = "Username or email must be between 3 and 50 characters")
-    private String usernameOrEmail;
+    private String username;
 
     @NotBlank(message = "Password is required")
     @Size(min = 8, message = "Password must be at least 8 characters")
