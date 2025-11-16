@@ -1,12 +1,13 @@
 package com.zeroOneBlog.Dto;
 
+import com.zeroOneBlog.Types.RoleTypes;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import com.zeroOneBlog.Types.RoleTypes;
 
 @Data
 @NoArgsConstructor
