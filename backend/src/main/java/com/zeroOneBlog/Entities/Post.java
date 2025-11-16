@@ -4,6 +4,7 @@ import java.sql.Timestamp;
 import java.util.UUID;
 import java.util.List;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
 
 
 @Entity
@@ -13,10 +14,10 @@ public class Post {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 100)
     private String title;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(nullable = false, length = 10000)
     private String content;
 
     private String mediaUrl;

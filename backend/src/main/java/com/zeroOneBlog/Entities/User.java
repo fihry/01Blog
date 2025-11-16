@@ -3,6 +3,9 @@ package com.zeroOneBlog.Entities;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.UUID;
+
+import org.checkerframework.checker.units.qual.C;
+
 import com.zeroOneBlog.Types.RoleTypes;
 
 import jakarta.persistence.*;
@@ -17,10 +20,10 @@ public class User {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, length = 30)
     private String username;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, length = 100)
     private String email;
 
     @Column(nullable = false)
@@ -28,6 +31,8 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     private RoleTypes role = RoleTypes.USER;
+
+    @Column(length = 255)
     private String bio;
 
     private String avatarUrl;
