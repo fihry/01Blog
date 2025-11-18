@@ -45,8 +45,11 @@ env-check:
 	@echo "DB_PORT: $(DB_PORT)"
 	@echo "DB_NAME: $(DB_NAME)"
 	@echo "DB_USER: $(DB_USER)"
-	@echo "APP_PORT: $(APP_PORT)"
+	@echo "BACKEND_PORT: $(BACKEND_PORT)"
+	@echo "FRONTEND_PORT: $(FRONTEND_PORT)"
+	@echo "MINIO_PORT: $(MINIO_PORT)"
 	@echo "JWT_SECRET: $$(echo $(JWT_SECRET) | cut -c1-10)..."
+	@echo "JWT_EXPIRATION": $(JWT_EXPIRATION)
 
 # --------------------------
 # Docker Compose stack

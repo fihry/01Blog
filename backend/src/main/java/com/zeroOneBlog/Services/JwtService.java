@@ -1,33 +1,47 @@
 package com.zeroOneBlog.Services;
 
-import java.security.Key;
-import java.util.Base64;
-import java.util.Date;
-
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+import java.nio.charset.StandardCharsets;
+import java.security.Key;
+import java.util.Arrays;
+import java.util.Date;
 
 @Service
 public class JwtService {
 
     @Value("${jwt.secret}")
-    private String jwtSecretKey;
+    private String jwtSecret;
 
-    @Value("${jwt.expiration}")
+    @Value("${jwt.expiration:86400000}")
     private long expirationDate;
 
-    /**
-     * Generates a new JWT token for the given username.
-     */
+    private Key key; // actual key used for signing
+
+    @PostConstruct
+    public void init() {
+        byte[] keyBytes = jwtSecret.getBytes(StandardCharsets.UTF_8);
+        // Ensure key is at least 256 bits (32 bytes)
+        if (keyBytes.length < 32) {
+            keyBytes = Arrays.copyOf(keyBytes, 32);
+        }
+        this.key = Keys.hmacShaKeyFor(keyBytes);
+    }
+
     public String generateToken(String username, boolean rememberMe) {
-        Key key = generateKey();
+        if (key == null) {
+            throw new IllegalStateException("JWT key is not initialized!");
+        }
+
         long expirationTime = rememberMe ? expirationDate * 7 : expirationDate;
+
         return Jwts.builder()
                 .setSubject(username)
                 .setIssuedAt(new Date())
@@ -36,11 +50,7 @@ public class JwtService {
                 .compact();
     }
 
-    /**
-     * Parses a JWT token and returns its claims.
-     */
     public Claims parseToken(String token) {
-        Key key = generateKey();
         return Jwts.parserBuilder()
                 .setSigningKey(key)
                 .build()
@@ -48,28 +58,12 @@ public class JwtService {
                 .getBody();
     }
 
-    /**
-     * Checks if a token is valid (signed correctly and not expired).
-     */
     public boolean isValidToken(String token) {
         try {
             Claims claims = parseToken(token);
-            // Check expiration
             return claims.getExpiration().after(new Date());
         } catch (JwtException | IllegalArgumentException e) {
-            // Token is invalid
             return false;
         }
     }
-
-
-    /**
-     * Private helper that generates the signing key
-     */
-    private Key generateKey() {
-        String combined = jwtSecretKey + expirationDate;
-        byte[] decoded = Base64.getEncoder().encode(combined.getBytes());
-        return Keys.hmacShaKeyFor(decoded);
-    }
-
 }

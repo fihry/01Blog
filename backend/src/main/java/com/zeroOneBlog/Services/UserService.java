@@ -3,6 +3,8 @@ package com.zeroOneBlog.Services;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -12,9 +14,11 @@ import com.zeroOneBlog.Dto.LoginRequestDto;
 import com.zeroOneBlog.Dto.RegisterRequestDto;
 import com.zeroOneBlog.Dto.UserDto;
 import com.zeroOneBlog.Entities.User;
+import com.zeroOneBlog.Exceptions.ApiException;
 import com.zeroOneBlog.Repositories.UserRepository;
 import com.zeroOneBlog.Types.RoleTypes;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -23,20 +27,26 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
     // Registration
-    public User register(RegisterRequestDto dto) {
-        if (userRepository.existsByUsername(dto.getUsername()))
-            throw new RuntimeException("Username already taken");
-        if (userRepository.existsByEmail(dto.getEmail()))
-            throw new RuntimeException("Email already registered");
-
+    public User register(@Valid RegisterRequestDto dto) {
         User user = new User();
         user.setUsername(dto.getUsername());
         user.setEmail(dto.getEmail());
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
         user.setRole(RoleTypes.USER);
-        return userRepository.save(user);
+        try {
+            return userRepository.save(user);
+        } catch (DataIntegrityViolationException e) {
+            if (userRepository.existsByUsername(dto.getUsername())) {
+                throw new ApiException(HttpStatus.BAD_REQUEST, "Username already taken");
+            }
+            if (userRepository.existsByEmail(dto.getEmail())) {
+                throw new ApiException(HttpStatus.BAD_REQUEST, "Email already registered");
+            }
+            throw new ApiException(HttpStatus.BAD_REQUEST, "User registration failed");
+        }
     }
 
     // Login
@@ -44,16 +54,16 @@ public class UserService {
         Optional<User> optionalUser = userRepository.findByUsername(dto.getUsername());
         if (optionalUser.isEmpty())
             optionalUser = userRepository.findByEmail(dto.getUsername());
-        if (optionalUser.isEmpty())
-            throw new RuntimeException("Invalid credentials");
-
+        if (optionalUser.isEmpty()) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Invalid credentials");
+        }
         User user = optionalUser.get();
         if (!passwordEncoder.matches(dto.getPassword(), user.getPassword()))
-            throw new RuntimeException("Invalid credentials");
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Invalid credentials");
         // Successful login
         AuthResponseDto response = new AuthResponseDto();
         // generate token or session here if needed
-        String token = new JwtService().generateToken(user.getUsername(), dto.isRememberMe());
+        String token = jwtService.generateToken(user.getUsername(), dto.isRememberMe());
         response.setAccessToken(token);
         response.setUser(new UserDto(
                 user.getId().toString(),
@@ -68,7 +78,7 @@ public class UserService {
 
     public User getById(UUID id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "User not found"));
     }
 
     public UserDto getUserById(UUID id) {
@@ -115,7 +125,7 @@ public class UserService {
     public UUID getCurrentUserId() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         return userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"))
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "User not found"))
                 .getId();
     }
 }
