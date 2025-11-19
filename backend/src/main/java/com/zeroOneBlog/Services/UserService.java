@@ -16,6 +16,7 @@ import com.zeroOneBlog.Dto.UserDto;
 import com.zeroOneBlog.Entities.User;
 import com.zeroOneBlog.Exceptions.ApiException;
 import com.zeroOneBlog.Repositories.UserRepository;
+import com.zeroOneBlog.Types.MinioBucketTypes;
 import com.zeroOneBlog.Types.RoleTypes;
 
 import jakarta.validation.Valid;
@@ -28,6 +29,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final MinioService minioService;
 
     // Registration
     public User register(@Valid RegisterRequestDto dto) {
@@ -71,6 +73,7 @@ public class UserService {
                 user.getEmail(),
                 user.getBio(),
                 user.getAvatarUrl(),
+                null,
                 user.getRole(),
                 user.isActive()));
         return response;
@@ -89,6 +92,7 @@ public class UserService {
                 user.getEmail(),
                 user.getBio(),
                 user.getAvatarUrl(),
+                null,
                 user.getRole(),
                 user.isActive());
     }
@@ -96,14 +100,20 @@ public class UserService {
     public UserDto updateUser(UUID id, UserDto dto) {
         User user = getById(id);
         user.setBio(dto.getBio());
-        user.setAvatarUrl(dto.getAvatarUrl());
+        if (!dto.getAvatar().isEmpty() && dto.getAvatar() != null) {
+            MinioBucketTypes bucketType = getBucketByContentType(dto.getAvatar().getContentType());
+            String avatar_url = minioService.uploadFile(bucketType, dto.getAvatar());
+            user.setAvatarUrl(avatar_url);
+        }
         userRepository.save(user);
+        user.setAvatarUrl(minioService.getPresignedUrl(user.getAvatarUrl()));
         return new UserDto(
                 user.getId().toString(),
                 user.getUsername(),
                 user.getEmail(),
                 user.getBio(),
                 user.getAvatarUrl(),
+                null,
                 user.getRole(),
                 user.isActive());
     }
@@ -128,4 +138,22 @@ public class UserService {
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "User not found"))
                 .getId();
     }
+
+    private MinioBucketTypes getBucketByContentType(String contentType) {
+        if (contentType == null) {
+            throw new IllegalArgumentException("Content type cannot be null");
+        }
+
+        switch (contentType.split("/")[0]) { // Take the part before "/"
+            case "image":
+                return MinioBucketTypes.IMAGES;
+            case "video":
+                return MinioBucketTypes.VIDEOS;
+            case "audio":
+                return MinioBucketTypes.AUDIOS;
+            default:
+                throw new IllegalArgumentException("Unsupported content type: " + contentType);
+        }
+    }
+
 }
