@@ -1,4 +1,12 @@
-package com.zeroOneBlog.Services;
+package com.zeroOneBlog.Security;
+
+import java.nio.charset.StandardCharsets;
+import java.security.Key;
+import java.util.Arrays;
+import java.util.Date;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -6,13 +14,6 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
-import java.nio.charset.StandardCharsets;
-import java.security.Key;
-import java.util.Arrays;
-import java.util.Date;
 
 @Service
 public class JwtService {
@@ -66,4 +67,17 @@ public class JwtService {
             return false;
         }
     }
+
+    public boolean isTokenValid(String token, String username) {
+        return isValidToken(token) && username.equals(extractUsername(token));
+    }
+
+    public String extractUsername(String token) {
+        return parseToken(token).getSubject();
+    }
+
+    public Date extractExpiration(String token) {
+        return parseToken(token).getExpiration();
+    }
+
 }

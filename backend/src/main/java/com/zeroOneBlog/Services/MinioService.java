@@ -18,7 +18,6 @@ import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
 import io.minio.http.Method;
 
-
 @Service
 public class MinioService {
 
@@ -34,7 +33,8 @@ public class MinioService {
     @Value("${minio.url.external}")
     private String externalUrl;
 
-    public String uploadFile(MinioBucketTypes bucketType, MultipartFile file) {
+    public String uploadFile(MultipartFile file) {
+        MinioBucketTypes bucketType = getBucketByContentType(file.getContentType());
         String bucketName = bucketType.name().toLowerCase();
         String objectName = UUID.randomUUID() + "-" + file.getOriginalFilename();
 
@@ -81,6 +81,23 @@ public class MinioService {
 
         } catch (Exception e) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Cannot generate presigned link");
+        }
+    }
+
+    private MinioBucketTypes getBucketByContentType(String contentType) {
+        if (contentType == null) {
+            throw new IllegalArgumentException("Content type cannot be null");
+        }
+
+        switch (contentType.split("/")[0]) { // Take the part before "/"
+            case "image":
+                return MinioBucketTypes.IMAGES;
+            case "video":
+                return MinioBucketTypes.VIDEOS;
+            case "audio":
+                return MinioBucketTypes.AUDIOS;
+            default:
+                throw new IllegalArgumentException("Unsupported content type: " + contentType);
         }
     }
 }

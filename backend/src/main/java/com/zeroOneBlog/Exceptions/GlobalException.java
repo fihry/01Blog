@@ -1,9 +1,11 @@
 package com.zeroOneBlog.Exceptions;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.NoHandlerFoundException;
 
 @RestControllerAdvice
 public class GlobalException {
@@ -29,6 +31,20 @@ public class GlobalException {
                 .body(new ErrorResponse(400, message));
     }
 
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<?> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex) {
+        return ResponseEntity
+                .status(405)
+                .body(new ErrorResponse(405, "Method not allowed: " + ex.getMethod()));
+    }
+
+    @ExceptionHandler(NoHandlerFoundException.class)
+    public ResponseEntity<?> handleNotFound(NoHandlerFoundException ex) {
+        return ResponseEntity
+                .status(404)
+                .body(new ErrorResponse(404, "Endpoint not found"));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleException(Exception ex) {
         ex.printStackTrace();
@@ -37,6 +53,5 @@ public class GlobalException {
                 .body(new ErrorResponse(500, "Internal server error"));
     }
 
-    record ErrorResponse(int status, String message) {
-    }
+    record ErrorResponse(int status, String message) {}
 }

@@ -16,7 +16,7 @@ import com.zeroOneBlog.Dto.UserDto;
 import com.zeroOneBlog.Entities.User;
 import com.zeroOneBlog.Exceptions.ApiException;
 import com.zeroOneBlog.Repositories.UserRepository;
-import com.zeroOneBlog.Types.MinioBucketTypes;
+import com.zeroOneBlog.Security.JwtService;
 import com.zeroOneBlog.Types.RoleTypes;
 
 import jakarta.validation.Valid;
@@ -54,14 +54,16 @@ public class UserService {
     // Login
     public AuthResponseDto login(LoginRequestDto dto) {
         Optional<User> optionalUser = userRepository.findByUsername(dto.getUsername());
-        if (optionalUser.isEmpty())
+        if (optionalUser.isEmpty()) {
             optionalUser = userRepository.findByEmail(dto.getUsername());
+        }
         if (optionalUser.isEmpty()) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Invalid credentials");
         }
         User user = optionalUser.get();
-        if (!passwordEncoder.matches(dto.getPassword(), user.getPassword()))
+        if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Invalid credentials");
+        }
         // Successful login
         AuthResponseDto response = new AuthResponseDto();
         // generate token or session here if needed
@@ -86,6 +88,7 @@ public class UserService {
 
     public UserDto getUserById(UUID id) {
         User user = getById(id);
+        user.setAvatarUrl(minioService.getPresignedUrl(user.getAvatarUrl()));
         return new UserDto(
                 user.getId().toString(),
                 user.getUsername(),
@@ -100,9 +103,8 @@ public class UserService {
     public UserDto updateUser(UUID id, UserDto dto) {
         User user = getById(id);
         user.setBio(dto.getBio());
-        if (!dto.getAvatar().isEmpty() && dto.getAvatar() != null) {
-            MinioBucketTypes bucketType = getBucketByContentType(dto.getAvatar().getContentType());
-            String avatar_url = minioService.uploadFile(bucketType, dto.getAvatar());
+        if (dto.getAvatar() != null && !dto.getAvatar().isEmpty()) {
+            String avatar_url = minioService.uploadFile(dto.getAvatar());
             user.setAvatarUrl(avatar_url);
         }
         userRepository.save(user);
@@ -137,23 +139,6 @@ public class UserService {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "User not found"))
                 .getId();
-    }
-
-    private MinioBucketTypes getBucketByContentType(String contentType) {
-        if (contentType == null) {
-            throw new IllegalArgumentException("Content type cannot be null");
-        }
-
-        switch (contentType.split("/")[0]) { // Take the part before "/"
-            case "image":
-                return MinioBucketTypes.IMAGES;
-            case "video":
-                return MinioBucketTypes.VIDEOS;
-            case "audio":
-                return MinioBucketTypes.AUDIOS;
-            default:
-                throw new IllegalArgumentException("Unsupported content type: " + contentType);
-        }
     }
 
 }
