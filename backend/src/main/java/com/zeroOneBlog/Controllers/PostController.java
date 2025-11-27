@@ -2,6 +2,8 @@ package com.zeroOneBlog.Controllers;
 
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -27,6 +29,17 @@ public class PostController {
 
     private final PostService postService;
 
+    @GetMapping("/")
+    public ResponseEntity<Page<PostDto>> getAllPosts(
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        UUID currentUserId = userDetails.getId();
+        Pageable page = Pageable.unpaged();
+
+        Page<PostDto> posts = postService.getAllPosts(page, currentUserId);
+        return ResponseEntity.ok(posts);
+    }
+
     @GetMapping("/{postId}")
     public ResponseEntity<PostDto> getPost(
             @PathVariable UUID postId,
@@ -45,7 +58,7 @@ public class PostController {
         UUID currentUserId = userDetails.getId();
         PostDto createdPost = postService.createPost(postCreateDto, currentUserId);
         return ResponseEntity
-        .status(HttpStatus.CREATED)
-        .body(createdPost);
+                .status(HttpStatus.CREATED)
+                .body(createdPost);
     }
 }

@@ -62,6 +62,15 @@ public class MinioService {
     }
 
     public String getPresignedUrl(String fullPath) {
+
+        if (fullPath == null || fullPath.isBlank()) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Media path is missing");
+        }
+
+        if (!fullPath.contains("/")) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Invalid media path format: " + fullPath);
+        }
+
         String[] parts = fullPath.split("/", 2);
         String bucket = parts[0];
         String object = parts[1];
@@ -80,6 +89,7 @@ public class MinioService {
             return presigned.replace(internalUrl, externalUrl);
 
         } catch (Exception e) {
+            e.printStackTrace();
             throw new ApiException(HttpStatus.BAD_REQUEST, "Cannot generate presigned link");
         }
     }

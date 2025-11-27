@@ -2,6 +2,8 @@ package com.zeroOneBlog.Services;
 
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -43,9 +45,11 @@ public class PostService {
                 post.getAuthor().getUsername(),
                 post.getAuthor().getAvatarUrl()
         );
-        post.setMediaUrl(minioService.getPresignedUrl(post.getMediaUrl()));
-        long likeCount = likeRepository.countByPostId(postId);
-        long commentCount = commentRepository.countByPostId(postId);
+        if (post.getMediaUrl() != null && !post.getMediaUrl().isBlank()) {
+            post.setMediaUrl(minioService.getPresignedUrl(post.getMediaUrl()));
+        }
+        int likeCount = likeRepository.countByPostId(postId);
+        int commentCount = commentRepository.countByPostId(postId);
 
         boolean likedByUser = likeRepository.existsByPostIdAndUserId(postId, currentUserId);
         return new PostDto(
@@ -56,8 +60,8 @@ public class PostService {
                 authorSummary,
                 post.getCreatedAt(),
                 post.getUpdatedAt(),
-                (int) likeCount,
-                (int) commentCount,
+                likeCount,
+                commentCount,
                 likedByUser
         );
     }
@@ -102,6 +106,37 @@ public class PostService {
                 0,
                 false
         );
+    }
+
+    public Page<PostDto> getAllPosts(Pageable pageable, UUID currentUserId) {
+        pageable = (pageable == null) ? Pageable.unpaged() : pageable;
+        Page<Post> postsPage = postRepository.findAllByOrderByCreatedAtDesc(pageable);
+        return postsPage.map(post -> {
+            UserSummaryDto authorSummary = new UserSummaryDto(
+                    post.getAuthor().getId(),
+                    post.getAuthor().getUsername(),
+                    post.getAuthor().getAvatarUrl()
+            );
+            System.out.println("Generating presigned URL for media: " + post.getMediaUrl());
+            if (post.getMediaUrl() != null && !post.getMediaUrl().isBlank()) {
+                post.setMediaUrl(minioService.getPresignedUrl(post.getMediaUrl()));
+            }
+            int likeCount = likeRepository.countByPostId(post.getId());
+            int commentCount = commentRepository.countByPostId(post.getId());
+            boolean likedByUser = likeRepository.existsByPostIdAndUserId(post.getId(), currentUserId);
+            return new PostDto(
+                    post.getId(),
+                    post.getTitle(),
+                    post.getContent(),
+                    post.getMediaUrl(),
+                    authorSummary,
+                    post.getCreatedAt(),
+                    post.getUpdatedAt(),
+                    likeCount,
+                    commentCount,
+                    likedByUser
+            );
+        });
     }
 
 }
