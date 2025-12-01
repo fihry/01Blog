@@ -8,11 +8,17 @@
   - @ManyToMany: subscriptions
 
 ## Posts
-- Fields: id, user_id, description, media_url, created_at
+- Fields: id, user_id, title, content, created_at, updated_at
 - Relationships: 
   - @ManyToOne: user
+  - @OneToMany: media
   - @OneToMany: comments
   - @OneToMany: likes
+
+## Media
+- Fields: id, post_id, media_url, media_type, created_at
+- Relationships:
+  - @ManyToOne: post
 
 ## Comments
 - Fields: id, post_id, user_id, content, created_at

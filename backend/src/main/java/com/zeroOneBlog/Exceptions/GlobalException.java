@@ -1,10 +1,12 @@
 package com.zeroOneBlog.Exceptions;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
 @RestControllerAdvice
@@ -26,6 +28,24 @@ public class GlobalException {
                 .findFirst()
                 .orElse("Invalid input");
 
+        return ResponseEntity
+                .status(400)
+                .body(new ErrorResponse(400, message));
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<?> handleMessageNotReadable(HttpMessageNotReadableException ex) {
+        return ResponseEntity
+                .status(400)
+                .body(new ErrorResponse(400, "Request body is missing or malformed"));
+    }
+
+    @ExceptionHandler(MultipartException.class)
+    public ResponseEntity<?> handleMultipartException(MultipartException ex) {
+        String message = "Invalid multipart request";
+        if (ex.getMessage().contains("no multipart boundary")) {
+            message = "Content-Type must be application/json for JSON requests, not multipart/form-data";
+        }
         return ResponseEntity
                 .status(400)
                 .body(new ErrorResponse(400, message));

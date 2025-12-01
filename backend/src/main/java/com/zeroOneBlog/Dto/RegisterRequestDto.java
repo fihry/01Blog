@@ -28,5 +28,4 @@ public class RegisterRequestDto {
 
     @Size(max = 255, message = "Bio must not exceed 255 characters")
     private String bio;
-    private String avatarUrl;
 }

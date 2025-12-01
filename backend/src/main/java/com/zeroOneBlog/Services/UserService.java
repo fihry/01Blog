@@ -53,10 +53,7 @@ public class UserService {
 
     // Login
     public AuthResponseDto login(LoginRequestDto dto) {
-        Optional<User> optionalUser = userRepository.findByUsername(dto.getUsername());
-        if (optionalUser.isEmpty()) {
-            optionalUser = userRepository.findByEmail(dto.getUsername());
-        }
+        Optional<User> optionalUser = userRepository.findByEmail(dto.getEmail());
         if (optionalUser.isEmpty()) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Invalid credentials");
         }
@@ -70,14 +67,13 @@ public class UserService {
         String token = jwtService.generateToken(user.getUsername(), dto.isRememberMe());
         response.setAccessToken(token);
         response.setUser(new UserDto(
-                user.getId().toString(),
-                user.getUsername(),
-                user.getEmail(),
-                user.getBio(),
-                user.getAvatarUrl(),
-                null,
-                user.getRole(),
-                user.isActive()));
+            user.getId().toString(),
+            user.getUsername(),
+            user.getEmail(),
+            user.getBio(),
+            user.getAvatarUrl(),
+            user.getRole(),
+            user.isActive()));
         return response;
     }
 
@@ -88,34 +84,41 @@ public class UserService {
 
     public UserDto getUserById(UUID id) {
         User user = getById(id);
-        user.setAvatarUrl(minioService.getPresignedUrl(user.getAvatarUrl()));
+        // Only generate presigned URL if avatar exists
+        if (user.getAvatarUrl() != null && !user.getAvatarUrl().isBlank()) {
+            user.setAvatarUrl(minioService.getPresignedUrl(user.getAvatarUrl()));
+        }
         return new UserDto(
                 user.getId().toString(),
                 user.getUsername(),
                 user.getEmail(),
                 user.getBio(),
                 user.getAvatarUrl(),
-                null,
                 user.getRole(),
                 user.isActive());
     }
 
-    public UserDto updateUser(UUID id, UserDto dto) {
+    public UserDto updateUser(UUID id, com.zeroOneBlog.Dto.UserUpdateDto dto) {
         User user = getById(id);
-        user.setBio(dto.getBio());
+        // Only update bio when provided (avoid overwriting with null)
+        if (dto.getBio() != null) {
+            user.setBio(dto.getBio());
+        }
         if (dto.getAvatar() != null && !dto.getAvatar().isEmpty()) {
             String avatar_url = minioService.uploadFile(dto.getAvatar());
             user.setAvatarUrl(avatar_url);
         }
         userRepository.save(user);
-        user.setAvatarUrl(minioService.getPresignedUrl(user.getAvatarUrl()));
+        // Only generate presigned URL if avatar exists
+        if (user.getAvatarUrl() != null && !user.getAvatarUrl().isBlank()) {
+            user.setAvatarUrl(minioService.getPresignedUrl(user.getAvatarUrl()));
+        }
         return new UserDto(
                 user.getId().toString(),
                 user.getUsername(),
                 user.getEmail(),
                 user.getBio(),
                 user.getAvatarUrl(),
-                null,
                 user.getRole(),
                 user.isActive());
     }

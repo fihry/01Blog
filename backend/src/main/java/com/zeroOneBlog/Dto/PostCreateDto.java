@@ -1,12 +1,18 @@
 package com.zeroOneBlog.Dto;
 
+import java.util.List;
+
 import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class PostCreateDto {
 
     @NotBlank(message = "Title cannot be empty")
@@ -17,5 +23,5 @@ public class PostCreateDto {
     @Size(min = 100, max = 10000, message = "Content must be between 100 and 10000 characters")
     private String content;
 
-    private MultipartFile media;
+    private List<MultipartFile> mediaFiles;
 }

@@ -16,6 +16,7 @@ import io.minio.BucketExistsArgs;
 import io.minio.GetPresignedObjectUrlArgs;
 import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
+import io.minio.RemoveObjectArgs;
 import io.minio.http.Method;
 
 @Service
@@ -23,9 +24,6 @@ public class MinioService {
 
     @Autowired
     private MinioClient minioClient;
-
-    @Value("${minio.url}")
-    private String minioUrl;
 
     @Value("${minio.url.internal}")
     private String internalUrl;
@@ -86,7 +84,41 @@ public class MinioService {
                             .build()
             );
 
-            return presigned.replace(internalUrl, externalUrl);
+            // Log the generated presigned URL for debugging (can be removed later)
+            System.out.println("[MinioService] raw presigned url: " + presigned);
+
+            // If the presigned URL contains the internal URL string, do a direct replacement.
+            if (presigned.contains(internalUrl)) {
+                return presigned.replace(internalUrl, externalUrl);
+            }
+
+            // Otherwise try a more robust replacement: replace host+port using URI parsing
+            try {
+                java.net.URI presignedUri = new java.net.URI(presigned);
+                java.net.URI externalUri = new java.net.URI(externalUrl);
+
+                String newScheme = externalUri.getScheme() != null ? externalUri.getScheme() : presignedUri.getScheme();
+                String newHost = externalUri.getHost() != null ? externalUri.getHost() : presignedUri.getHost();
+                int newPort = externalUri.getPort() != -1 ? externalUri.getPort() : presignedUri.getPort();
+
+                java.net.URI rebuilt = new java.net.URI(
+                        newScheme,
+                        null,
+                        newHost,
+                        newPort,
+                        presignedUri.getRawPath(),
+                        presignedUri.getRawQuery(),
+                        presignedUri.getRawFragment()
+                );
+
+                String rebuiltStr = rebuilt.toString();
+                System.out.println("[MinioService] rewritten presigned url: " + rebuiltStr);
+                return rebuiltStr;
+            } catch (Exception e2) {
+                // Fallback to returning original presigned (we already logged it)
+                e2.printStackTrace();
+                return presigned;
+            }
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -108,6 +140,33 @@ public class MinioService {
                 return MinioBucketTypes.AUDIOS;
             default:
                 throw new IllegalArgumentException("Unsupported content type: " + contentType);
+        }
+    }
+
+    // Delete an uploaded object given its stored full path in the form "bucket/objectName"
+    public void deleteFile(String fullPath) {
+        if (fullPath == null || fullPath.isBlank()) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Media path is missing");
+        }
+
+        if (!fullPath.contains("/")) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Invalid media path format: " + fullPath);
+        }
+
+        String[] parts = fullPath.split("/", 2);
+        String bucket = parts[0];
+        String object = parts[1];
+
+        try {
+            minioClient.removeObject(
+                    RemoveObjectArgs.builder()
+                            .bucket(bucket)
+                            .object(object)
+                            .build()
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new ApiException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to delete media");
         }
     }
 }

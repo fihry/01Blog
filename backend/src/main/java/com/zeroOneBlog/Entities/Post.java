@@ -33,14 +33,15 @@ public class Post {
     @Column(nullable = false, length = 10000)
     private String content;
 
-    private String mediaUrl;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_id", nullable = false)
     private User author;
 
     private Timestamp createdAt = new Timestamp(System.currentTimeMillis());
     private Timestamp updatedAt = new Timestamp(System.currentTimeMillis());
+
+    @OneToMany(mappedBy = "post", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<Media> media;
 
     @OneToMany(mappedBy = "post", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Comment> comments;
