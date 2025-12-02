@@ -55,10 +55,10 @@ public class PostService {
 
         List<MediaDto> mediaDtos = post.getMedia() != null ? post.getMedia().stream()
                 .map(media -> MediaDto.builder()
-                        .id(media.getId())
-                        .mediaUrl(minioService.getPresignedUrl(media.getMediaUrl()))
-                        .mediaType(media.getMediaType())
-                        .build())
+                .id(media.getId())
+                .mediaUrl(minioService.getPresignedUrl(media.getMediaUrl()))
+                .mediaType(media.getMediaType())
+                .build())
                 .collect(Collectors.toList()) : List.of();
 
         int likeCount = likeRepository.countByPostId(postId);
@@ -98,17 +98,17 @@ public class PostService {
                     .map(file -> {
                         String mediaUrl = minioService.uploadFile(file);
                         MinioBucketTypes mediaType = getPostMediaType(file.getContentType());
-                        
+
                         if (mediaType == null) {
                             throw new ApiException(HttpStatus.BAD_REQUEST, "Posts only support images and videos");
                         }
-                        
+
                         Media media = new Media();
                         media.setPost(savedPost);
                         media.setMediaUrl(mediaUrl);
                         media.setMediaType(mediaType);
                         mediaRepository.save(media);
-                        
+
                         return MediaDto.builder()
                                 .id(media.getId())
                                 .mediaUrl(minioService.getPresignedUrl(mediaUrl))
@@ -142,19 +142,23 @@ public class PostService {
         pageable = (pageable == null) ? Pageable.unpaged() : pageable;
         Page<Post> postsPage = postRepository.findAllByOrderByCreatedAtDesc(pageable);
         return postsPage.map(post -> {
+            String avatarUrl = post.getAuthor().getAvatarUrl();
+            if (avatarUrl != null) {
+                avatarUrl = minioService.getPresignedUrl(avatarUrl);
+            }
             UserSummaryDto authorSummary = new UserSummaryDto(
                     post.getAuthor().getId(),
                     post.getAuthor().getUsername(),
-                    post.getAuthor().getAvatarUrl()
+                    avatarUrl
             );
 
             List<MediaDto> mediaDtos = post.getMedia() != null ? post.getMedia().stream()
-                    .map(media -> MediaDto.builder()
-                            .id(media.getId())
-                            .mediaUrl(minioService.getPresignedUrl(media.getMediaUrl()))
-                            .mediaType(media.getMediaType())
-                            .build())
-                    .collect(Collectors.toList()) : List.of();
+                .map(media -> MediaDto.builder()
+                .id(media.getId())
+                .mediaUrl(minioService.getPresignedUrl(media.getMediaUrl()))
+                .mediaType(media.getMediaType())
+                .build())
+                .collect(Collectors.toList()) : List.of();
 
             int likeCount = likeRepository.countByPostId(post.getId());
             int commentCount = commentRepository.countByPostId(post.getId());
@@ -176,18 +180,18 @@ public class PostService {
 
     public PostDto updatePost(UUID postId, PostCreateDto dto, UUID currentUserId) {
         Post post = getById(postId);
-        
+
         // Check if current user is the author
         if (!post.getAuthor().getId().equals(currentUserId)) {
             throw new ApiException(HttpStatus.FORBIDDEN, "You can only update your own posts");
         }
-        
+
         post.setTitle(dto.getTitle());
         post.setContent(dto.getContent());
         post.setUpdatedAt(new java.sql.Timestamp(System.currentTimeMillis()));
-        
+
         Post updatedPost = postRepository.save(post);
-        
+
         // Handle media updates if provided
         List<MediaDto> mediaDtos = List.of();
         if (dto.getMediaFiles() != null && !dto.getMediaFiles().isEmpty()) {
@@ -198,24 +202,24 @@ public class PostService {
                     mediaRepository.delete(oldMedia);
                 }
             }
-            
+
             // Upload new media
             mediaDtos = dto.getMediaFiles().stream()
                     .filter(file -> file != null && !file.isEmpty())
                     .map(file -> {
                         String mediaUrl = minioService.uploadFile(file);
                         MinioBucketTypes mediaType = getPostMediaType(file.getContentType());
-                        
+
                         if (mediaType == null) {
                             throw new ApiException(HttpStatus.BAD_REQUEST, "Posts only support images and videos");
                         }
-                        
+
                         Media media = new Media();
                         media.setPost(updatedPost);
                         media.setMediaUrl(mediaUrl);
                         media.setMediaType(mediaType);
                         mediaRepository.save(media);
-                        
+
                         return MediaDto.builder()
                                 .id(media.getId())
                                 .mediaUrl(minioService.getPresignedUrl(mediaUrl))
@@ -228,24 +232,24 @@ public class PostService {
             if (updatedPost.getMedia() != null) {
                 mediaDtos = updatedPost.getMedia().stream()
                         .map(media -> MediaDto.builder()
-                                .id(media.getId())
-                                .mediaUrl(minioService.getPresignedUrl(media.getMediaUrl()))
-                                .mediaType(media.getMediaType())
-                                .build())
+                        .id(media.getId())
+                        .mediaUrl(minioService.getPresignedUrl(media.getMediaUrl()))
+                        .mediaType(media.getMediaType())
+                        .build())
                         .collect(Collectors.toList());
             }
         }
-        
+
         UserSummaryDto authorSummary = new UserSummaryDto(
                 updatedPost.getAuthor().getId(),
                 updatedPost.getAuthor().getUsername(),
                 updatedPost.getAuthor().getAvatarUrl()
         );
-        
+
         int likeCount = likeRepository.countByPostId(postId);
         int commentCount = commentRepository.countByPostId(postId);
         boolean likedByUser = likeRepository.existsByPostIdAndUserId(postId, currentUserId);
-        
+
         return new PostDto(
                 updatedPost.getId(),
                 updatedPost.getTitle(),
@@ -259,30 +263,36 @@ public class PostService {
                 likedByUser
         );
     }
-    
+
     public void deletePost(UUID postId, UUID currentUserId) {
         Post post = getById(postId);
-        
+
         // Check if current user is the author
         if (!post.getAuthor().getId().equals(currentUserId)) {
             throw new ApiException(HttpStatus.FORBIDDEN, "You can only delete your own posts");
         }
-        
+
         // Delete associated media files from Minio
         if (post.getMedia() != null) {
             for (Media media : post.getMedia()) {
                 minioService.deleteFile(media.getMediaUrl());
             }
         }
-        
+
         postRepository.delete(post);
     }
 
     // Helper method to determine media type from content type (only images and videos for posts)
     private MinioBucketTypes getPostMediaType(String contentType) {
-        if (contentType == null) return null;
-        if (contentType.startsWith("video")) return MinioBucketTypes.VIDEOS;
-        if (contentType.startsWith("image")) return MinioBucketTypes.IMAGES;
+        if (contentType == null) {
+            return null;
+        }
+        if (contentType.startsWith("video")) {
+            return MinioBucketTypes.VIDEOS;
+        }
+        if (contentType.startsWith("image")) {
+            return MinioBucketTypes.IMAGES;
+        }
         return null; // Reject audio and other types
     }
 }
