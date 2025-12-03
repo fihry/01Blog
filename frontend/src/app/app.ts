@@ -1,16 +1,20 @@
-import { Component, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component } from "@angular/core"
+import { RouterOutlet } from "@angular/router"
+import { NavbarComponent } from "./shared/navbar/navbar.component"
+import { ToastComponent } from "./shared/toast/toast.component"
 
 @Component({
-  selector: 'app-root',
+  selector: "app-root",
   standalone: true,
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, NavbarComponent, ToastComponent],
   template: `
-    <h1>{{ title() }}</h1>
-    <router-outlet></router-outlet>
+    <app-navbar></app-navbar>
+    <main class="min-h-screen bg-slate-950">
+      <router-outlet></router-outlet>
+    </main>
+    <app-toast></app-toast>
   `,
-  styleUrls: ['../assets/styles/global.css'] // fixed path
 })
-export class App {
-  protected readonly title = signal('01blog - Angular + PrimeNG');
+export class AppComponent {
+  title = "blog-app"
 }

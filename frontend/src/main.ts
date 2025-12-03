@@ -1,6 +1,11 @@
-import { bootstrapApplication } from '@angular/platform-browser';
-import { App } from './app/app';
-import { appConfig } from './app/app.config';
+import { bootstrapApplication } from "@angular/platform-browser"
+import { provideAnimations } from "@angular/platform-browser/animations"
+import { provideRouter } from "@angular/router"
+import { provideHttpClient, withInterceptors } from "@angular/common/http"
+import { AppComponent } from "./app/app.component" // Fixed import paths to use .ts instead of .tsx
+import { routes } from "./app/app.routes"
+import { authInterceptor } from "./app/core/interceptors/auth.interceptor"
 
-bootstrapApplication(App, appConfig)
-  .catch(err => console.error(err));
+bootstrapApplication(AppComponent, {
+  providers: [provideRouter(routes), provideAnimations(), provideHttpClient(withInterceptors([authInterceptor]))],
+}).catch((err) => console.error(err))
