@@ -1,6 +1,7 @@
 import { Component, type OnInit } from "@angular/core"
 import { CommonModule } from "@angular/common"
 import { PostCardComponent } from "../post-card/post-card.component"
+import {CreatePostModalComponent} from "../create-post-modal/create-post-modal.component"
 
 interface Post {
   id: number

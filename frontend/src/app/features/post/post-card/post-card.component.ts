@@ -16,7 +16,7 @@ interface Post {
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="bg-slate-900 rounded-lg shadow-md p-6 border border-slate-800 hover:border-cyan-600 transition">
+    <!-- <div class="bg-slate-900 rounded-lg shadow-md p-6 border border-slate-800 hover:border-cyan-600 transition">
       <div class="flex items-center justify-between mb-4">
         <div>
           <h3 class="text-xl font-bold text-white">{{ post.title }}</h3>
@@ -34,7 +34,7 @@ interface Post {
           <span>💬</span> {{ post.comments }}
         </button>
       </div>
-    </div>
+    </div> -->
   `,
 })
 export class PostCardComponent {

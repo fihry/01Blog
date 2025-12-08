@@ -1,86 +1,80 @@
-import { Component } from "@angular/core"
-import { CommonModule } from "@angular/common"
-import {  FormBuilder,  FormGroup, ReactiveFormsModule, Validators } from "@angular/forms"
-import {  Router, RouterLink } from "@angular/router"
-import  { AuthService } from "../../../core/services/auth.service"
+// src/app/modules/auth/components/register/register.component.ts
+
+import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
+import { AuthService } from '../../../core/services/auth.service';
+import { SpinnerComponent } from '../../../shared/components/spinner/spinner.component'; 
+import { ToastService } from '../../../shared/services/toast.service'; 
+
 @Component({
-  selector: "app-register",
+  selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
-  template: `
-    <div class="min-h-screen flex items-center justify-center bg-slate-950">
-      <div class="w-full max-w-md">
-        <div class="bg-slate-900 rounded-lg shadow-xl p-8 border border-slate-800">
-          <h2 class="text-3xl font-bold text-white mb-2">Create Account</h2>
-          <p class="text-slate-400 mb-8">Join BlogHub today</p>
-
-          <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="space-y-4">
-            <div>
-              <label class="block text-slate-300 text-sm font-medium mb-2">Username</label>
-              <input
-                type="text"
-                formControlName="username"
-                class="w-full px-4 py-2 bg-slate-800 text-white rounded-lg border border-slate-700 focus:outline-none focus:border-cyan-500"
-              />
-            </div>
-
-            <div>
-              <label class="block text-slate-300 text-sm font-medium mb-2">Email</label>
-              <input
-                type="email"
-                formControlName="email"
-                class="w-full px-4 py-2 bg-slate-800 text-white rounded-lg border border-slate-700 focus:outline-none focus:border-cyan-500"
-              />
-            </div>
-
-            <div>
-              <label class="block text-slate-300 text-sm font-medium mb-2">Password</label>
-              <input
-                type="password"
-                formControlName="password"
-                class="w-full px-4 py-2 bg-slate-800 text-white rounded-lg border border-slate-700 focus:outline-none focus:border-cyan-500"
-              />
-            </div>
-
-            <button
-              type="submit"
-              [disabled]="registerForm.invalid"
-              class="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-medium py-2 rounded-lg transition disabled:opacity-50"
-            >
-              Create Account
-            </button>
-          </form>
-
-          <p class="text-center text-slate-400 mt-6">
-            Already have an account?
-            <a routerLink="/login" class="text-cyan-400 hover:text-cyan-300">Sign in</a>
-          </p>
-        </div>
-      </div>
-    </div>
-  `,
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, SpinnerComponent], 
+  templateUrl: './register.component.html',
+  styleUrls: ['../auth.component.scss'],
 })
 export class RegisterComponent {
-  registerForm: FormGroup
+  registerForm: FormGroup;
+  isLoading: boolean = false;
+  errorMessage: string | null = null;
 
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
     private router: Router,
+    private toastService: ToastService 
   ) {
     this.registerForm = this.fb.group({
-      username: ["", Validators.required],
-      email: ["", [Validators.required, Validators.email]],
-      password: ["", Validators.required],
-    })
+      // Username validation: required, min 3 characters
+      username: ['', [Validators.required, Validators.minLength(3)]], 
+      // Email validation: required, valid email format
+      email: ['', [Validators.required, Validators.email]],
+      // Password validation: required, min 6 characters
+      password: ['', [Validators.required, Validators.minLength(6)]],
+    });
   }
 
+
+  get usernameControl(): AbstractControl | null {
+    return this.registerForm.get('username');
+  }
+
+  get emailControl(): AbstractControl | null {
+    return this.registerForm.get('email');
+  }
+
+  get passwordControl(): AbstractControl | null {
+    return this.registerForm.get('password');
+  }
+
+
   onSubmit(): void {
+    // 1. Mark all controls as touched to trigger validation feedback immediately
+    this.registerForm.markAllAsTouched(); 
+
     if (this.registerForm.valid) {
-      this.authService.register(this.registerForm.value).subscribe({
-        next: () => this.router.navigate(["/feed"]),
-        error: (err) => console.error("Registration failed:", err),
-      })
+      this.isLoading = true; 
+      this.errorMessage = null; 
+
+      const { username, email, password } = this.registerForm.value;
+
+      this.authService.register({ username, email, password }).subscribe({
+        next: () => {
+          this.isLoading = false;
+          this.toastService.showSuccess("Registration Successful", "Please log in to start blogging!");
+          this.router.navigate(["/login"]);
+        },
+        error: (err) => {
+          this.isLoading = false;
+          const apiError = err.error?.message || "An unexpected error occurred during registration.";
+          
+          this.errorMessage = apiError; 
+          this.toastService.showError("Registration Failed", apiError);
+          console.error("Registration failed:", err);
+        },
+      });
     }
   }
 }

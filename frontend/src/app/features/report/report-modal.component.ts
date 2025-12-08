@@ -100,14 +100,14 @@ export class ReportModalComponent {
         })
         .subscribe({
           next: () => {
-            this.toastService.success("Report submitted successfully")
+            this.toastService.showSuccess("","Report submitted successfully")
             this.reportForm.reset()
             this.isLoading = false
             modal.dismiss()
             this.reportSubmitted.emit()
           },
           error: () => {
-            this.toastService.error("Failed to submit report")
+            this.toastService.showError("","Failed to submit report")
             this.isLoading = false
           },
         })

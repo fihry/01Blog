@@ -1,77 +1,71 @@
+// src/app/modules/auth/components/login/login.component.ts
+
 import { Component } from "@angular/core"
 import { CommonModule } from "@angular/common"
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms"
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl } from "@angular/forms"
 import { Router, RouterLink } from "@angular/router"
 import { AuthService } from "../../../core/services/auth.service"
+import { SpinnerComponent } from "../../../shared/components/spinner/spinner.component" 
+import { ToastService } from "../../../shared/services/toast.service" 
 
 @Component({
   selector: "app-login",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
-  template: `
-    <div class="min-h-screen flex items-center justify-center bg-slate-950">
-      <div class="w-full max-w-md">
-        <div class="bg-slate-900 rounded-lg shadow-xl p-8 border border-slate-800">
-          <h2 class="text-3xl font-bold text-white mb-2">Sign In</h2>
-          <p class="text-slate-400 mb-8">Welcome back to BlogHub</p>
-
-          <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-4">
-            <div>
-              <label class="block text-slate-300 text-sm font-medium mb-2">Email</label>
-              <input
-                type="email"
-                formControlName="email"
-                class="w-full px-4 py-2 bg-slate-800 text-white rounded-lg border border-slate-700 focus:outline-none focus:border-cyan-500"
-              />
-            </div>
-
-            <div>
-              <label class="block text-slate-300 text-sm font-medium mb-2">Password</label>
-              <input
-                type="password"
-                formControlName="password"
-                class="w-full px-4 py-2 bg-slate-800 text-white rounded-lg border border-slate-700 focus:outline-none focus:border-cyan-500"
-              />
-            </div>
-
-            <button
-              type="submit"
-              [disabled]="loginForm.invalid"
-              class="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-medium py-2 rounded-lg transition disabled:opacity-50"
-            >
-              Sign In
-            </button>
-          </form>
-
-          <p class="text-center text-slate-400 mt-6">
-            Don't have an account?
-            <a routerLink="/register" class="text-cyan-400 hover:text-cyan-300">Sign up</a>
-          </p>
-        </div>
-      </div>
-    </div>
-  `,
+  // 💡 Note: SpinnerComponent should be included here if you are using it in the template.
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, SpinnerComponent], 
+  templateUrl:"./login.component.html",
+  styleUrls: ["../auth.component.scss"],
 })
 export class LoginComponent {
-  loginForm: FormGroup
+  loginForm: FormGroup;
+  isLoading: boolean = false; 
+  errorMessage: string | null = null;
 
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
     private router: Router,
+    private toastService: ToastService 
   ) {
     this.loginForm = this.fb.group({
       email: ["", [Validators.required, Validators.email]],
-      password: ["", Validators.required],
-    })
+      password: ["", [Validators.required, Validators.minLength(6)]],
+    });
+  }
+
+  get emailControl(): AbstractControl | null {
+    return this.loginForm.get('email');
+  }
+
+  get passwordControl(): AbstractControl | null {
+    return this.loginForm.get('password');
   }
 
   onSubmit(): void {
+    // Mark all controls as touched to trigger validation feedback on submit
+    this.loginForm.markAllAsTouched(); 
+    
     if (this.loginForm.valid) {
-      this.authService.login(this.loginForm.value).subscribe({
-        next: () => this.router.navigate(["/feed"]),
-        error: (err) => console.error("Login failed:", err),
-      })
+      this.isLoading = true; 
+      this.errorMessage = null; 
+
+      // Destructure form values for cleaner subscription call
+      const { email, password } = this.loginForm.value;
+
+      this.authService.login({ email, password }).subscribe({
+        next: () => {
+          this.isLoading = false;
+          this.toastService.showSuccess("Login Successful", "Welcome back to ZeroOneBlog!");
+          this.router.navigate(["/feed"]);
+        },
+        error: (err) => {
+          this.isLoading = false;
+          // Use a generic message for security, regardless of the API error detail
+          this.errorMessage = "Login failed: Invalid email or password."; 
+          this.toastService.showError("Authentication Failed", this.errorMessage);
+          console.error("Login failed:", err);
+        },
+      });
     }
   }
 }

@@ -1,20 +1,29 @@
 import { Component } from "@angular/core"
-import { RouterOutlet } from "@angular/router"
+import { Router, RouterOutlet } from "@angular/router"
 import { NavbarComponent } from "./shared/navbar/navbar.component"
-import { ToastComponent } from "./shared/toast/toast.component"
+import { ToastComponent } from "./shared/toast/toast.component" 
+import { CommonModule } from "@angular/common"
 
 @Component({
   selector: "app-root",
   standalone: true,
-  imports: [RouterOutlet, NavbarComponent, ToastComponent],
+imports: [CommonModule, RouterOutlet, NavbarComponent,ToastComponent],
   template: `
-    <app-navbar></app-navbar>
-    <main class="min-h-screen bg-slate-950">
-      <router-outlet></router-outlet>
+    <app-navbar *ngIf="!isAuthRoute()"></app-navbar>
+    <main>
+        <router-outlet></router-outlet>
     </main>
     <app-toast></app-toast>
   `,
 })
 export class AppComponent {
   title = "blog-app"
+
+  constructor(private router: Router) { }
+  isAuthRoute(): boolean {
+    const currentUrl = this.router.url;
+    // Hide navbar on /login, /register, or any other specific routes
+    return currentUrl.startsWith('/login') ||
+      currentUrl.startsWith('/register');
+  }
 }

@@ -1,45 +1,31 @@
-import { Injectable } from "@angular/core"
-import { BehaviorSubject } from "rxjs"
+// src/app/shared/services/toast.service.ts
+import { Injectable } from '@angular/core';
+import { Subject, Observable } from 'rxjs';
 
 export interface Toast {
-  id: string
-  message: string
-  type: "success" | "error" | "info"
-  duration?: number
+  title: string;
+  message: string;
+  type: 'success' | 'error' | 'info';
+  delay?: number;
 }
 
 @Injectable({
-  providedIn: "root",
+  providedIn: 'root'
 })
 export class ToastService {
-  private toastSubject = new BehaviorSubject<Toast[]>([])
-  public toasts$ = this.toastSubject.asObservable()
+  private toastSubject = new Subject<Toast>();
 
-  success(message: string, duration = 3000): void {
-    this.addToast(message, "success", duration)
+  get toasts$(): Observable<Toast> {
+    return this.toastSubject.asObservable();
   }
 
-  error(message: string, duration = 3000): void {
-    this.addToast(message, "error", duration)
+  showSuccess(title: string, message: string): void {
+    this.toastSubject.next({ title, message, type: 'success', delay: 3000 });
   }
 
-  info(message: string, duration = 3000): void {
-    this.addToast(message, "info", duration)
+  showError(title: string, message: string): void {
+    this.toastSubject.next({ title, message, type: 'error', delay: 5000 });
   }
-
-  private addToast(message: string, type: Toast["type"], duration: number): void {
-    const id = Date.now().toString()
-    const toast: Toast = { id, message, type, duration }
-    const currentToasts = this.toastSubject.value
-    this.toastSubject.next([...currentToasts, toast])
-
-    setTimeout(() => {
-      this.removeToast(id)
-    }, duration)
-  }
-
-  private removeToast(id: string): void {
-    const currentToasts = this.toastSubject.value
-    this.toastSubject.next(currentToasts.filter((t) => t.id !== id))
-  }
+  
+  // You can add showInfo() here 
 }
