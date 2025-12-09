@@ -45,24 +45,27 @@ env-check:
 	@echo "DB_PORT: $(DB_PORT)"
 	@echo "DB_NAME: $(DB_NAME)"
 	@echo "DB_USER: $(DB_USER)"
-	@echo "APP_PORT: $(APP_PORT)"
+	@echo "BACKEND_PORT: $(BACKEND_PORT)"
+	@echo "FRONTEND_PORT: $(FRONTEND_PORT)"
+	@echo "MINIO_PORT: $(MINIO_PORT)"
 	@echo "JWT_SECRET: $$(echo $(JWT_SECRET) | cut -c1-10)..."
+	@echo "JWT_EXPIRATION": $(JWT_EXPIRATION)
 
 # --------------------------
 # Docker Compose stack
 # --------------------------
 compose-up:
 	@echo "🚀 Starting 01Blog stack..."
-	docker-compose up -d --build
+	docker compose up -d --build
 	@echo "✅ Stack started!"
 
 compose-down:
 	@echo "🛑 Stopping 01Blog stack..."
-	docker-compose down
+	docker compose down
 	@echo "✅ Stack stopped!"
 
 compose-logs:
-	docker-compose logs -f
+	docker compose logs -f
 
 compose-restart: compose-down compose-up
 	@echo "🔄 Stack restarted!"
@@ -71,28 +74,28 @@ compose-restart: compose-down compose-up
 # Database commands
 # --------------------------
 db-up:
-	docker-compose up -d db
+	docker compose up -d db
 
 db-down:
-	docker-compose stop db && docker-compose rm -f db
+	docker compose stop db && docker compose rm -f db
 
 db-logs:
-	docker-compose logs -f db
+	docker compose logs -f db
 
 db-shell:
-	docker-compose exec db psql -U $(DB_USER) -d $(DB_NAME)
+	docker compose exec db psql -U $(DB_USER) -d $(DB_NAME)
 
 # --------------------------
 # MinIO commands
 # --------------------------
 minio-up:
-	docker-compose up -d minio
+	docker compose up -d minio
 
 minio-down:
-	docker-compose stop minio && docker-compose rm -f minio
+	docker compose stop minio && docker compose rm -f minio
 
 minio-logs:
-	docker-compose logs -f minio
+	docker compose logs -f minio
 
 # --------------------------
 # Backend app commands
