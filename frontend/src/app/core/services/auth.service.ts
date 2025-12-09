@@ -4,7 +4,8 @@ import { BehaviorSubject, type Observable } from "rxjs"
 import { tap } from "rxjs/operators"
 
 interface AuthResponse {
-  token: string
+  accessToken: string
+  tokenType:string
   user: {
     id: number
     username: string
@@ -42,7 +43,8 @@ export class AuthService {
   login(credentials: LoginRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, credentials).pipe(
       tap((response) => {
-        localStorage.setItem("token", response.token)
+        localStorage.setItem("token", response.accessToken)
+        console.log(`respons token: ${response.accessToken}`)
         this.currentUserSubject.next(response.user)
         this.isAuthenticatedSubject.next(true)
       }),
@@ -52,7 +54,7 @@ export class AuthService {
   register(data: RegisterRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/register`, data).pipe(
       tap((response) => {
-        localStorage.setItem("token", response.token)
+        localStorage.setItem("token", response.accessToken)
         this.currentUserSubject.next(response.user)
         this.isAuthenticatedSubject.next(true)
       }),
