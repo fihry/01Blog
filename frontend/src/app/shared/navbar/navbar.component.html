@@ -43,6 +43,11 @@
                         <i class="bi bi-bell h-6 w-6"></i>
                     </button>
                 </li>
+                <li class="nav-item me-2" *ngIf="isAuthenticated$ | async">
+                    <button class="nav-link px-2 py-1 rounded-2 focus:outline-none">
+                        <i class="bi bi-chat-dots"></i>
+                    </button>
+                </li>
 
                 <li class="nav-item me-2">
                     <button (click)="toggleTheme()" class="nav-link px-2 py-1 rounded-2 focus:outline-none">

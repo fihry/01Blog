@@ -7,6 +7,10 @@ i {
   background: var(--background);
   padding: 0.5re;
   border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(10px);
 }
 .navbar-brand{
   color: var(--primary);

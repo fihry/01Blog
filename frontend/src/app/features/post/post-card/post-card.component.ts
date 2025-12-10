@@ -1,4 +1,6 @@
-import { Component, Input } from "@angular/core"
+// src/app/modules/feed/components/post-card/post-card.component.ts
+
+import { Component, Input, Output, EventEmitter } from "@angular/core"
 import { CommonModule } from "@angular/common"
 
 interface Post {
@@ -9,34 +11,37 @@ interface Post {
   likes: number
   comments: number
   timestamp: string
+  isOwner: boolean 
 }
 
 @Component({
   selector: "app-post-card",
   standalone: true,
   imports: [CommonModule],
-  template: `
-    <!-- <div class="bg-slate-900 rounded-lg shadow-md p-6 border border-slate-800 hover:border-cyan-600 transition">
-      <div class="flex items-center justify-between mb-4">
-        <div>
-          <h3 class="text-xl font-bold text-white">{{ post.title }}</h3>
-          <p class="text-slate-400 text-sm">by {{ post.author }} · {{ post.timestamp }}</p>
-        </div>
-      </div>
-
-      <p class="text-slate-300 mb-4">{{ post.content }}</p>
-
-      <div class="flex gap-6 text-slate-400">
-        <button class="hover:text-cyan-400 transition flex items-center gap-2">
-          <span>👍</span> {{ post.likes }}
-        </button>
-        <button class="hover:text-cyan-400 transition flex items-center gap-2">
-          <span>💬</span> {{ post.comments }}
-        </button>
-      </div>
-    </div> -->
-  `,
+  templateUrl: "./post-card.component.html",
+  styleUrls: ["./post-card.component.scss"],
 })
 export class PostCardComponent {
   @Input() post!: Post
+  // 💡 OUTPUT: Event to notify the parent component (FeedComponent) when to delete the post
+  @Output() deletePost = new EventEmitter<number>(); 
+
+  // --- Interaction Methods ---
+
+  onLike() {
+    // Placeholder for future API call to like/unlike the post
+    console.log(`Liking post ${this.post.id}`);
+  }
+
+  onComment() {
+    // Placeholder for future routing or modal logic for comments
+    console.log(`Opening comments for post ${this.post.id}`);
+  }
+
+  onDelete() {
+    // Confirm deletion for better UX
+    if (confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
+        this.deletePost.emit(this.post.id);
+    }
+  }
 }

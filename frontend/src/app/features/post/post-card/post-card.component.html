@@ -1,0 +1,42 @@
+<div class="post-card">
+
+    <div class="d-flex align-items-start mb-3">
+        <div class="author-avatar-placeholder me-3"></div>
+
+        <div class="flex-grow-1">
+            <h4 class="text-sm font-semibold mb-0 post-author">{{ post.author }}</h4>
+            <p class="text-xs text-muted-foreground">{{ post.timestamp }}</p>
+        </div>
+
+        <button *ngIf="post.isOwner" (click)="onDelete()" class="btn btn-sm btn-icon text-danger p-0 delete-btn ms-2"
+            title="Delete Post">
+            <i class="bi bi-trash"></i>
+        </button>
+    </div>
+
+    <h3 class="text-lg font-bold mb-2 post-title">{{ post.title }}</h3>
+    <p class="text-base mb-4 post-content">{{ post.content }}</p>
+
+    <div class="d-flex justify-content-between align-items-center border-top pt-3 engagement-bar">
+
+        <div class="d-flex gap-3 text-sm text-muted-foreground">
+            <span class="d-flex align-items-center font-medium" title="Likes">
+                <i class="bi bi-heart me-1"></i>
+                    {{ post.likes }} Likes
+            </span>
+            <span class="d-flex align-items-center font-medium" title="Comments">
+                <i class="bi bi-chat-dots me-1"></i>
+                {{ post.comments }} Comments
+            </span>
+        </div>
+
+        <div class="d-flex gap-4">
+            <button class="action-btn" (click)="onLike()" title="Like">
+                <i class="bi bi-heart me-1"></i> Like
+            </button>
+            <button class="action-btn" (click)="onComment()" title="Comment">
+                <i class="bi bi-chat-dots me-1"></i> Comment
+            </button>
+        </div>
+    </div>
+</div>

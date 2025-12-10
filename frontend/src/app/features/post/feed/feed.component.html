@@ -1,0 +1,117 @@
+<div class="feeds-container min-h-screen">
+    <div class="container-m p-4">
+        <div class="row g-4">
+
+            <div class="col-lg-3 d-none d-lg-block">
+                <div class="sidebar-sticky-widget">
+
+                    <div class="app-widget-card">
+                        <div class="d-flex flex-column align-items-center mb-3 profiel-card">
+                            <div class="avatar-large-placeholder mb-3"></div>
+                            <h5 class="mb-0 text-primary-foreground font-semibold">John Doe</h5>
+                            <p class="text-xs text-muted-foreground mt-1">@johndev | Full Stack</p>
+
+                            <div class="d-flex gap-4 mt-3 text-sm text-muted-foreground">
+                                <span><strong class="text-foreground">45</strong> Followers</span>
+                                <span><strong class="text-foreground">23</strong> Posts</span>
+                            </div>
+                        </div>
+
+                        <div class="border-top border-bottom py-3 mt-3">
+                            <ul class="list-unstyled sidebar-nav">
+                                <li><a href="#" class="nav-link"><i class="bi bi-house-door-fill"></i> Home Feed</a>
+                                </li>
+                                <li><a href="#" class="nav-link"><i class="bi bi-person-circle"></i> My Profile</a></li>
+                                <li><a href="#" class="nav-link"><i class="bi bi-chat"></i> chat</a></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary w-6 py-3" (click)="openCreatePostModal()">
+                        <i class="bi bi-pen-fill me-2"></i> Create a New Post
+                    </button>
+
+                </div>
+            </div>
+
+            <div class="col-lg-6 col-md-12">
+                <h1 class="text-2xl font-bold mb-4 text-primary-foreground border-bottom border-muted pb-2">Your
+                    Timeline</h1>
+
+                <div class="create-post-widget cursor-pointer" (click)="openCreatePostModal()">
+                    <div class="d-flex align-items-center">
+                        <div class="avatar-placeholder me-3"></div>
+                        <p class="m-0 text-muted-foreground">Share your thoughts, code, or ideas...</p>
+                    </div>
+                </div>
+
+                <div class="space-y-4 space-x-4">
+                    <app-post-card *ngFor="let post of posts" [post]="post"></app-post-card>
+                </div>
+
+                <div class="text-center py-5 text-muted-foreground">
+                    <i class="bi bi-arrow-clockwise animate-spin me-2"></i> Loading more posts...
+                </div>
+            </div>
+
+            <div class="col-lg-3 d-none d-lg-block">
+                <div class="sidebar-sticky-widget">
+
+                    <div class="app-widget-card">
+                        <h5 class="text-sm font-semibold mb-3 text-primary-foreground border-bottom border-muted pb-2">
+                            🔥 Trending Topics</h5>
+                        <ul class="list-unstyled trending-list">
+                            <li><a href="#">#AngularUpdates <span class="text-xs">(12k posts)</span></a></li>
+                            <li><a href="#">#WebDevTips <span class="text-xs">(8k posts)</span></a></li>
+                            <li><a href="#">#DarkThemeDesign <span class="text-xs">(5k posts)</span></a></li>
+                            <li><a href="#">#ZeroOneChallenge <span class="text-xs">(3k posts)</span></a></li>
+                        </ul>
+                    </div>
+
+                    <div class="app-widget-card">
+                        <h5 class="text-sm font-semibold mb-3 text-primary-foreground border-bottom border-muted pb-2">
+                            Who to Follow</h5>
+
+                        <div class="d-flex align-items-center follow-item">
+                            <div class="avatar-placeholder me-3"></div>
+                            <div class="flex-grow-1">
+                                <p class="mb-0 text-sm font-medium">Alice Johnson</p>
+                                <p class="text-xs text-muted-foreground">UX Designer</p>
+                            </div>
+                            <button class="btn btn-sm btn-outline-primary">Follow</button>
+                        </div>
+
+                        <div class="d-flex align-items-center follow-item">
+                            <div class="avatar-placeholder me-3"></div>
+                            <div class="flex-grow-1">
+                                <p class="mb-0 text-sm font-medium">Bob The Dev</p>
+                                <p class="text-xs text-muted-foreground">Full Stack</p>
+                            </div>
+                            <button class="btn btn-sm btn-outline-primary">Follow</button>
+                        </div>
+
+                        <div class="d-flex align-items-center follow-item">
+                            <div class="avatar-placeholder me-3"></div>
+                            <div class="flex-grow-1">
+                                <p class="mb-0 text-sm font-medium">Community News</p>
+                                <p class="text-xs text-muted-foreground">Official Updates</p>
+                            </div>
+                            <button class="btn btn-sm btn-primary">Follow</button>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-footer">
+                        © 2025 ZeroOneBlog. All rights reserved.
+                        <br><a href="#" class="text-primary-hover">Privacy · Terms</a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- <app-create-post-modal 
+        *ngIf="isModalOpen" 
+        (closeModal)="closeCreatePostModal()">
+    </app-create-post-modal> -->
+</div>
