@@ -12,7 +12,7 @@ import com.zeroOneBlog.Entities.Post;
 import com.zeroOneBlog.Entities.User;
 
 public interface PostRepository extends JpaRepository<Post, UUID> {
-
+    @Override
     Optional<Post> findById(UUID id);
 
     // Replace all "user" with "author"
