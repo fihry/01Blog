@@ -3,20 +3,19 @@ package com.zeroOneBlog.Services;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import com.zeroOneBlog.Entities.Comment;
-import com.zeroOneBlog.Repositories.CommentRepository;
-import com.zeroOneBlog.Entities.User;
-import com.zeroOneBlog.Repositories.UserRepository;
-import com.zeroOneBlog.Exceptions.ApiException;
-
-import org.springframework.http.HttpStatus;
 import com.zeroOneBlog.Dto.CommentCreateDto;
 import com.zeroOneBlog.Dto.CommentDto;
 import com.zeroOneBlog.Dto.UserSummaryDto;
+import com.zeroOneBlog.Entities.Comment;
 import com.zeroOneBlog.Entities.Post;
+import com.zeroOneBlog.Entities.User;
+import com.zeroOneBlog.Exceptions.ApiException;
+import com.zeroOneBlog.Repositories.CommentRepository;
 import com.zeroOneBlog.Repositories.PostRepository;
+import com.zeroOneBlog.Repositories.UserRepository;
 import com.zeroOneBlog.Types.RoleTypes;
 
 import lombok.RequiredArgsConstructor;
@@ -29,14 +28,22 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
     private final PostRepository postRepository;
+    private final MinioService minioService;
 
     public List<CommentDto> getCommentsByPostId(UUID postId) {
         List<Comment> comments = commentRepository.findByPostId(postId);
         return comments.stream().map(comment -> {
             UUID parentCommentId = comment.getParentComment() != null ? comment.getParentComment().getId() : null;
+            String author = comment.getAuthor().getAvatarUrl() != null ? minioService.getPresignedUrl(comment.getAuthor().getAvatarUrl()) : null;
+            UserSummaryDto authorSummary = new UserSummaryDto(
+                    comment.getAuthor().getId(),
+                    comment.getAuthor().getUsername(),
+                    author
+            );
             CommentDto dto = new CommentDto(
                     comment.getId(),
                     comment.getPost().getId(),
+                    authorSummary,
                     parentCommentId,
                     comment.getContent()
             );

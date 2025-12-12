@@ -1,10 +1,6 @@
 package com.zeroOneBlog.Dto;
 
-import java.sql.Timestamp;
-import java.util.List;
 import java.util.UUID;
-
-import org.springframework.security.access.method.P;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -19,6 +15,7 @@ import lombok.NoArgsConstructor;
 public class CommentDto {
     private UUID id;
     private UUID postId;
+    UserSummaryDto author;
     @JsonIgnore
     private UUID parentCommentId;
     @Size(max = 500, message = "Content must not exceed 500 characters")

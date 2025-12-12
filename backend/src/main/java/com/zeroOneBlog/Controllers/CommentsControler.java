@@ -88,6 +88,8 @@ public class CommentsControler {
         List<CommentDto> replies = commentService.getCommentsByPostId(postId);
         return ResponseEntity.ok(replies);
     }
+
+    
     @PutMapping("/{postId}/comments/replies/{replyId}")
     public ResponseEntity<CommentCreateDto> updateReply(@PathVariable UUID postId, @PathVariable UUID replyId, @Valid @RequestBody CommentDto reply, @AuthenticationPrincipal CustomUserDetails userDetails) {
         reply.setId(replyId);
