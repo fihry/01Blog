@@ -41,7 +41,7 @@ public class Comment {
     private String content;
 
     private Timestamp createdAt = new Timestamp(System.currentTimeMillis());
-
+    private Timestamp updatedAt = new Timestamp(System.currentTimeMillis());
     // Replies in same table
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_comment_id")
