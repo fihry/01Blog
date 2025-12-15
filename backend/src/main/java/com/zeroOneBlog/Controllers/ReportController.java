@@ -10,12 +10,12 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.zeroOneBlog.Dto.ReportDto;
-import com.zeroOneBlog.Entities.Report;
 import com.zeroOneBlog.Security.CustomUserDetails;
 import com.zeroOneBlog.Services.ReportService;
 import com.zeroOneBlog.Types.StatusTypes;
@@ -30,24 +30,26 @@ public class ReportController {
     private final ReportService reportService;
 
     @PostMapping("/report")
-    public ResponseEntity<Report> createReport(
+    public ResponseEntity<ReportDto> createReport(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody ReportDto request) {
-        Report report = reportService.createReport(userDetails.getUser(),request);
+        ReportDto report = reportService.createReport(userDetails.getUser(), request);
         return ResponseEntity.ok(report);
     }
 
     @GetMapping("/admin/reports/{status}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<Report>> getAllReports(@PathVariable StatusTypes status) {
-        return ResponseEntity.ok(reportService.getReportsByStatus(status)); 
-    }    
+    public ResponseEntity<List<ReportDto>> getAllReports(@PathVariable StatusTypes status) {
+        return ResponseEntity.ok(reportService.getReportsByStatus(status));
+    }
 
-    // @GetMapping("/admin/reports/pending")
-    // @PreAuthorize("hasRole('ADMIN')")
-    // public ResponseEntity<List<Report>> getReportsByStatus( ) {
-    //     return ResponseEntity.ok(reportService.getReportsByStatus());
-    // }
+    @PutMapping("/admin/reports/{id}/status")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ReportDto> updateReportStatus(
+            @PathVariable UUID id,
+            @RequestBody StatusTypes status) {
+        return ResponseEntity.ok(reportService.updateReportStatus(id, status));
+    }
 
     @DeleteMapping("/admin/reports/{id}")
     @PreAuthorize("hasRole('ADMIN')")
@@ -56,3 +58,4 @@ public class ReportController {
         return ResponseEntity.ok().build();
     }
 }
+
