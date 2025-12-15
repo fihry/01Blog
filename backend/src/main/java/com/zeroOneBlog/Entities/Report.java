@@ -32,8 +32,16 @@ public class Report {
     private User reporter;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "target_id", nullable = false)
+    @JoinColumn(name = "target_id", nullable = true)
     private User target;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "post_id", nullable = true)
+    private Post post;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "comment_id", nullable = true)
+    private Comment comment;
     
     @Enumerated(EnumType.STRING)
     private ReportTypes reportType;

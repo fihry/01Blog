@@ -4,5 +4,6 @@ public enum StatusTypes {
     PENDING,
     REVIEWED,
     RESOLVED,
-    REJECTED
+    REJECTED,
+    ALL
 }

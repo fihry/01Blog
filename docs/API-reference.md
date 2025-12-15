@@ -127,9 +127,9 @@ Responses for post endpoints return a `PostDto` with the following fields:
 - PUT /notifications/{id}/read
 
 ## Reports
-- POST /reports/user/{id}
-- POST /reports/post/{id}
+- POST /report
 - GET /admin/reports
+- DELETE /admin/reports/{id}
 
 ## Admin
 - GET /admin/users

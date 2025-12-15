@@ -23,6 +23,7 @@ target/
 *.temp
 *.swp
 .DS_Store
+subject/
 node_modules/
 
 # Environment files

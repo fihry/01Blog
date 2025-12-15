@@ -14,6 +14,7 @@ public class CustomUserDetails implements UserDetails {
     private String username;
     private String password;
     private Collection<? extends GrantedAuthority> authorities;
+    private User user;
 
     // Constructor
     public CustomUserDetails(User user) {
@@ -21,6 +22,11 @@ public class CustomUserDetails implements UserDetails {
         this.username = user.getUsername();
         this.password = user.getPassword();
         this.authorities = null;
+        this.user = user;
+    }
+
+    public User getUser() {
+        return user;
     }
 
     public UUID getId() {
