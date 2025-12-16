@@ -18,6 +18,9 @@ public class MinioConfig {
     @Value("${minio.secret-key}")
     private String minioSecretKey;
 
+    @Value("${minio.url.external}")
+    private String minioExternalEndpoint;
+
     @Bean
     public MinioClient minioClient() {
         return MinioClient.builder()
@@ -25,4 +28,13 @@ public class MinioConfig {
                 .credentials(minioAccessKey, minioSecretKey)
                 .build();
     }
+
+    @Bean(name = "minioSignerClient")
+    public MinioClient minioSignerClient() {
+        return MinioClient.builder()
+                .endpoint(minioExternalEndpoint)
+                .credentials(minioAccessKey, minioSecretKey)
+                .build();
+    }
 }
+

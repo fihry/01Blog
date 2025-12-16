@@ -271,14 +271,21 @@ public class PostService {
         if (!post.getAuthor().getId().equals(currentUserId)) {
             throw new ApiException(HttpStatus.FORBIDDEN, "You can only delete your own posts");
         }
+        deletePostInternal(post);
+    }
+    
+    public void deletePostByAdmin(UUID postId) {
+        Post post = getById(postId);
+        deletePostInternal(post);
+    }
 
+    private void deletePostInternal(Post post) {
         // Delete associated media files from Minio
         if (post.getMedia() != null) {
             for (Media media : post.getMedia()) {
                 minioService.deleteFile(media.getMediaUrl());
             }
         }
-
         postRepository.delete(post);
     }
 

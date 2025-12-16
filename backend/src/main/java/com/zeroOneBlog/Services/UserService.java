@@ -1,9 +1,12 @@
 package com.zeroOneBlog.Services;
 
+
 import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -137,6 +140,51 @@ public class UserService {
         userRepository.save(follower);
     }
 
+    public Page<UserDto> getAllUsers(Pageable pageable) {
+        return userRepository.findAll(pageable).map(user -> {
+            // Only generate presigned URL if avatar exists
+            String avatarUrl = user.getAvatarUrl();
+            if (avatarUrl != null && !avatarUrl.isBlank()) {
+                avatarUrl = minioService.getPresignedUrl(avatarUrl);
+            }
+            return new UserDto(
+                    user.getId().toString(),
+                    user.getUsername(),
+                    user.getEmail(),
+                    user.getBio(),
+                    avatarUrl,
+                    user.getRole(),
+                    user.isActive());
+        });
+    }
+
+    public UserDto updateUserRole(UUID id, RoleTypes role) {
+        User user = getById(id);
+        user.setRole(role);
+        User savedUser = userRepository.save(user);
+        
+        String avatarUrl = savedUser.getAvatarUrl();
+        if (avatarUrl != null && !avatarUrl.isBlank()) {
+            avatarUrl = minioService.getPresignedUrl(avatarUrl);
+        }
+        
+        return new UserDto(
+                savedUser.getId().toString(),
+                savedUser.getUsername(),
+                savedUser.getEmail(),
+                savedUser.getBio(),
+                avatarUrl,
+                savedUser.getRole(),
+                savedUser.isActive());
+    }
+
+    public void deleteUser(UUID id) {
+        if (!userRepository.existsById(id)) {
+            throw new ApiException(HttpStatus.NOT_FOUND, "User not found");
+        }
+        userRepository.deleteById(id);
+    }
+
     public UUID getCurrentUserId() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         return userRepository.findByUsername(username)
@@ -145,3 +193,4 @@ public class UserService {
     }
 
 }
+

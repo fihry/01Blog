@@ -33,7 +33,7 @@ export class AuthService {
   private apiUrl = "http://localhost:8000/api/auth"
   private currentUserSubject = new BehaviorSubject<AuthResponse["user"] | null>(null)
   public currentUser$ = this.currentUserSubject.asObservable()
-  private isAuthenticatedSubject = new BehaviorSubject<boolean>(true)
+  private isAuthenticatedSubject = new BehaviorSubject<boolean>(false)
   public isAuthenticated$ = this.isAuthenticatedSubject.asObservable()
 
   constructor(private http: HttpClient) {

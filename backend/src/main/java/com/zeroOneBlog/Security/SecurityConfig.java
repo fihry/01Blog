@@ -57,7 +57,7 @@ public class SecurityConfig {
     @Bean
     public CorsFilter corsFilter() {
         CorsConfiguration corsConfig = new CorsConfiguration();
-        corsConfig.setAllowedOriginPatterns(List.of("localhost:4200","null")); // Allow frontend   origins  and  (Postman for testing)
+        corsConfig.setAllowedOriginPatterns(List.of("*")); // Allow all origins for development
         corsConfig.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         corsConfig.setAllowedHeaders(List.of("*"));
         corsConfig.setAllowCredentials(true);

@@ -1,9 +1,8 @@
 package com.zeroOneBlog.Services;
-
-import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -24,6 +23,10 @@ public class MinioService {
 
     @Autowired
     private MinioClient minioClient;
+
+    @Autowired
+    @Qualifier("minioSignerClient")
+    private MinioClient minioSignerClient;
 
     @Value("${minio.url.internal}")
     private String internalUrl;
@@ -74,51 +77,16 @@ public class MinioService {
         String object = parts[1];
 
         try {
-            String presigned = minioClient.getPresignedObjectUrl(
+            // Use the signer client (configured with external URL) to generate the link.
+            // This ensures the signature matches the host the user visits (e.g. localhost or domain).
+            return minioSignerClient.getPresignedObjectUrl(
                     GetPresignedObjectUrlArgs.builder()
                             .method(Method.GET)
                             .bucket(bucket)
                             .object(object)
                             .expiry(84600)
-                            .extraQueryParams(Map.of("X-Amz-Endpoint", externalUrl))
                             .build()
             );
-
-            // Log the generated presigned URL for debugging (can be removed later)
-            System.out.println("[MinioService] raw presigned url: " + presigned);
-
-            // If the presigned URL contains the internal URL string, do a direct replacement.
-            if (presigned.contains(internalUrl)) {
-                return presigned.replace(internalUrl, externalUrl);
-            }
-
-            // Otherwise try a more robust replacement: replace host+port using URI parsing
-            try {
-                java.net.URI presignedUri = new java.net.URI(presigned);
-                java.net.URI externalUri = new java.net.URI(externalUrl);
-
-                String newScheme = externalUri.getScheme() != null ? externalUri.getScheme() : presignedUri.getScheme();
-                String newHost = externalUri.getHost() != null ? externalUri.getHost() : presignedUri.getHost();
-                int newPort = externalUri.getPort() != -1 ? externalUri.getPort() : presignedUri.getPort();
-
-                java.net.URI rebuilt = new java.net.URI(
-                        newScheme,
-                        null,
-                        newHost,
-                        newPort,
-                        presignedUri.getRawPath(),
-                        presignedUri.getRawQuery(),
-                        presignedUri.getRawFragment()
-                );
-
-                String rebuiltStr = rebuilt.toString();
-                System.out.println("[MinioService] rewritten presigned url: " + rebuiltStr);
-                return rebuiltStr;
-            } catch (Exception e2) {
-                // Fallback to returning original presigned (we already logged it)
-                e2.printStackTrace();
-                return presigned;
-            }
 
         } catch (Exception e) {
             e.printStackTrace();
