@@ -25,7 +25,8 @@ target/
 .DS_Store
 subject/
 node_modules/
-
+.angular/
+dist/
 # Environment files
 .env
 *.env

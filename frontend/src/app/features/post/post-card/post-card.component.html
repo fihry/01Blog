@@ -1,42 +1,57 @@
-<div class="post-card">
+<div class="app-widget-card mb-3 p-4">
 
     <div class="d-flex align-items-start mb-3">
-        <div class="author-avatar-placeholder me-3"></div>
+        <div class="avatar-placeholder me-3"></div>
 
         <div class="flex-grow-1">
-            <h4 class="text-sm font-semibold mb-0 post-author">{{ post.author }}</h4>
-            <p class="text-xs text-muted-foreground">{{ post.timestamp }}</p>
+            <div class="d-flex align-items-center gap-2">
+                <h4 class="text-sm font-semibold mb-0 text-foreground">{{ post.author }}</h4>
+                <span class="text-xs text-muted-foreground">·</span>
+                <span class="text-xs text-muted-foreground">{{ post.timestamp }}</span>
+            </div>
+            <p class="text-xs text-muted-foreground">Posted within the community</p>
         </div>
 
-        <button *ngIf="post.isOwner" (click)="onDelete()" class="btn btn-sm btn-icon text-danger p-0 delete-btn ms-2"
-            title="Delete Post">
+        <button *ngIf="post.isOwner" (click)="onDelete()"
+            class="btn btn-sm btn-ghost text-danger p-2 rounded-circle hover:bg-danger/10" title="Delete Post">
             <i class="bi bi-trash"></i>
         </button>
     </div>
 
-    <h3 class="text-lg font-bold mb-2 post-title">{{ post.title }}</h3>
-    <p class="text-base mb-4 post-content">{{ post.content }}</p>
 
-    <div class="d-flex justify-content-between align-items-center border-top pt-3 engagement-bar">
+    <a [routerLink]="['/post', post.id]" class="text-decoration-none">
+        <h3 class="text-xl font-bold mb-2 text-foreground hover:text-primary transition-colors cursor-pointer">{{
+            post.title }}</h3>
+        <p class="text-base mb-4 text-muted-foreground leading-relaxed line-clamp-3">{{ post.content }}</p>
+    </a>
 
-        <div class="d-flex gap-3 text-sm text-muted-foreground">
-            <span class="d-flex align-items-center font-medium" title="Likes">
-                <i class="bi bi-heart me-1"></i>
-                    {{ post.likes }} Likes
-            </span>
-            <span class="d-flex align-items-center font-medium" title="Comments">
-                <i class="bi bi-chat-dots me-1"></i>
-                {{ post.comments }} Comments
-            </span>
-        </div>
+    <!-- Image placeholder support if needed -->
+    <!-- <div class="w-100 bg-muted rounded-3 h-64 mb-4"></div> -->
+
+    <div class="d-flex justify-content-between align-items-center border-top border-muted pt-3">
 
         <div class="d-flex gap-4">
-            <button class="action-btn" (click)="onLike()" title="Like">
-                <i class="bi bi-heart me-1"></i> Like
+            <button
+                class="btn btn-ghost btn-sm text-muted-foreground hover:text-primary d-flex align-items-center gap-2"
+                (click)="onLike()" title="Like">
+                <i class="bi bi-heart"></i>
+                <span>{{ post.likes }}</span>
             </button>
-            <button class="action-btn" (click)="onComment()" title="Comment">
-                <i class="bi bi-chat-dots me-1"></i> Comment
+            <button
+                class="btn btn-ghost btn-sm text-muted-foreground hover:text-primary d-flex align-items-center gap-2"
+                (click)="onComment()" title="Comment">
+                <i class="bi bi-chat-dots"></i>
+                <span>{{ post.comments }}</span>
+            </button>
+            <button
+                class="btn btn-ghost btn-sm text-muted-foreground hover:text-primary d-flex align-items-center gap-2"
+                title="Share">
+                <i class="bi bi-share"></i>
             </button>
         </div>
+
+        <button class="btn btn-ghost btn-sm text-muted-foreground hover:text-primary" title="Bookmark">
+            <i class="bi bi-bookmark"></i>
+        </button>
     </div>
 </div>

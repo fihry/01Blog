@@ -1,117 +1,197 @@
-<div class="feeds-container min-h-screen">
-    <div class="container-m p-4">
+<div class="feeds-container min-h-screen pt-5 mt-5">
+    <div class="container-xl p-4">
         <div class="row g-4">
 
+            <!-- Left Sidebar - Enhanced -->
             <div class="col-lg-3 d-none d-lg-block">
                 <div class="sidebar-sticky-widget">
-
-                    <div class="app-widget-card">
-                        <div class="d-flex flex-column align-items-center mb-3 profiel-card">
-                            <div class="avatar-large-placeholder mb-3"></div>
-                            <h5 class="mb-0 text-primary-foreground font-semibold">John Doe</h5>
-                            <p class="text-xs text-muted-foreground mt-1">@johndev | Full Stack</p>
-
-                            <div class="d-flex gap-4 mt-3 text-sm text-muted-foreground">
-                                <span><strong class="text-foreground">45</strong> Followers</span>
-                                <span><strong class="text-foreground">23</strong> Posts</span>
-                            </div>
-                        </div>
-
-                        <div class="border-top border-bottom py-3 mt-3">
-                            <ul class="list-unstyled sidebar-nav">
-                                <li><a href="#" class="nav-link"><i class="bi bi-house-door-fill"></i> Home Feed</a>
-                                </li>
-                                <li><a href="#" class="nav-link"><i class="bi bi-person-circle"></i> My Profile</a></li>
-                                <li><a href="#" class="nav-link"><i class="bi bi-chat"></i> chat</a></li>
-                            </ul>
-                        </div>
+                    <!-- Quick Actions Card -->
+                    <div class="app-widget-card mb-3">
+                        <h6 class="font-semibold text-foreground mb-3 d-flex align-items-center">
+                            <i class="bi bi-lightning-charge-fill text-primary me-2"></i>
+                            Quick Actions
+                        </h6>
+                        <button class="btn btn-primary w-100 mb-2 py-2 fw-semibold shadow-sm"
+                            (click)="openCreatePostModal()">
+                            <i class="bi bi-pen-fill me-2"></i> Create Post
+                        </button>
+                        <a routerLink="/users" class="btn btn-outline-secondary w-100 py-2">
+                            <i class="bi bi-people me-2"></i> Discover Users
+                        </a>
                     </div>
 
-                    <button class="btn btn-primary w-6 py-3" (click)="openCreatePostModal()">
-                        <i class="bi bi-pen-fill me-2"></i> Create a New Post
-                    </button>
+                    <!-- User Stats Card -->
+                    <div class="app-widget-card">
+                        <div class="text-center mb-3">
+                            <div class="avatar-large-placeholder mx-auto mb-3"></div>
+                            <h6 class="mb-1 text-foreground font-semibold">Your Profile</h6>
+                            <p class="text-xs text-muted-foreground">@username</p>
+                        </div>
 
+                        <div class="d-flex justify-content-around text-center border-top border-muted pt-3">
+                            <div>
+                                <strong class="d-block text-foreground text-lg">23</strong>
+                                <span class="text-xs text-muted-foreground">Posts</span>
+                            </div>
+                            <div>
+                                <strong class="d-block text-foreground text-lg">45</strong>
+                                <span class="text-xs text-muted-foreground">Followers</span>
+                            </div>
+                            <div>
+                                <strong class="d-block text-foreground text-lg">32</strong>
+                                <span class="text-xs text-muted-foreground">Following</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
+            <!-- Main Feed - Stylish -->
             <div class="col-lg-6 col-md-12">
-                <h1 class="text-2xl font-bold mb-4 text-primary-foreground border-bottom border-muted pb-2">Your
-                    Timeline</h1>
-
-                <div class="create-post-widget cursor-pointer" (click)="openCreatePostModal()">
-                    <div class="d-flex align-items-center">
-                        <div class="avatar-placeholder me-3"></div>
-                        <p class="m-0 text-muted-foreground">Share your thoughts, code, or ideas...</p>
+                <!-- Feed Header -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h1 class="text-3xl font-bold text-foreground m-0 mb-1">Feed</h1>
+                        <p class="text-sm text-muted-foreground m-0">Stay updated with the latest posts</p>
+                    </div>
+                    <div class="segmented-control">
+                        <button class="segment active">For You</button>
+                        <button class="segment">Following</button>
                     </div>
                 </div>
 
-                <div class="space-y-4 space-x-4">
+                <!-- Enhanced Create Post Widget -->
+                <div class="app-widget-card mb-4 p-4 cursor-pointer hover:bg-accent/50 transition-colors"
+                    (click)="openCreatePostModal()">
+                    <div class="d-flex align-items-start gap-3">
+                        <div class="avatar-placeholder flex-shrink-0"></div>
+                        <div class="flex-grow-1">
+                            <div class="bg-muted rounded-3 px-4 py-3 text-muted-foreground text-sm mb-3">
+                                What's on your mind? Share your thoughts...
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-ghost btn-sm d-flex align-items-center gap-2">
+                                    <i class="bi bi-image text-primary"></i>
+                                    <span class="text-xs">Photo</span>
+                                </button>
+                                <button class="btn btn-ghost btn-sm d-flex align-items-center gap-2">
+                                    <i class="bi bi-emoji-smile text-warning"></i>
+                                    <span class="text-xs">Feeling</span>
+                                </button>
+                                <button class="btn btn-ghost btn-sm d-flex align-items-center gap-2">
+                                    <i class="bi bi-geo-alt text-danger"></i>
+                                    <span class="text-xs">Location</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Posts List -->
+                <div class="d-flex flex-column gap-4">
                     <app-post-card *ngFor="let post of posts" [post]="post"></app-post-card>
                 </div>
 
-                <div class="text-center py-5 text-muted-foreground">
-                    <i class="bi bi-arrow-clockwise animate-spin me-2"></i> Loading more posts...
+                <!-- Load More -->
+                <div class="text-center py-5">
+                    <button class="btn btn-outline-secondary rounded-pill px-4">
+                        <i class="bi bi-arrow-clockwise me-2"></i> Load more posts
+                    </button>
                 </div>
             </div>
 
+            <!-- Right Sidebar - Enhanced -->
             <div class="col-lg-3 d-none d-lg-block">
                 <div class="sidebar-sticky-widget">
 
-                    <div class="app-widget-card">
-                        <h5 class="text-sm font-semibold mb-3 text-primary-foreground border-bottom border-muted pb-2">
-                            🔥 Trending Topics</h5>
-                        <ul class="list-unstyled trending-list">
-                            <li><a href="#">#AngularUpdates <span class="text-xs">(12k posts)</span></a></li>
-                            <li><a href="#">#WebDevTips <span class="text-xs">(8k posts)</span></a></li>
-                            <li><a href="#">#DarkThemeDesign <span class="text-xs">(5k posts)</span></a></li>
-                            <li><a href="#">#ZeroOneChallenge <span class="text-xs">(3k posts)</span></a></li>
-                        </ul>
-                    </div>
-
-                    <div class="app-widget-card">
-                        <h5 class="text-sm font-semibold mb-3 text-primary-foreground border-bottom border-muted pb-2">
-                            Who to Follow</h5>
-
-                        <div class="d-flex align-items-center follow-item">
-                            <div class="avatar-placeholder me-3"></div>
-                            <div class="flex-grow-1">
-                                <p class="mb-0 text-sm font-medium">Alice Johnson</p>
-                                <p class="text-xs text-muted-foreground">UX Designer</p>
+                    <!-- Activity Card -->
+                    <div class="app-widget-card mb-3">
+                        <h6 class="font-semibold text-foreground mb-3 d-flex align-items-center">
+                            <i class="bi bi-activity text-success me-2"></i>
+                            Your Activity
+                        </h6>
+                        <div class="d-flex flex-column gap-2">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-sm text-muted-foreground">Posts this week</span>
+                                <span class="badge bg-primary text-primary-foreground">5</span>
                             </div>
-                            <button class="btn btn-sm btn-outline-primary">Follow</button>
-                        </div>
-
-                        <div class="d-flex align-items-center follow-item">
-                            <div class="avatar-placeholder me-3"></div>
-                            <div class="flex-grow-1">
-                                <p class="mb-0 text-sm font-medium">Bob The Dev</p>
-                                <p class="text-xs text-muted-foreground">Full Stack</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-sm text-muted-foreground">New followers</span>
+                                <span class="badge bg-success text-white">+3</span>
                             </div>
-                            <button class="btn btn-sm btn-outline-primary">Follow</button>
-                        </div>
-
-                        <div class="d-flex align-items-center follow-item">
-                            <div class="avatar-placeholder me-3"></div>
-                            <div class="flex-grow-1">
-                                <p class="mb-0 text-sm font-medium">Community News</p>
-                                <p class="text-xs text-muted-foreground">Official Updates</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-sm text-muted-foreground">Total likes</span>
+                                <span class="badge bg-secondary text-secondary-foreground">127</span>
                             </div>
-                            <button class="btn btn-sm btn-primary">Follow</button>
                         </div>
                     </div>
 
-                    <div class="sidebar-footer">
-                        © 2025 ZeroOneBlog. All rights reserved.
-                        <br><a href="#" class="text-primary-hover">Privacy · Terms</a>
+                    <!-- Suggested Users Widget -->
+                    <div class="app-widget-card mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="font-semibold text-foreground m-0">Suggested Users</h6>
+                            <a routerLink="/users" class="text-xs text-primary text-decoration-none hover:underline">See
+                                all</a>
+                        </div>
+
+                        <div class="d-flex flex-column gap-3">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center gap-2 flex-grow-1 min-w-0">
+                                    <div class="avatar-placeholder flex-shrink-0"
+                                        style="width: 2.5rem; height: 2.5rem;"></div>
+                                    <div class="d-flex flex-column min-w-0">
+                                        <span class="text-sm font-medium text-foreground text-truncate">Alice
+                                            Johnson</span>
+                                        <span class="text-xs text-muted-foreground">@aliceux</span>
+                                    </div>
+                                </div>
+                                <button
+                                    class="btn btn-sm btn-outline-primary rounded-pill px-3 flex-shrink-0">Follow</button>
+                            </div>
+
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center gap-2 flex-grow-1 min-w-0">
+                                    <div class="avatar-placeholder flex-shrink-0"
+                                        style="width: 2.5rem; height: 2.5rem;"></div>
+                                    <div class="d-flex flex-column min-w-0">
+                                        <span class="text-sm font-medium text-foreground text-truncate">Bob Smith</span>
+                                        <span class="text-xs text-muted-foreground">@bobdev</span>
+                                    </div>
+                                </div>
+                                <button
+                                    class="btn btn-sm btn-outline-primary rounded-pill px-3 flex-shrink-0">Follow</button>
+                            </div>
+
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center gap-2 flex-grow-1 min-w-0">
+                                    <div class="avatar-placeholder flex-shrink-0"
+                                        style="width: 2.5rem; height: 2.5rem;"></div>
+                                    <div class="d-flex flex-column min-w-0">
+                                        <span class="text-sm font-medium text-foreground text-truncate">Carol
+                                            White</span>
+                                        <span class="text-xs text-muted-foreground">@carolw</span>
+                                    </div>
+                                </div>
+                                <button
+                                    class="btn btn-sm btn-outline-primary rounded-pill px-3 flex-shrink-0">Follow</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Footer Links -->
+                    <div class="text-xs text-muted-foreground px-2">
+                        <div class="d-flex flex-wrap gap-2 mb-2">
+                            <a href="#" class="text-muted-foreground text-decoration-none hover:underline">About</a>
+                            <span>·</span>
+                            <a href="#" class="text-muted-foreground text-decoration-none hover:underline">Privacy</a>
+                            <span>·</span>
+                            <a href="#" class="text-muted-foreground text-decoration-none hover:underline">Terms</a>
+                        </div>
+                        <p class="m-0">© 2025 ZeroOneBlog</p>
                     </div>
                 </div>
             </div>
 
         </div>
     </div>
-
-    <!-- <app-create-post-modal 
-        *ngIf="isModalOpen" 
-        (closeModal)="closeCreatePostModal()">
-    </app-create-post-modal> -->
 </div>

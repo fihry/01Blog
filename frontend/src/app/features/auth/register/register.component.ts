@@ -5,13 +5,13 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
-import { SpinnerComponent } from '../../../shared/components/spinner/spinner.component'; 
-import { ToastService } from '../../../shared/services/toast.service'; 
+import { SpinnerComponent } from '../../../shared/components/spinner/spinner.component';
+import { ToastService } from '../../../shared/services/toast.service';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, SpinnerComponent], 
+  imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './register.component.html',
   styleUrls: ['../auth.component.scss'],
 })
@@ -24,11 +24,11 @@ export class RegisterComponent {
     private fb: FormBuilder,
     private authService: AuthService,
     private router: Router,
-    private toastService: ToastService 
+    private toastService: ToastService
   ) {
     this.registerForm = this.fb.group({
       // Username validation: required, min 3 characters
-      username: ['', [Validators.required, Validators.minLength(3)]], 
+      username: ['', [Validators.required, Validators.minLength(3)]],
       // Email validation: required, valid email format
       email: ['', [Validators.required, Validators.email]],
       // Password validation: required, min 6 characters
@@ -52,11 +52,11 @@ export class RegisterComponent {
 
   onSubmit(): void {
     // 1. Mark all controls as touched to trigger validation feedback immediately
-    this.registerForm.markAllAsTouched(); 
+    this.registerForm.markAllAsTouched();
 
     if (this.registerForm.valid) {
-      this.isLoading = true; 
-      this.errorMessage = null; 
+      this.isLoading = true;
+      this.errorMessage = null;
 
       const { username, email, password } = this.registerForm.value;
 
@@ -69,8 +69,8 @@ export class RegisterComponent {
         error: (err) => {
           this.isLoading = false;
           const apiError = err.error?.message || "An unexpected error occurred during registration.";
-          
-          this.errorMessage = apiError; 
+
+          this.errorMessage = apiError;
           this.toastService.showError("Registration Failed", apiError);
           console.error("Registration failed:", err);
         },

@@ -2,6 +2,8 @@
 
 import { Component, type OnInit } from "@angular/core"
 import { CommonModule } from "@angular/common"
+import { FormsModule } from "@angular/forms"
+import { RouterModule } from "@angular/router"
 import { PostCardComponent } from "../post-card/post-card.component"
 import { CreatePostModalComponent } from "../create-post-modal/create-post-modal.component"
 
@@ -19,13 +21,14 @@ interface Post {
 @Component({
   selector: "app-feed",
   standalone: true,
-  imports: [CommonModule, PostCardComponent],
+  imports: [CommonModule, FormsModule, RouterModule, PostCardComponent],
   templateUrl: "./feed.component.html",
   styleUrls: ["./feed.component.scss"],
 })
 export class FeedComponent implements OnInit {
   posts: Post[] = []
   isModalOpen: boolean = false
+  searchQuery: string = ''
   ngOnInit(): void {
     this.posts = [
       {

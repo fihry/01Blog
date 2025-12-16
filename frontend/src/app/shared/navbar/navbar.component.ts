@@ -6,14 +6,15 @@ import { RouterLink, Router } from "@angular/router";
 import { AuthService } from "../../core/services/auth.service";
 import { Observable } from "rxjs";
 import { map } from "rxjs/operators";
-import { NgbDropdownModule } from '@ng-bootstrap/ng-bootstrap'; // Imported but not used in TS
+import { NgbDropdownModule } from '@ng-bootstrap/ng-bootstrap';
+import { NotificationBellComponent } from "../../features/notification/notification-bell/notification-bell.component";
 
 @Component({
   selector: "app-navbar",
   standalone: true,
-  imports: [CommonModule, RouterLink, NgbDropdownModule],
+  imports: [CommonModule, RouterLink, NgbDropdownModule, NotificationBellComponent],
   templateUrl: "./navbar.component.html",
-  styleUrls: ["./navbar.component.scss"] 
+  styleUrls: ["./navbar.component.scss"]
 })
 export class NavbarComponent implements OnInit {
   // Using isMobileMenuOpen for collapse state instead of 'collapsed'
@@ -25,8 +26,8 @@ export class NavbarComponent implements OnInit {
 
   isMobileMenuOpen = false;
   isProfileDropdownOpen = false;
-  
-  isDarkMode = document.body.classList.contains("dark"); 
+
+  isDarkMode = false;
 
   @HostBinding("class.dark")
   get dark() {
@@ -38,24 +39,27 @@ export class NavbarComponent implements OnInit {
     private router: Router,
   ) {
     this.isAuthenticated$ = this.authService.isAuthenticated$;
-    
-    // 💡 FIX: Correctly initialize observables using pipe and map
     this.currentUserDisplayName$ = this.authService.currentUser$.pipe(
-      map(user => user ? user.username : 'Anonime')
+      map((user) => user?.username || "Guest"),
     );
-    
-    // 💡 FIX: Correctly derive avatar URL, falling back to ui-avatars API
     this.currentUserDisplayAvatarUrl$ = this.authService.currentUser$.pipe(
-      map(user => 
-        user?.avatar_url || 
-        `https://ui-avatars.com/api/?name=${user?.username || 'Anonime'}`
-      )
+      map((user) => user?.avatar_url || "/assets/default-avatar.png"),
     );
   }
 
   ngOnInit(): void {
-    this.authService.currentUser$.subscribe(user => {
-      this.isAdmin = user?.role === 'ADMIN'; 
+    // Initialize theme from localStorage or system preference
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+    this.isDarkMode = savedTheme === 'dark' || (!savedTheme && prefersDark);
+
+    if (this.isDarkMode) {
+      document.documentElement.classList.add('dark');
+    }
+
+    this.authService.currentUser$.subscribe((user) => {
+      this.isAdmin = user?.role === "ADMIN";
     });
   }
 
@@ -72,7 +76,9 @@ export class NavbarComponent implements OnInit {
 
   toggleTheme() {
     this.isDarkMode = !this.isDarkMode;
-    document.body.classList.toggle("dark"); 
+    document.documentElement.classList.toggle("dark");
+    // Also save preference to localStorage
+    localStorage.setItem('theme', this.isDarkMode ? 'dark' : 'light');
   }
 
   navigateTo(path: string) {

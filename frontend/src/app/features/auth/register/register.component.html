@@ -1,102 +1,97 @@
-<div class="container-fluid auth-split-container">
+<div class="container-fluid auth-split-container p-0">
     <div class="row h-100 g-0">
+        <!-- Hero Section -->
         <div class="col-lg-6 d-none d-lg-block">
             <div class="left-panel">
                 <div class="left-panel-content">
-                    <h1>Welcome to ZeroOneBlog!</h1>
+                    <h1>Create an<br>Account</h1>
                     <p class="lead mt-4">
-                        Join the community of developers, designers, and creators. Share your unique perspective and follow the minds shaping the future of tech.
+                        Join our community and start sharing your journey with the world.
                     </p>
-                    <blockquote class="mt-5 border-start border-primary ps-3">
-                        "The only way to do great work is to love what you do." – Steve Jobs
+                    <blockquote class="mt-5 ps-4">
+                        "Your story deserves to be heard."
                     </blockquote>
                 </div>
             </div>
         </div>
 
-        <div class="col-lg-6 d-flex align-items-center justify-content-center">
-            <div class="register-card p-4 p-md-5 rounded-4 shadow-lg">
-                <h2 class="text-2xl font-bold text-center mb-1">Create an account</h2>
-                <p class="text-sm text-center mb-4 text-muted-foreground">
-                    Enter your details below to create your account
-                </p>
-
-                <div *ngIf="errorMessage" class="alert alert-danger mb-3" role="alert">
-                    {{ errorMessage }}
+        <!-- Form Section -->
+        <div class="col-lg-6 d-flex flex-column align-items-center justify-content-center p-5">
+            <div class="register-card animate-in">
+                <div class="text-center mb-5">
+                    <h2 class="font-bold mb-2">Get Started</h2>
+                    <p class="text-muted-foreground">Create your account to join the platform</p>
                 </div>
 
-                <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
-                    
-                    <div class="form-floating mb-3">
-                        <input type="text" 
-                               class="form-control" 
-                               id="usernameInput" 
-                               placeholder="Your unique username"
-                               formControlName="username"
-                               [class.is-invalid]="usernameControl?.invalid && (usernameControl?.dirty || usernameControl?.touched)"
-                               required>
-                        <label for="usernameInput" class="text-sm font-medium">Username</label>
-                        
-                        <div class="invalid-feedback" 
-                             *ngIf="usernameControl?.invalid && (usernameControl?.dirty || usernameControl?.touched)">
+                <div *ngIf="errorMessage" class="alert alert-danger mb-4 rounded-3 text-sm" role="alert">
+                    <i class="bi bi-exclamation-circle-fill me-2"></i> {{ errorMessage }}
+                </div>
+
+                <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="d-flex flex-column gap-3">
+
+                    <div class="form-group">
+                        <label for="usernameInput" class="form-label text-sm font-medium mb-1.5">Username</label>
+                        <input type="text" class="form-control" id="usernameInput" placeholder="johndoe"
+                            formControlName="username"
+                            [class.is-invalid]="usernameControl?.invalid && (usernameControl?.dirty || usernameControl?.touched)"
+                            required>
+                        <div class="invalid-feedback text-xs"
+                            *ngIf="usernameControl?.invalid && (usernameControl?.dirty || usernameControl?.touched)">
                             <span *ngIf="usernameControl?.errors?.['required']">Username is required.</span>
-                            <span *ngIf="usernameControl?.errors?.['minlength']">Username must be at least 3 characters.</span>
+                            <span *ngIf="usernameControl?.errors?.['minlength']">Username must be at least 3
+                                characters.</span>
                         </div>
                     </div>
 
-                    <div class="form-floating mb-3">
-                        <input type="email" 
-                               class="form-control" 
-                               id="emailInput" 
-                               placeholder="name@example.com"
-                               formControlName="email"
-                               [class.is-invalid]="emailControl?.invalid && (emailControl?.dirty || emailControl?.touched)"
-                               required>
-                        <label for="emailInput" class="text-sm font-medium">Email address</label>
-                        
-                        <div class="invalid-feedback" 
-                             *ngIf="emailControl?.invalid && (emailControl?.dirty || emailControl?.touched)">
+                    <div class="form-group">
+                        <label for="emailInput" class="form-label text-sm font-medium mb-1.5">Email address</label>
+                        <input type="email" class="form-control" id="emailInput" placeholder="name@example.com"
+                            formControlName="email"
+                            [class.is-invalid]="emailControl?.invalid && (emailControl?.dirty || emailControl?.touched)"
+                            required>
+                        <div class="invalid-feedback text-xs"
+                            *ngIf="emailControl?.invalid && (emailControl?.dirty || emailControl?.touched)">
                             <span *ngIf="emailControl?.errors?.['required']">Email is required.</span>
                             <span *ngIf="emailControl?.errors?.['email']">Enter a valid email address.</span>
                         </div>
                     </div>
 
-                    <div class="form-floating mb-4">
-                        <input type="password" 
-                               class="form-control" 
-                               id="passwordInput" 
-                               placeholder="Password"
-                               formControlName="password"
-                               [class.is-invalid]="passwordControl?.invalid && (passwordControl?.dirty || passwordControl?.touched)"
-                               required>
-                        <label for="passwordInput" class="text-sm font-medium">Password</label>
-                        
-                        <div class="invalid-feedback" 
-                             *ngIf="passwordControl?.invalid && (passwordControl?.dirty || passwordControl?.touched)">
+                    <div class="form-group">
+                        <label for="passwordInput" class="form-label text-sm font-medium mb-1.5">Password</label>
+                        <input type="password" class="form-control" id="passwordInput" placeholder="Create a password"
+                            formControlName="password"
+                            [class.is-invalid]="passwordControl?.invalid && (passwordControl?.dirty || passwordControl?.touched)"
+                            required>
+                        <div class="invalid-feedback text-xs"
+                            *ngIf="passwordControl?.invalid && (passwordControl?.dirty || passwordControl?.touched)">
                             <span *ngIf="passwordControl?.errors?.['required']">Password is required.</span>
-                            <span *ngIf="passwordControl?.errors?.['minlength']">Password must be at least 6 characters.</span>
+                            <span *ngIf="passwordControl?.errors?.['minlength']">Password must be at least 6
+                                characters.</span>
                         </div>
                     </div>
 
-                    <button type="submit" 
-                            class="btn btn-primary w-100 mb-3" 
-                            [disabled]="registerForm.invalid || isLoading">
+                    <button type="submit" class="btn btn-primary w-100 mt-2"
+                        [disabled]="registerForm.invalid || isLoading">
                         <span *ngIf="!isLoading">Create Account</span>
-                        <span *ngIf="isLoading"><app-spinner class="me-2"></app-spinner> Registering...</span>
+                        <div *ngIf="isLoading" class="d-flex align-items-center justify-content-center gap-2">
+                            <div class="spinner-border spinner-border-sm" role="status"></div>
+                            <span>Creating account...</span>
+                        </div>
                     </button>
                 </form>
 
-                <div class="divider text-muted-foreground mb-3">
-                    <span class="text-xs">Or continue with</span>
+                <div class="divider">
+                    <span>Or continue with</span>
                 </div>
 
-                <button class="btn btn-secondary w-100 mb-4">
-                    <i class="bi bi-github me-2"></i> Sign up with Github
+                <button class="btn btn-outline-secondary w-100 mb-4 gap-2">
+                    <i class="bi bi-github"></i>
+                    <span>Github</span>
                 </button>
 
-                <p class="text-sm text-center text-muted-foreground">
-                    Already have an account? 
-                    <a routerLink="/login" class="text-primary link-hover-effect">Log in</a>
+                <p class="text-sm text-center text-muted-foreground m-0">
+                    Already have an account?
+                    <a routerLink="/login" class="text-primary font-medium link-hover-effect">Log in</a>
                 </p>
             </div>
         </div>

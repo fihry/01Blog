@@ -9,7 +9,7 @@ import { ToastComponent } from "./shared/toast/toast.component"
   imports: [RouterOutlet, NavbarComponent, ToastComponent],
   template: `
     <app-navbar></app-navbar>
-    <main class="min-h-screen bg-slate-950">
+    <main class="min-h-screen bg-background">
       <router-outlet></router-outlet>
     </main>
     <app-toast></app-toast>

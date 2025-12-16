@@ -5,27 +5,27 @@ import { CommonModule } from "@angular/common"
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl } from "@angular/forms"
 import { Router, RouterLink } from "@angular/router"
 import { AuthService } from "../../../core/services/auth.service"
-import { SpinnerComponent } from "../../../shared/components/spinner/spinner.component" 
-import { ToastService } from "../../../shared/services/toast.service" 
+import { SpinnerComponent } from "../../../shared/components/spinner/spinner.component"
+import { ToastService } from "../../../shared/services/toast.service"
 
 @Component({
   selector: "app-login",
   standalone: true,
   // 💡 Note: SpinnerComponent should be included here if you are using it in the template.
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, SpinnerComponent], 
-  templateUrl:"./login.component.html",
+  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  templateUrl: "./login.component.html",
   styleUrls: ["../auth.component.scss"],
 })
 export class LoginComponent {
   loginForm: FormGroup;
-  isLoading: boolean = false; 
+  isLoading: boolean = false;
   errorMessage: string | null = null;
 
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
     private router: Router,
-    private toastService: ToastService 
+    private toastService: ToastService
   ) {
     this.loginForm = this.fb.group({
       email: ["", [Validators.required, Validators.email]],
@@ -43,11 +43,11 @@ export class LoginComponent {
 
   onSubmit(): void {
     // Mark all controls as touched to trigger validation feedback on submit
-    this.loginForm.markAllAsTouched(); 
-    
+    this.loginForm.markAllAsTouched();
+
     if (this.loginForm.valid) {
-      this.isLoading = true; 
-      this.errorMessage = null; 
+      this.isLoading = true;
+      this.errorMessage = null;
 
       // Destructure form values for cleaner subscription call
       const { email, password } = this.loginForm.value;
@@ -61,7 +61,7 @@ export class LoginComponent {
         error: (err) => {
           this.isLoading = false;
           // Use a generic message for security, regardless of the API error detail
-          this.errorMessage = "Login failed: Invalid email or password."; 
+          this.errorMessage = "Login failed: Invalid email or password.";
           this.toastService.showError("Authentication Failed", this.errorMessage);
           console.error("Login failed:", err);
         },

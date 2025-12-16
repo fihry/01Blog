@@ -1,4 +1,4 @@
-import { Component } from "@angular/core"
+import { Component, Output, EventEmitter } from "@angular/core"
 import { CommonModule } from "@angular/common"
 import { FormsModule } from "@angular/forms"
 
@@ -7,33 +7,42 @@ import { FormsModule } from "@angular/forms"
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-slate-800 border border-slate-700 rounded-lg p-8 w-full max-w-2xl">
-        <h2 class="text-2xl font-bold text-white mb-6">Create Post</h2>
+    <div class="modal-overlay">
+      <div class="app-widget-card p-4 w-full max-w-2xl shadow-lg m-4 animate-in">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="text-2xl font-bold text-foreground m-0">Create Post</h2>
+            <button class="btn-close" (click)="close()"></button>
+        </div>
         
-        <form class="space-y-4">
+        <form class="d-flex flex-column gap-3">
           <div>
-            <label class="block text-slate-300 mb-2">Title</label>
-            <input type="text" placeholder="Post title" class="w-full bg-slate-700 text-white p-3 rounded border border-slate-600 focus:border-cyan-500 outline-none" />
+            <label class="form-label text-muted-foreground text-sm font-medium mb-1">Title</label>
+            <input type="text" placeholder="Post title" class="form-control" />
           </div>
           
           <div>
-            <label class="block text-slate-300 mb-2">Content</label>
-            <textarea placeholder="Write your post here..." rows="6" class="w-full bg-slate-700 text-white p-3 rounded border border-slate-600 focus:border-cyan-500 outline-none"></textarea>
+            <label class="form-label text-muted-foreground text-sm font-medium mb-1">Content</label>
+            <textarea placeholder="Write your post here..." rows="6" class="form-control"></textarea>
           </div>
           
           <div>
-            <label class="block text-slate-300 mb-2">Tags</label>
-            <input type="text" placeholder="Add tags separated by commas" class="w-full bg-slate-700 text-white p-3 rounded border border-slate-600 focus:border-cyan-500 outline-none" />
+            <label class="form-label text-muted-foreground text-sm font-medium mb-1">Tags</label>
+            <input type="text" placeholder="Add tags separated by commas" class="form-control" />
           </div>
           
-          <div class="flex gap-3 justify-end">
-            <button type="button" class="px-6 py-2 border border-slate-600 text-slate-300 rounded hover:border-slate-500">Cancel</button>
-            <button type="submit" class="px-6 py-2 bg-cyan-500 text-white rounded hover:bg-cyan-600">Publish Post</button>
+          <div class="d-flex gap-2 justify-content-end mt-4">
+            <button type="button" class="btn btn-outline-secondary" (click)="close()">Cancel</button>
+            <button type="submit" class="btn btn-primary">Publish Post</button>
           </div>
         </form>
       </div>
     </div>
   `,
 })
-export class CreatePostModalComponent {}
+export class CreatePostModalComponent {
+  @Output() closeModal = new EventEmitter<void>();
+
+  close() {
+    this.closeModal.emit();
+  }
+}

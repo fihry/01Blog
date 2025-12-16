@@ -2,6 +2,7 @@
 
 import { Component, Input, Output, EventEmitter } from "@angular/core"
 import { CommonModule } from "@angular/common"
+import { RouterModule } from "@angular/router"
 
 interface Post {
   id: number
@@ -11,20 +12,20 @@ interface Post {
   likes: number
   comments: number
   timestamp: string
-  isOwner: boolean 
+  isOwner: boolean
 }
 
 @Component({
   selector: "app-post-card",
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterModule],
   templateUrl: "./post-card.component.html",
   styleUrls: ["./post-card.component.scss"],
 })
 export class PostCardComponent {
   @Input() post!: Post
   // 💡 OUTPUT: Event to notify the parent component (FeedComponent) when to delete the post
-  @Output() deletePost = new EventEmitter<number>(); 
+  @Output() deletePost = new EventEmitter<number>();
 
   // --- Interaction Methods ---
 
@@ -41,7 +42,7 @@ export class PostCardComponent {
   onDelete() {
     // Confirm deletion for better UX
     if (confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
-        this.deletePost.emit(this.post.id);
+      this.deletePost.emit(this.post.id);
     }
   }
 }
