@@ -3,26 +3,34 @@ import { HttpClient } from "@angular/common/http"
 import { BehaviorSubject, type Observable } from "rxjs"
 import { tap } from "rxjs/operators"
 
+// Backend DTO shape (matches PostDto from Spring Boot backend)
 export interface Post {
-  id: number
-  user_id: number
+  id: string
   title: string
   content: string
-  created_at: string
-  updated_at: string
-  user?: {
-    id: number
-    username: string
-    avatar_url?: string
-  }
-  media?: Array<{
-    id: number
-    media_url: string
-    media_type: string
+  media: Array<{
+    id: string
+    mediaUrl: string
+    mediaType: string
   }>
-  likes_count: number
-  comments_count: number
-  liked_by_user?: boolean
+  author: {
+    id: string
+    username: string
+    avatarUrl?: string
+  }
+  createdAt: string
+  updatedAt: string
+  likeCount: number
+  commentCount: number
+  likedByCurrentUser: boolean
+}
+
+export interface PostPage {
+  content: Post[]
+  totalElements: number
+  totalPages: number
+  number: number
+  size: number
 }
 
 interface CreatePostRequest {
@@ -41,12 +49,12 @@ export class PostService {
 
   constructor(private http: HttpClient) {}
 
-  getFeed(page = 0, limit = 10): Observable<Post[]> {
-    return this.http.get<Post[]>(`${this.apiUrl}/feed?page=${page}&limit=${limit}`).pipe(
-      tap((posts) => {
+  getFeed(page = 0, size = 10): Observable<PostPage> {
+    return this.http.get<PostPage>(`${this.apiUrl}?page=${page}&size=${size}`).pipe(
+      tap((pageResp) => {
         const currentPosts = this.postsSubject.value
-        this.postsSubject.next([...currentPosts, ...posts])
-      }),
+        this.postsSubject.next([...currentPosts, ...pageResp.content])
+      })
     )
   }
 

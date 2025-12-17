@@ -5,7 +5,7 @@ import { CommonModule } from "@angular/common"
 import { RouterModule } from "@angular/router"
 
 interface Post {
-  id: number
+  id: string
   title: string
   content: string
   author: string
@@ -25,7 +25,7 @@ interface Post {
 export class PostCardComponent {
   @Input() post!: Post
   // 💡 OUTPUT: Event to notify the parent component (FeedComponent) when to delete the post
-  @Output() deletePost = new EventEmitter<number>();
+  @Output() deletePost = new EventEmitter<string>();
 
   // --- Interaction Methods ---
 

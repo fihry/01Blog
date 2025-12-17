@@ -6,9 +6,10 @@ import { FormsModule } from "@angular/forms"
 import { RouterModule } from "@angular/router"
 import { PostCardComponent } from "../post-card/post-card.component"
 import { CreatePostModalComponent } from "../create-post-modal/create-post-modal.component"
+import { PostService, type Post as ApiPost, type PostPage } from "../../../core/services/post.service"
 
 interface Post {
-  id: number
+  id: string
   title: string
   content: string
   author: string
@@ -29,40 +30,45 @@ export class FeedComponent implements OnInit {
   posts: Post[] = []
   isModalOpen: boolean = false
   searchQuery: string = ''
-  ngOnInit(): void {
-    this.posts = [
-      {
-        id: 1,
-        title: "Getting Started with Angular",
-        content: "Learn the basics of Angular standalone components and reactive programming. It's time to build scalable applications!",
-        author: "John Doe",
-        likes: 42,
-        comments: 5,
-        timestamp: "2 hours ago",
-        isOwner: true
-      },
-      {
-        id: 2,
-        title: "TypeScript Best Practices",
-        content: "Tips and tricks for writing better TypeScript code, focusing on utility types and generics for maximum type safety and flexibility.",
-        author: "Jane Smith",
-        likes: 58,
-        comments: 8,
-        timestamp: "4 hours ago",
-        isOwner: true
 
+  isLoading = false
+  errorMessage: string | null = null
+
+  constructor(private postService: PostService) {}
+
+  ngOnInit(): void {
+    this.loadFeed()
+  }
+
+  private loadFeed(page = 0, limit = 10): void {
+    this.isLoading = true
+    this.errorMessage = null
+    this.postService.getFeed(page, limit).subscribe({
+      next: (pageResp: PostPage) => {
+        this.posts = pageResp.content.map((post) => this.mapPost(post))
+        this.isLoading = false
       },
-      {
-        id: 3,
-        title: "Designing for Dark Mode: A Comprehensive Guide",
-        content: "We dive into the psychology of dark UI and how to choose colors that look great and reduce eye strain, especially in social apps.",
-        author: "Alice Johnson",
-        likes: 120,
-        comments: 15,
-        timestamp: "1 day ago",
-        isOwner: false,
+      error: (err) => {
+        console.error("Failed to load feed", err)
+        this.errorMessage = "Unable to load posts. Please try again later."
+        this.isLoading = false
       },
-    ]
+    })
+  }
+
+  private mapPost(apiPost: ApiPost): Post {
+    return {
+      id: apiPost.id,
+      title: apiPost.title,
+      content: apiPost.content,
+      author: apiPost.author?.username ?? "Unknown",
+      likes: apiPost.likeCount ?? 0,
+      comments: apiPost.commentCount ?? 0,
+      // TODO: Replace with proper relative time formatting
+      timestamp: new Date(apiPost.createdAt).toLocaleString(),
+      // TODO: Use AuthService to determine if current user is owner
+      isOwner: false,
+    }
   }
 
   // Methods to control the modal
