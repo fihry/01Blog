@@ -16,6 +16,7 @@ import com.zeroOneBlog.Dto.UserSummaryDto;
 import com.zeroOneBlog.Entities.Media;
 import com.zeroOneBlog.Entities.Post;
 import com.zeroOneBlog.Entities.User;
+import com.zeroOneBlog.Entities.Like;
 import com.zeroOneBlog.Exceptions.ApiException;
 import com.zeroOneBlog.Repositories.CommentRepository;
 import com.zeroOneBlog.Repositories.LikeRepository;
@@ -287,6 +288,23 @@ public class PostService {
             }
         }
         postRepository.delete(post);
+    }
+
+    // Toggle like for a post by the current user
+    public void toggleLike(UUID postId, UUID currentUserId) {
+        Post post = getById(postId);
+        User user = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new ApiException(HttpStatus.BAD_REQUEST, "User not found"));
+
+        boolean alreadyLiked = likeRepository.existsByPostIdAndUserId(postId, currentUserId);
+        if (alreadyLiked) {
+            likeRepository.deleteByPostIdAndUserId(postId, currentUserId);
+        } else {
+            Like like = new Like();
+            like.setPost(post);
+            like.setUser(user);
+            likeRepository.save(like);
+        }
     }
 
     // Helper method to determine media type from content type (only images and videos for posts)
