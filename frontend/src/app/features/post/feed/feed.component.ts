@@ -22,13 +22,12 @@ interface Post {
 @Component({
   selector: "app-feed",
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, PostCardComponent],
+  imports: [CommonModule, FormsModule, RouterModule, PostCardComponent, CreatePostModalComponent],
   templateUrl: "./feed.component.html",
   styleUrls: ["./feed.component.scss"],
 })
 export class FeedComponent implements OnInit {
   posts: Post[] = []
-  isModalOpen: boolean = false
   searchQuery: string = ''
 
   isLoading = false
@@ -71,12 +70,9 @@ export class FeedComponent implements OnInit {
     }
   }
 
-  // Methods to control the modal
-  openCreatePostModal(): void {
-    this.isModalOpen = true
-  }
-
-  closeCreatePostModal(): void {
-    this.isModalOpen = false
+  onPostCreated(apiPost: ApiPost): void {
+    const mapped = this.mapPost(apiPost)
+    // Prepend the new post to the top of the feed
+    this.posts = [mapped, ...this.posts]
   }
 }

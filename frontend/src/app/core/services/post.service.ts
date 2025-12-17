@@ -33,7 +33,7 @@ export interface PostPage {
   size: number
 }
 
-interface CreatePostRequest {
+export interface CreatePostRequest {
   title: string
   content: string
   media?: File[]
@@ -64,8 +64,14 @@ export class PostService {
 
   createPost(data: CreatePostRequest): Observable<Post> {
     const formData = new FormData()
-    formData.append("title", data.title)
-    formData.append("content", data.content)
+    const postPayload = {
+      title: data.title,
+      content: data.content,
+    }
+    formData.append(
+      "post",
+      new Blob([JSON.stringify(postPayload)], { type: "application/json" }),
+    )
     if (data.media) {
       data.media.forEach((file) => formData.append("media", file))
     }
