@@ -1,31 +1,72 @@
 // src/app/shared/services/toast.service.ts
 import { Injectable } from '@angular/core';
-import { Subject, Observable } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 
 export interface Toast {
+  id : string;
   title: string;
   message: string;
-  type: 'success' | 'error' | 'info';
+  type: 'success' | 'error' | 'info' | 'warning';
   delay?: number;
 }
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class ToastService {
-  private toastSubject = new Subject<Toast>();
+  private toastsSubject = new BehaviorSubject<Toast[]>([]);
+  toasts$ = this.toastsSubject.asObservable();
 
-  get toasts$(): Observable<Toast> {
-    return this.toastSubject.asObservable();
+  private add(toast: Toast) {
+    const toasts = [...this.toastsSubject.value, toast];
+    this.toastsSubject.next(toasts);
+
+    if (toast.delay) {
+      setTimeout(() => this.remove(toast.id), toast.delay);
+    }
   }
 
-  showSuccess(title: string, message: string): void {
-    this.toastSubject.next({ title, message, type: 'success', delay: 3000 });
+  remove(id: string) {
+    this.toastsSubject.next(
+      this.toastsSubject.value.filter(toast=>toast.id !==id)
+    );
   }
 
-  showError(title: string, message: string): void {
-    this.toastSubject.next({ title, message, type: 'error', delay: 5000 });
+  showSuccess(title: string, message: string) {
+    this.add({
+      id: crypto.randomUUID(),
+      title,
+      message,
+      type: 'success',
+      delay: 3000
+    });
   }
-  
-  // You can add showInfo() here 
+
+  showError(title: string, message: string) {
+    this.add({
+      id: crypto.randomUUID(),
+      title,
+      message,
+      type: 'error',
+      delay: 5000
+    });
+  }
+
+  showInfo(title: string, message: string) {
+    this.add({
+      id: crypto.randomUUID(),
+      title,
+      message,
+      type: 'info',
+      delay: 3000
+    });
+  }
+
+  showWarning(title: string, message: string) {
+    this.add({
+      id: crypto.randomUUID(),
+      title,
+      message,
+      type: 'warning',
+      delay: 5000
+    });
+  }
 }

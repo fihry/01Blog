@@ -223,7 +223,7 @@ export class CreatePostModalComponent {
       .subscribe({
         next: (createdPost) => {
           this.isSubmitting = false
-          this.toastService.showSuccess("Post created", "Your post has been published.")
+          this.toastService.showInfo("Post created", "Your post has been published.")
           this.postCreated.emit(createdPost)
           this.resetForm()
           this.isOverlayOpen = false

@@ -2,7 +2,8 @@
 
 import { Component, Input, Output, EventEmitter } from "@angular/core"
 import { CommonModule } from "@angular/common"
-import { RouterModule } from "@angular/router"
+import { Router, RouterModule } from "@angular/router"
+import { PostService } from "../../../core/services/post.service"
 
 interface Post {
   id: string
@@ -13,6 +14,7 @@ interface Post {
   comments: number
   timestamp: string
   isOwner: boolean
+  likedByCurrentUser: boolean
 }
 
 @Component({
@@ -27,16 +29,40 @@ export class PostCardComponent {
   // 💡 OUTPUT: Event to notify the parent component (FeedComponent) when to delete the post
   @Output() deletePost = new EventEmitter<string>();
 
+  isLiking = false
+
+  constructor(
+    private postService: PostService,
+    private router: Router,
+  ) {}
+
   // --- Interaction Methods ---
 
   onLike() {
-    // Placeholder for future API call to like/unlike the post
-    console.log(`Liking post ${this.post.id}`);
+    if (this.isLiking) return
+    this.isLiking = true
+
+    this.postService.likePost(this.post.id).subscribe({
+      next: () => {
+        // Optimistic toggle
+        if (this.post.likedByCurrentUser) {
+          this.post.likedByCurrentUser = false
+          this.post.likes = Math.max(0, this.post.likes - 1)
+        } else {
+          this.post.likedByCurrentUser = true
+          this.post.likes = this.post.likes + 1
+        }
+        this.isLiking = false
+      },
+      error: (err) => {
+        console.error("Failed to like post", err)
+        this.isLiking = false
+      },
+    })
   }
 
   onComment() {
-    // Placeholder for future routing or modal logic for comments
-    console.log(`Opening comments for post ${this.post.id}`);
+    this.router.navigate(["/post", this.post.id])
   }
 
   onDelete() {

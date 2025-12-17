@@ -1,0 +1,115 @@
+<div class="min-h-screen pt-5 mt-5">
+    <div class="container-m mx-auto py-5 px-4">
+      <!-- Back Button -->
+      <a routerLink="/feed" class="btn btn-ghost mb-4 ps-0 text-muted-foreground hover:text-foreground">
+        <i class="bi bi-arrow-left me-2"></i> Back to Feed
+      </a>
+
+      <ng-container *ngIf="isLoading; else loaded">
+        <div class="d-flex justify-content-center py-5">
+          <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+      </ng-container>
+
+      <ng-template #loaded>
+        <ng-container *ngIf="post; else notFound">
+          <div class="row g-5">
+            <div class="col-lg-8">
+              <!-- Post Header -->
+              <div class="mb-4">
+                <div class="d-flex align-items-center gap-3 mb-4">
+                  <div class="avatar-placeholder w-12 h-12"></div>
+                  <div class="d-flex flex-column">
+                    <span class="text-foreground font-semibold">
+                      {{ post.author?.username || 'Unknown author' }}
+                    </span>
+                    <span class="text-muted-foreground text-sm">
+                      {{ post.createdAt | date: 'medium' }}
+                    </span>
+                  </div>
+                </div>
+
+                <h1 class="text-4xl font-bold text-foreground mb-4 leading-tight">
+                  {{ post.title }}
+                </h1>
+
+                <div class="d-flex gap-3 mb-3 text-sm text-muted-foreground">
+                  <span>
+                    <i class="bi bi-heart me-1"></i>{{ post.likeCount }} likes
+                  </span>
+                  <span>
+                    <i class="bi bi-chat-dots me-1"></i>{{ post.commentCount }} comments
+                  </span>
+                </div>
+
+                <!-- Featured Media (first image/video) -->
+                <ng-container *ngIf="post.media && post.media.length > 0">
+                  <div class="w-100 rounded-4 mb-4 overflow-hidden">
+                    <ng-container [ngSwitch]="post.media[0].mediaType">
+                      <img
+                        *ngSwitchCase="'IMAGES'"
+                        [src]="post.media[0].mediaUrl"
+                        alt="Post media"
+                        class="img-fluid w-100"
+                        style="object-fit: cover; max-height: 420px;"
+                      />
+                      <video
+                        *ngSwitchCase="'VIDEOS'"
+                        [src]="post.media[0].mediaUrl"
+                        controls
+                        class="w-100"
+                        style="max-height: 420px;"
+                      ></video>
+                    </ng-container>
+                  </div>
+                </ng-container>
+              </div>
+
+              <!-- Post Body -->
+              <article class="prose prose-lg text-foreground mb-5">
+                <p class="mb-4 text-lg leading-relaxed text-muted-foreground" style="white-space: pre-line;">
+                  {{ post.content }}
+                </p>
+              </article>
+
+              <hr class="border-muted my-5">
+
+              <!-- Comments Section (UI only for now) -->
+              <div class="comments-section">
+                <h3 class="text-xl font-bold mb-4">Comments ({{ post.commentCount }})</h3>
+
+                <div class="d-flex gap-3 mb-5">
+                  <div class="avatar-placeholder w-10 h-10"></div>
+                  <div class="flex-grow-1">
+                    <textarea class="form-control mb-2" rows="3" placeholder="Add to the discussion..."></textarea>
+                    <button class="btn btn-primary float-end" disabled>Post Comment (coming soon)</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-lg-4 d-none d-lg-block">
+              <div class="app-widget-card p-4 sticky-top" style="top: 100px;">
+                <h4 class="text-lg font-bold mb-3">About the Author</h4>
+                <p class="text-sm text-muted-foreground mb-4">
+                  {{ post.author?.username || 'Author information coming soon.' }}
+                </p>
+                <button class="btn btn-outline-secondary w-100 mb-4">Follow</button>
+              </div>
+            </div>
+          </div>
+        </ng-container>
+
+        <ng-template #notFound>
+          <div class="text-center py-5">
+            <h2 class="h4 mb-3">Post not found</h2>
+            <p class="text-muted-foreground mb-4">The post you are looking for may have been removed.</p>
+            <a routerLink="/feed" class="btn btn-primary">Back to feed</a>
+          </div>
+        </ng-template>
+      </ng-template>
+    </div>
+  </div>

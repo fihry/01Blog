@@ -32,9 +32,12 @@
 
         <div class="d-flex gap-4">
             <button
-                class="btn btn-ghost btn-sm text-muted-foreground hover:text-primary d-flex align-items-center gap-2"
-                (click)="onLike()" title="Like">
-                <i class="bi bi-heart"></i>
+                class="btn btn-ghost btn-sm d-flex align-items-center gap-2"
+                [ngClass]="post.likedByCurrentUser ? 'text-danger' : 'text-muted-foreground hover:text-primary'"
+                (click)="onLike()"
+                [disabled]="isLiking"
+                title="Like">
+                <i class="bi" [ngClass]="post.likedByCurrentUser ? 'bi-heart-fill' : 'bi-heart'"></i>
                 <span>{{ post.likes }}</span>
             </button>
             <button

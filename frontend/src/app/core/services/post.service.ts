@@ -58,7 +58,7 @@ export class PostService {
     )
   }
 
-  getPost(id: number): Observable<Post> {
+  getPost(id: string): Observable<Post> {
     return this.http.get<Post>(`${this.apiUrl}/${id}`)
   }
 
@@ -78,19 +78,19 @@ export class PostService {
     return this.http.post<Post>(`${this.apiUrl}`, formData)
   }
 
-  updatePost(id: number, data: Partial<CreatePostRequest>): Observable<Post> {
+  updatePost(id: string, data: Partial<CreatePostRequest>): Observable<Post> {
     return this.http.put<Post>(`${this.apiUrl}/${id}`, data)
   }
 
-  deletePost(id: number): Observable<void> {
+  deletePost(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`)
   }
 
-  likePost(id: number): Observable<void> {
+  likePost(id: string): Observable<void> {
     return this.http.post<void>(`${this.apiUrl}/${id}/like`, {})
   }
 
-  unlikePost(id: number): Observable<void> {
+  unlikePost(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}/like`)
   }
 }

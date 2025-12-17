@@ -7,6 +7,7 @@ import { RouterModule } from "@angular/router"
 import { PostCardComponent } from "../post-card/post-card.component"
 import { CreatePostModalComponent } from "../create-post-modal/create-post-modal.component"
 import { PostService, type Post as ApiPost, type PostPage } from "../../../core/services/post.service"
+import { ToastService } from "../../../shared/services/toast.service"
 
 interface Post {
   id: string
@@ -17,6 +18,7 @@ interface Post {
   comments: number
   timestamp: string
   isOwner: boolean
+  likedByCurrentUser: boolean
 }
 
 @Component({
@@ -33,7 +35,7 @@ export class FeedComponent implements OnInit {
   isLoading = false
   errorMessage: string | null = null
 
-  constructor(private postService: PostService) {}
+  constructor(private postService: PostService ,private toastService: ToastService) {}
 
   ngOnInit(): void {
     this.loadFeed()
@@ -48,8 +50,8 @@ export class FeedComponent implements OnInit {
         this.isLoading = false
       },
       error: (err) => {
-        console.error("Failed to load feed", err)
-        this.errorMessage = "Unable to load posts. Please try again later."
+          console.error("Failed to load feed", err)
+          this.errorMessage = "Unable to load posts. Please try again later."
         this.isLoading = false
       },
     })
@@ -67,12 +69,12 @@ export class FeedComponent implements OnInit {
       timestamp: new Date(apiPost.createdAt).toLocaleString(),
       // TODO: Use AuthService to determine if current user is owner
       isOwner: false,
+      likedByCurrentUser: apiPost.likedByCurrentUser ?? false,
     }
   }
 
   onPostCreated(apiPost: ApiPost): void {
     const mapped = this.mapPost(apiPost)
-    // Prepend the new post to the top of the feed
     this.posts = [mapped, ...this.posts]
   }
 }
