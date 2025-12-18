@@ -61,3 +61,36 @@
         color: var(--primary); 
     }
 }
+
+.markdown-body {
+
+  h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0.5rem 0;
+  }
+
+  h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0.5rem 0;
+  }
+
+  strong {
+    font-weight: 600;
+  }
+
+  em {
+    font-style: italic;
+  }
+
+  li {
+    margin-left: 1.25rem;
+    list-style-type: disc;
+  }
+
+  br {
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+}

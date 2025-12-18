@@ -4,6 +4,9 @@ import { Component, Input, Output, EventEmitter } from "@angular/core"
 import { CommonModule } from "@angular/common"
 import { Router, RouterModule } from "@angular/router"
 import { PostService } from "../../../core/services/post.service"
+import { SafeMarkdownService } from "../../../shared/services/markdown.service"
+
+
 
 interface Post {
   id: string
@@ -30,14 +33,17 @@ export class PostCardComponent {
   @Output() deletePost = new EventEmitter<string>();
 
   isLiking = false
-
+  parsedContent = ""
   constructor(
     private postService: PostService,
     private router: Router,
-  ) {}
+    private markdown: SafeMarkdownService
+  ) { }
 
   // --- Interaction Methods ---
-
+  ngOnInit() {
+    this.parsedContent = this.markdown.parse(this.post.content)
+  }
   onLike() {
     if (this.isLiking) return
     this.isLiking = true

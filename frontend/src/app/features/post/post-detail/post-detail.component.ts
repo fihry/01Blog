@@ -2,6 +2,8 @@ import { Component, OnInit } from "@angular/core"
 import { CommonModule } from "@angular/common"
 import { ActivatedRoute, RouterModule } from "@angular/router"
 import { PostService, type Post } from "../../../core/services/post.service"
+import { SafeMarkdownService } from "../../../shared/services/markdown.service"
+
 
 @Component({
   selector: "app-post-detail",
@@ -17,10 +19,12 @@ import { PostService, type Post } from "../../../core/services/post.service"
 export class PostDetailComponent implements OnInit {
   post: Post | null = null
   isLoading = false
+  parsedContent=""
 
   constructor(
     private route: ActivatedRoute,
     private postService: PostService,
+    private markdown: SafeMarkdownService
   ) {}
 
   ngOnInit(): void {
@@ -40,11 +44,13 @@ export class PostDetailComponent implements OnInit {
       next: (post) => {
         this.post = post
         this.isLoading = false
+        this.parsedContent = this.markdown.parse(this.post?.content)
       },
       error: (err) => {
         console.error("Failed to load post", err)
         this.post = null
         this.isLoading = false
+        this.parsedContent = ""
       },
     })
   }

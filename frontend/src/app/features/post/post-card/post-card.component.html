@@ -22,7 +22,9 @@
     <a [routerLink]="['/post', post.id]" class="text-decoration-none">
         <h3 class="text-xl font-bold mb-2 text-foreground hover:text-primary transition-colors cursor-pointer">{{
             post.title }}</h3>
-        <p class="text-base mb-4 text-muted-foreground leading-relaxed line-clamp-3">{{ post.content }}</p>
+        <div class="text-base mb-4 text-muted-foreground leading-relaxed line-clamp-3 markdown-body"
+            [innerHTML]="parsedContent">
+        </div>
     </a>
 
     <!-- Image placeholder support if needed -->
@@ -31,12 +33,9 @@
     <div class="d-flex justify-content-between align-items-center border-top border-muted pt-3">
 
         <div class="d-flex gap-4">
-            <button
-                class="btn btn-ghost btn-sm d-flex align-items-center gap-2"
+            <button class="btn btn-ghost btn-sm d-flex align-items-center gap-2"
                 [ngClass]="post.likedByCurrentUser ? 'text-danger' : 'text-muted-foreground hover:text-primary'"
-                (click)="onLike()"
-                [disabled]="isLiking"
-                title="Like">
+                (click)="onLike()" [disabled]="isLiking" title="Like">
                 <i class="bi" [ngClass]="post.likedByCurrentUser ? 'bi-heart-fill' : 'bi-heart'"></i>
                 <span>{{ post.likes }}</span>
             </button>
