@@ -3,6 +3,7 @@ import { CommonModule } from "@angular/common"
 import { ActivatedRoute, RouterModule } from "@angular/router"
 import { PostService, type Post } from "../../../core/services/post.service"
 import { SafeMarkdownService } from "../../../shared/services/markdown.service"
+import { CommentService, Comment } from "../../../core/services/comment.service"
 
 
 @Component({
@@ -20,10 +21,12 @@ export class PostDetailComponent implements OnInit {
   post: Post | null = null
   isLoading = false
   parsedContent=""
+  superman : Comment[] = []
 
   constructor(
     private route: ActivatedRoute,
     private postService: PostService,
+    private commentService: CommentService,
     private markdown: SafeMarkdownService
   ) {}
 
@@ -35,6 +38,7 @@ export class PostDetailComponent implements OnInit {
         return
       }
       this.fetchPost(id)
+      this.fetchComments(id)
     })
   }
 
@@ -52,6 +56,17 @@ export class PostDetailComponent implements OnInit {
         this.isLoading = false
         this.parsedContent = ""
       },
+    })
+  }
+
+  private fetchComments(id: string): void {
+    this.commentService.getComments(id).subscribe({
+      next: (cmmnts) => {
+        this.superman = cmmnts
+      },
+      error: (err) => {
+        console.error(err)
+      }
     })
   }
 }
