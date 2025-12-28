@@ -103,9 +103,12 @@ export class PostDetailComponent implements OnInit, OnDestroy {
   }
 
   createComment(): void {
-    if (!this.id || !this.commentContent.trim()) {
-      console.warn("Cannot create comment: missing id or content")
-      this.toastService.showError("ERROR", "Comment content cannot be empty.")
+    if (!this.id) {
+      console.error("Post ID is missing. Cannot create comment.")
+      this.toastService.showError("Error", "Post ID is missing. Cannot create comment.")
+      return
+    }else if (!this.commentContent.trim()) {
+      this.toastService.showWarning("Warning", "Comment content cannot be empty.")
       return
     }
 
@@ -114,22 +117,21 @@ export class PostDetailComponent implements OnInit, OnDestroy {
     this.isSubmittingComment = true
     this.commentService.createComment(this.id, { content }).subscribe({
       next: (comment) => {
-        // Add comment to list
-        this.comments.push(comment)
+        // Add comment to list in the beginning
+        this.comments.unshift(comment)
         
         // Update post comment count
         if (this.post) {
           this.post = { ...this.post, commentCount: this.post.commentCount + 1 }
         }
-        
+        this.toastService.showSuccess("Success", "Comment added successfully.")
         // Clear input
         this.commentContent = ""
-        
-        console.log("Comment created:", comment)
         this.isSubmittingComment = false
       },
       error: (err) => {
         console.error("Failed to create comment", err)
+        this.toastService.showError("Error", err?.error?.message || "Failed to create comment.")
         this.isSubmittingComment = false
       },
     })
