@@ -31,7 +31,7 @@ interface Post {
 })
 export class PostCardComponent {
   @Input() post!: Post
-  // 💡 OUTPUT: Event to notify the parent component (FeedComponent) when to delete the post
+  //OUTPUT: Event to notify the parent component (FeedComponent) when to delete the post
   @Output() deletePost = new EventEmitter<string>();
 
   isLiking = false

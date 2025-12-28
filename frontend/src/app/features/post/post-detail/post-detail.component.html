@@ -1,103 +1,173 @@
-<div class="min-h-screen pt-5 mt-5">
-  <div class="container-m mx-auto py-5 px-4">
-    <!-- Back Button -->
-    <a routerLink="/feed" class="btn btn-ghost mb-4 ps-0 text-muted-foreground hover:text-foreground">
-      <i class="bi bi-arrow-left me-2"></i> Back to Feed
-    </a>
+<div class="min-h-screen bg-background">
+  <div class="container-m mx-auto px-4">
+    <!-- Header Section with Back Button -->
+    <div class="py-4 border-bottom border-muted">
+      <a routerLink="/feed" class="btn btn-ghost text-muted-foreground hover:text-foreground d-inline-flex align-items-center gap-2">
+        <i class="bi bi-arrow-left"></i>
+        <span>Back to Feed</span>
+      </a>
+    </div>
 
+    <!-- Loading State -->
     <ng-container *ngIf="isLoading; else loaded">
-      <div class="d-flex justify-content-center py-5">
-        <div class="spinner-border" role="status">
+      <div class="d-flex justify-content-center align-items-center" style="min-height: 400px;">
+        <div class="spinner-border text-primary" role="status">
           <span class="visually-hidden">Loading...</span>
         </div>
       </div>
     </ng-container>
 
+    <!-- Loaded Content -->
     <ng-template #loaded>
       <ng-container *ngIf="post; else notFound">
-        <div class="row g-5">
-          <div class="col-lg-8">
+        <div class="row g-4 py-5">
+          <!-- Main Content Column -->
+          <div class="col-lg-10 mx-auto">
             <!-- Post Header -->
-            <div class="mb-4">
-              <div class="d-flex align-items-center gap-3 mb-4">
-                <div class="avatar-placeholder w-12 h-12"></div>
-                <div class="d-flex flex-column">
-                  <span class="text-foreground font-semibold">
+            <header class="mb-5">
+              <!-- Author Info -->
+              <a [routerLink]="['/profile', post.author.id]" 
+                 class="d-flex align-items-center gap-3 mb-4 text-decoration-none hover:opacity-75 transition">
+                <div class="avatar-placeholder rounded-circle" style="width: 48px; height: 48px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
+                <div>
+                  <div class="fw-semibold text-foreground">
                     {{ post.author.username || 'Unknown author' }}
-                  </span>
-                  <span class="text-muted-foreground text-sm">
-                    {{ post.createdAt | date: 'medium' }}
-                  </span>
+                  </div>
+                  <div class="small text-muted-foreground">
+                    {{ post.createdAt | date: 'MMM d, y · h:mm a' }}
+                  </div>
                 </div>
-              </div>
+              </a>
 
-              <h1 class="text-4xl font-bold text-foreground mb-4 leading-tight">
+              <!-- Post Title -->
+              <h1 class="display-5 fw-bold text-foreground mb-4 lh-sm">
                 {{ post.title }}
               </h1>
 
-              <div class="d-flex gap-3 mb-3 text-sm text-muted-foreground">
-                <span>
-                  <i class="bi bi-heart me-1"></i>{{ post.likeCount }} likes
-                </span>
-                <span>
-                  <i class="bi bi-chat-dots me-1"></i>{{ post.commentCount }} comments
-                </span>
-              </div>
-
-              <!-- Featured Media (first image/video) -->
-              <ng-container *ngIf="post.media && post.media.length > 0">
-                <div class="w-100 rounded-4 mb-4 overflow-hidden">
-                  <ng-container [ngSwitch]="post.media[0].mediaType">
-                    <img *ngSwitchCase="'IMAGES'" [src]="post.media[0].mediaUrl" alt="Post media"
-                      class="img-fluid w-100" style="object-fit: cover; max-height: 420px;" />
-                    <video *ngSwitchCase="'VIDEOS'" [src]="post.media[0].mediaUrl" controls class="w-100"
-                      style="max-height: 420px;"></video>
-                  </ng-container>
+              <!-- Post Stats -->
+              <div class="d-flex gap-4 mb-4">
+                <div class="d-flex align-items-center gap-2 text-muted-foreground">
+                  <i class="bi bi-heart"></i>
+                  <span class="small">{{ post.likeCount }}</span>
                 </div>
-              </ng-container>
-            </div>
+                <div class="d-flex align-items-center gap-2 text-muted-foreground">
+                  <i class="bi bi-chat-dots"></i>
+                  <span class="small">{{ post.commentCount }}</span>
+                </div>
+              </div>
+            </header>
 
-            <!-- Post Body -->
-            <article class="prose prose-lg text-foreground mb-5">
-              <div class="text-base mb-4 text-muted-foreground leading-relaxed markdown-body"
-                [innerHTML]="parsedContent">
+            <!-- Featured Media -->
+            <ng-container *ngIf="post.media && post.media.length > 0">
+              <div class="mb-5 rounded-4 overflow-hidden shadow-sm">
+                <ng-container [ngSwitch]="post.media[0].mediaType">
+                  <img *ngSwitchCase="'IMAGES'" 
+                       [src]="post.media[0].mediaUrl" 
+                       alt="Post media"
+                       class="img-fluid w-100" 
+                       style="object-fit: cover; max-height: 500px;" />
+                  <video *ngSwitchCase="'VIDEOS'" 
+                         [src]="post.media[0].mediaUrl" 
+                         controls 
+                         class="w-100"
+                         style="max-height: 500px;"></video>
+                </ng-container>
+              </div>
+            </ng-container>
+
+            <!-- Post Content -->
+            <article class="mb-5">
+              <div class="fs-5 lh-lg text-foreground markdown-body" 
+                   [innerHTML]="parsedContent"
+                   style="line-height: 1.8;">
               </div>
             </article>
 
-            <hr class="border-muted my-5">
+            <!-- Divider -->
+            <hr class="my-5 border-muted">
 
-            <!-- Comments Section (UI only for now) -->
-            <div class="comments-section">
-              <h3 class="text-xl font-bold mb-4">Comments ({{ post.commentCount }})</h3>
+            <!-- Comments Section -->
+            <section class="comments-section">
+              <h2 class="h4 fw-bold mb-4">
+                Comments <span class="text-muted-foreground">({{ post.commentCount }})</span>
+              </h2>
 
-              <div class="d-flex gap-3 mb-5">
-                <div class="avatar-placeholder w-10 h-10"></div>
-                <div class="flex-grow-1">
-                  <textarea class="form-control mb-2" rows="3" placeholder="Add to the discussion..."></textarea>
-                  <button class="btn btn-primary float-end" disabled>Post Comment (coming soon)</button>
+              <!-- Comment Input -->
+              <div class="app-widget-card p-4 mb-4">
+                <div class="d-flex gap-3">
+                  <div class="avatar-placeholder rounded-circle flex-shrink-0" 
+                       style="width: 40px; height: 40px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);"></div>
+                  <div class="flex-grow-1">
+                    <textarea 
+                      class="form-control border-0 bg-muted mb-3" 
+                      rows="3" 
+                      placeholder="Share your thoughts..."
+                      [(ngModel)]="commentContent"
+                      name="commentContent"
+                      style="resize: none;"></textarea>
+                    <div class="d-flex justify-content-end">
+                      <button class="btn btn-primary px-4" (click)="createComment()">
+                        Post Comment
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
 
-          <!-- Sidebar -->
-          <div class="col-lg-4 d-none d-lg-block">
-            <div class="app-widget-card p-4 sticky-top" style="top: 100px;">
-              <h4 class="text-lg font-bold mb-3">About the Author</h4>
-              <p class="text-sm text-muted-foreground mb-4">
-                {{ post.author.username || 'Author information coming soon.' }}
-              </p>
-              <button class="btn btn-outline-secondary w-100 mb-4">Follow</button>
-            </div>
+              <!-- Comments List -->
+              <div class="d-flex flex-column gap-3 overflow-auto pe-2" 
+                   style="max-height: 600px;">
+                <div class="app-widget-card p-4 hover:shadow-sm transition" 
+                     *ngFor="let comment of comments">
+                  <div class="d-flex gap-3">
+                    <div class="avatar-placeholder rounded-circle flex-shrink-0" 
+                         style="width: 40px; height: 40px; background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);"></div>
+                    <div class="flex-grow-1">
+                      <!-- Comment Header -->
+                      <div class="d-flex align-items-center justify-content-between mb-2">
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                          <span class="fw-semibold text-foreground">
+                            {{ comment.author.username }}
+                          </span>
+                          <span class="text-muted-foreground">·</span>
+                          <span class="small text-muted-foreground">
+                            {{ comment.updatedAt }}
+                          </span>
+                        </div>
+                        <!-- Comment Actions -->
+                        <!-- <button *ngIf="comment.isOwner" 
+                                class="btn btn-sm btn-ghost text-danger p-2"
+                                title="Delete comment">
+                          <i class="bi bi-trash"></i>
+                        </button> -->
+                      </div>
+
+                      <!-- Comment Content -->
+                      <p class="mb-0 text-foreground" style="line-height: 1.6;">
+                        {{ comment.content }}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
           </div>
         </div>
       </ng-container>
 
+      <!-- Not Found Template -->
       <ng-template #notFound>
-        <div class="text-center py-5">
-          <h2 class="h4 mb-3">Post not found</h2>
-          <p class="text-muted-foreground mb-4">The post you are looking for may have been removed.</p>
-          <a routerLink="/feed" class="btn btn-primary">Back to feed</a>
+        <div class="text-center py-5" style="min-height: 400px;">
+          <div class="mb-4">
+            <i class="bi bi-file-earmark-x display-1 text-muted-foreground"></i>
+          </div>
+          <h2 class="h3 fw-bold mb-3">Post Not Found</h2>
+          <p class="text-muted-foreground mb-4">
+            The post you are looking for may have been removed or is no longer available.
+          </p>
+          <a routerLink="/feed" class="btn btn-primary px-4">
+            <i class="bi bi-arrow-left me-2"></i>Back to Feed
+          </a>
         </div>
       </ng-template>
     </ng-template>
