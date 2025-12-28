@@ -3,7 +3,7 @@ import { CommonModule } from "@angular/common"
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms"
 import { NgbModal, NgbModule } from "@ng-bootstrap/ng-bootstrap"
 import { ReportService } from "../../core/services/report.service"
-import { ToastService } from "../../core/services/toast.service"
+import { ToastService } from "../../shared/services/toast.service"
 
 @Component({
   selector: "app-report-modal",
@@ -89,14 +89,14 @@ export class ReportModalComponent {
         })
         .subscribe({
           next: () => {
-            this.toastService.success("Report submitted successfully")
+            this.toastService.showSuccess("Report", "Report submitted successfully")
             this.reportForm.reset()
             this.isLoading = false
             modal.dismiss()
             this.reportSubmitted.emit()
           },
           error: () => {
-            this.toastService.error("Failed to submit report")
+            this.toastService.showError("Report", "Failed to submit report")
             this.isLoading = false
           },
         })
