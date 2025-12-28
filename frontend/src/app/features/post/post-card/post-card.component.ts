@@ -5,6 +5,8 @@ import { CommonModule } from "@angular/common"
 import { Router, RouterModule } from "@angular/router"
 import { PostService } from "../../../core/services/post.service"
 import { SafeMarkdownService } from "../../../shared/services/markdown.service"
+import { ToastService } from "../../../shared/services/toast.service"
+
 
 
 
@@ -37,7 +39,8 @@ export class PostCardComponent {
   constructor(
     private postService: PostService,
     private router: Router,
-    private markdown: SafeMarkdownService
+    private markdown: SafeMarkdownService,
+    private toastService: ToastService,
   ) { }
 
   // --- Interaction Methods ---
@@ -62,6 +65,7 @@ export class PostCardComponent {
       },
       error: (err) => {
         console.error("Failed to like post", err)
+        this.toastService.showError("Error", "Failed to like post")
         this.isLiking = false
       },
     })
