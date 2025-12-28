@@ -1,5 +1,6 @@
 package com.zeroOneBlog.Exceptions;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -56,6 +57,15 @@ public class GlobalException {
         return ResponseEntity
                 .status(405)
                 .body(new ErrorResponse(405, "Method not allowed: " + ex.getMethod()));
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<?> handleDataIntegrity(DataIntegrityViolationException ex) {
+        String message = ex.getMostSpecificCause() != null ? ex.getMostSpecificCause().getMessage() : ex.getMessage();
+        if (message != null && message.toLowerCase().contains("value too long")) {
+            return ResponseEntity.status(400).body(new ErrorResponse(400, "Input too long"));
+        }
+        return ResponseEntity.status(400).body(new ErrorResponse(400, "Data integrity violation"));
     }
 
     @ExceptionHandler(NoHandlerFoundException.class)

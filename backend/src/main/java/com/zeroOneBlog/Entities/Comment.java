@@ -37,7 +37,7 @@ public class Comment {
     @JoinColumn(name = "author_id", nullable = false)
     private User author;
 
-    @Column(nullable = false, length = 1000)
+    @Column(nullable = false, length = 500)
     private String content;
 
     private Timestamp createdAt = new Timestamp(System.currentTimeMillis());

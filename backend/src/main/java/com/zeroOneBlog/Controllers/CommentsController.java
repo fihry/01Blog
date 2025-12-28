@@ -40,8 +40,8 @@ public class CommentsController {
 
     @PostMapping("/{postId}/comments")
     public ResponseEntity<CommentCreateDto> saveComment(
-        @Valid @PathVariable UUID postId,
-        @RequestBody CommentDto comment,
+        @PathVariable UUID postId,
+        @RequestBody @Valid CommentDto comment,
         @AuthenticationPrincipal CustomUserDetails userDetails) {
         comment.setPostId(postId);
         CommentCreateDto  savedComment = commentService.saveComment(comment, userDetails.getId());
@@ -74,8 +74,8 @@ public class CommentsController {
     // Replies endpoints for comments
     @PostMapping("/{postId}/comments/reply")
     public ResponseEntity<CommentCreateDto> saveReply(
-        @Valid @PathVariable UUID postId,
-        @RequestBody CommentDto reply,
+        @PathVariable UUID postId,
+        @RequestBody @Valid CommentDto reply,
         @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         reply.setPostId(postId);

@@ -1,5 +1,6 @@
 package com.zeroOneBlog.Dto;
 
+import java.sql.Timestamp;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -20,4 +21,7 @@ public class CommentDto {
     private UUID parentCommentId;
     @Size(max = 500, message = "Content must not exceed 500 characters")
     private String content;
+
+    private Timestamp createdAt;
+    private Timestamp updatedAt;
 }

@@ -45,7 +45,9 @@ public class CommentService {
                     comment.getPost().getId(),
                     authorSummary,
                     parentCommentId,
-                    comment.getContent()
+                    comment.getContent(),
+                    comment.getCreatedAt(),
+                    comment.getUpdatedAt()
             );
             return dto;
         }).toList();
