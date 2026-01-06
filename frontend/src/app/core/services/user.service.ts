@@ -7,12 +7,12 @@ export interface User {
   username: string
   email: string
   bio: string
-  avatar_url?: string
-  created_at: string
-  posts_count: number
-  followers_count: number
-  following_count: number
-  is_following?: boolean
+  avatarUrl?: string
+  createdAt: string
+  postsCount: number
+  followersCount: number
+  followingCount: number
+  isFollowing?: boolean
 }
 
 interface UpdateProfileRequest {
@@ -35,6 +35,10 @@ export class UserService {
 
   getUserPosts(id: string, page = 0, limit = 10): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/${id}/posts?page=${page}&limit=${limit}`)
+  }
+
+  getUsers(page: number, limit: number): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}?page=${page}&size=${limit}`)
   }
 
   updateProfile(id: string, data: UpdateProfileRequest): Observable<User> {

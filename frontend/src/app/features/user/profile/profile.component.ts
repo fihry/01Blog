@@ -50,7 +50,7 @@ export class ProfileComponent implements OnInit {
     this.userService.getUserById(userId).subscribe({
       next: (user) => {
         this.user = user
-        this.isFollowing = user.is_following || false
+        this.isFollowing = user.isFollowing || false
         this.loading = false
         this.loadPosts(userId)
       },
@@ -91,12 +91,12 @@ export class ProfileComponent implements OnInit {
     if (this.isFollowing) {
       this.userService.unfollowUser(this.user.id).subscribe(() => {
         this.isFollowing = false
-        this.user.followers_count--
+        this.user.followersCount--
       })
     } else {
       this.userService.followUser(this.user.id).subscribe(() => {
         this.isFollowing = true
-        this.user.followers_count++
+        this.user.followersCount++
       })
     }
   }
@@ -110,7 +110,7 @@ export class ProfileComponent implements OnInit {
       next: () => {
         this.posts = this.posts.filter(p => p.id !== postId)
         if (this.user) {
-          this.user.posts_count--
+          this.user.postsCount--
         }
       },
       error: (err) => console.error("Failed to delete post", err)
