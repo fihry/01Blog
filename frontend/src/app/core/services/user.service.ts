@@ -1,9 +1,9 @@
 import { Injectable } from "@angular/core"
-import  { HttpClient } from "@angular/common/http"
+import { HttpClient } from "@angular/common/http"
 import { Observable } from "rxjs"
 
 export interface User {
-  id: number
+  id: string
   username: string
   email: string
   bio: string
@@ -27,17 +27,17 @@ interface UpdateProfileRequest {
 export class UserService {
   private apiUrl = "http://localhost:8000/api/users"
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
-  getUserById(id: number): Observable<User> {
+  getUserById(id: string): Observable<User> {
     return this.http.get<User>(`${this.apiUrl}/${id}`)
   }
 
-  getUserPosts(id: number, page = 0, limit = 10): Observable<any[]> {
+  getUserPosts(id: string, page = 0, limit = 10): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/${id}/posts?page=${page}&limit=${limit}`)
   }
 
-  updateProfile(id: number, data: UpdateProfileRequest): Observable<User> {
+  updateProfile(id: string, data: UpdateProfileRequest): Observable<User> {
     const formData = new FormData()
     if (data.username) formData.append("username", data.username)
     if (data.bio) formData.append("bio", data.bio)
@@ -45,19 +45,19 @@ export class UserService {
     return this.http.put<User>(`${this.apiUrl}/${id}`, formData)
   }
 
-  followUser(id: number): Observable<void> {
+  followUser(id: string): Observable<void> {
     return this.http.post<void>(`${this.apiUrl}/${id}/follow`, {})
   }
 
-  unfollowUser(id: number): Observable<void> {
+  unfollowUser(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}/follow`)
   }
 
-  getFollowers(id: number): Observable<User[]> {
+  getFollowers(id: string): Observable<User[]> {
     return this.http.get<User[]>(`${this.apiUrl}/${id}/followers`)
   }
 
-  getFollowing(id: number): Observable<User[]> {
+  getFollowing(id: string): Observable<User[]> {
     return this.http.get<User[]>(`${this.apiUrl}/${id}/following`)
   }
 }

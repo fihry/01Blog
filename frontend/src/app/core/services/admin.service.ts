@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core"
-import  { HttpClient } from "@angular/common/http"
+import { HttpClient } from "@angular/common/http"
 import type { Observable } from "rxjs"
 
 export interface AdminStats {
@@ -10,9 +10,9 @@ export interface AdminStats {
 }
 
 export interface AdminReport {
-  id: number
-  reporter_id: number
-  target_id: number
+  id: string
+  reporter_id: string
+  target_id: string
   type: string
   reason: string
   status: string
@@ -26,26 +26,25 @@ export interface AdminReport {
 export class AdminService {
   private apiUrl = "http://localhost:8000/api/admin"
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getStats(): Observable<AdminStats> {
     return this.http.get<AdminStats>(`${this.apiUrl}/stats`)
   }
 
-  getReports(status?: string): Observable<AdminReport[]> {
-    const url = status ? `${this.apiUrl}/reports?status=${status}` : `${this.apiUrl}/reports`
-    return this.http.get<AdminReport[]>(url)
+  getReports(status: string = "ALL"): Observable<AdminReport[]> {
+    return this.http.get<AdminReport[]>(`http://localhost:8000/api/admin/reports/${status}`)
   }
 
-  updateReportStatus(id: number, status: string): Observable<AdminReport> {
+  updateReportStatus(id: string, status: string): Observable<AdminReport> {
     return this.http.put<AdminReport>(`${this.apiUrl}/reports/${id}`, { status })
   }
 
-  deletePost(id: number): Observable<void> {
+  deletePost(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/posts/${id}`)
   }
 
-  banUser(id: number): Observable<void> {
+  banUser(id: string): Observable<void> {
     return this.http.post<void>(`${this.apiUrl}/users/${id}/ban`, {})
   }
 

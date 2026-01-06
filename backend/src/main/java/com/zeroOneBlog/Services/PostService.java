@@ -320,4 +320,7 @@ public class PostService {
         }
         return null; // Reject audio and other types
     }
+    public long getPostCount() {
+        return postRepository.count();
+    }
 }

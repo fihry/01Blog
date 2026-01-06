@@ -55,7 +55,7 @@ import { ToastService } from "../../shared/services/toast.service"
   `,
 })
 export class ReportModalComponent {
-  @Input() targetId!: number
+  @Input() targetId!: string
   @Input() targetType: "post" | "user" | "comment" = "post"
   @Output() reportSubmitted = new EventEmitter<void>()
   @ViewChild("reportModal") reportModal!: TemplateRef<any>

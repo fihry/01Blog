@@ -192,5 +192,9 @@ public class UserService {
                 .getId();
     }
 
+    public long getUserCount() {
+        return userRepository.count();
+    }
+
 }
 

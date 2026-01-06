@@ -3,9 +3,9 @@ import { HttpClient } from "@angular/common/http"
 import { Observable } from "rxjs"
 
 export interface Report {
-  id: number
-  reporter_id: number
-  target_id: number
+  id: string
+  reporter_id: string
+  target_id: string
   type: "post" | "user" | "comment"
   reason: string
   created_at: string
@@ -23,9 +23,9 @@ interface CreateReportRequest {
 export class ReportService {
   private apiUrl = "http://localhost:8000/api/reports"
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
-  createReport(targetId: number, data: CreateReportRequest): Observable<Report> {
+  createReport(targetId: string, data: CreateReportRequest): Observable<Report> {
     return this.http.post<Report>(`${this.apiUrl}`, {
       target_id: targetId,
       ...data,
@@ -36,7 +36,7 @@ export class ReportService {
     return this.http.get<Report[]>(`${this.apiUrl}`)
   }
 
-  updateReportStatus(id: number, status: string): Observable<Report> {
+  updateReportStatus(id: string, status: string): Observable<Report> {
     return this.http.put<Report>(`${this.apiUrl}/${id}`, { status })
   }
 }
