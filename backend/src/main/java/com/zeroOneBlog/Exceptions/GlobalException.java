@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.servlet.NoHandlerFoundException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 @RestControllerAdvice
 public class GlobalException {
@@ -63,6 +64,17 @@ public class GlobalException {
         return ResponseEntity
                 .status(404)
                 .body(new ErrorResponse(404, "Endpoint not found"));
+    }
+
+    @ExceptionHandler(org.springframework.web.method.annotation.MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<?> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        String message = "Invalid value for parameter '" + ex.getName() + "'";
+        if (ex.getRequiredType() == java.util.UUID.class) {
+            message = "Invalid UUID string: " + ex.getValue();
+        }
+        return ResponseEntity
+                .status(400)
+                .body(new ErrorResponse(400, message));
     }
 
     @ExceptionHandler(Exception.class)
