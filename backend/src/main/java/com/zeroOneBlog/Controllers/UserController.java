@@ -22,12 +22,20 @@ import com.zeroOneBlog.Services.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
+
+    @GetMapping
+    public ResponseEntity<Page<UserDto>> getAllUsers(Pageable pageable) {
+        return ResponseEntity.ok(userService.getAllUsers(pageable));
+    }
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getUser(@PathVariable UUID id) {

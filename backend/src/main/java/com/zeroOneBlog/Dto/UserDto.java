@@ -17,4 +17,8 @@ public class UserDto {
     private String avatarUrl;
     private RoleTypes role;
     private boolean isActive;
+    private long postsCount;
+    private long followersCount;
+    private long followingCount;
+    private String createdAt;
 }

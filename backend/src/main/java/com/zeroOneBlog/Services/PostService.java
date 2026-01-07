@@ -24,6 +24,7 @@ import com.zeroOneBlog.Repositories.MediaRepository;
 import com.zeroOneBlog.Repositories.PostRepository;
 import com.zeroOneBlog.Repositories.UserRepository;
 import com.zeroOneBlog.Types.MinioBucketTypes;
+import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 
@@ -291,6 +292,7 @@ public class PostService {
     }
 
     // Toggle like for a post by the current user
+    @Transactional
     public void toggleLike(UUID postId, UUID currentUserId) {
         Post post = getById(postId);
         User user = userRepository.findById(currentUserId)
@@ -319,5 +321,8 @@ public class PostService {
             return MinioBucketTypes.IMAGES;
         }
         return null; // Reject audio and other types
+    }
+    public long getPostCount() {
+        return postRepository.count();
     }
 }

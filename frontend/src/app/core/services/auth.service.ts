@@ -1,13 +1,13 @@
 import { Injectable } from "@angular/core"
-import  { HttpClient } from "@angular/common/http"
+import { HttpClient } from "@angular/common/http"
 import { BehaviorSubject, type Observable } from "rxjs"
 import { tap } from "rxjs/operators"
 
 interface AuthResponse {
   accessToken: string
-  tokenType:string
+  tokenType: string
   user: {
-    id: number
+    id: string
     username: string
     email: string
     role: string
@@ -44,6 +44,7 @@ export class AuthService {
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, credentials).pipe(
       tap((response) => {
         localStorage.setItem("token", response.accessToken)
+        localStorage.setItem("user", JSON.stringify(response.user))
         console.log(`respons token: ${response.accessToken}`)
         this.currentUserSubject.next(response.user)
         this.isAuthenticatedSubject.next(true)
@@ -55,6 +56,7 @@ export class AuthService {
     return this.http.post<AuthResponse>(`${this.apiUrl}/register`, data).pipe(
       tap((response) => {
         localStorage.setItem("token", response.accessToken)
+        localStorage.setItem("user", JSON.stringify(response.user))
         this.currentUserSubject.next(response.user)
         this.isAuthenticatedSubject.next(true)
       }),
@@ -63,6 +65,7 @@ export class AuthService {
 
   logout(): void {
     localStorage.removeItem("token")
+    localStorage.removeItem("user")
     this.currentUserSubject.next(null)
     this.isAuthenticatedSubject.next(false)
   }
@@ -73,7 +76,18 @@ export class AuthService {
 
   private loadUser(): void {
     const token = this.getToken()
-    if (token) {
+    const userStr = localStorage.getItem("user")
+    if (token && userStr) {
+      try {
+        const user = JSON.parse(userStr)
+        this.currentUserSubject.next(user)
+        this.isAuthenticatedSubject.next(true)
+      } catch (e) {
+        console.error("Failed to parse user from local storage", e)
+        this.logout()
+      }
+    } else if (token) {
+      // Token exists but user doesn't - might want to fetch profile here
       this.isAuthenticatedSubject.next(true)
     }
   }
