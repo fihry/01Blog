@@ -1,6 +1,5 @@
 package com.zeroOneBlog.Services;
 
-
 import java.util.Optional;
 import java.util.UUID;
 
@@ -22,6 +21,7 @@ import com.zeroOneBlog.Repositories.UserRepository;
 import com.zeroOneBlog.Security.JwtService;
 import com.zeroOneBlog.Types.RoleTypes;
 
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -70,17 +70,18 @@ public class UserService {
         String token = jwtService.generateToken(user.getUsername(), dto.isRememberMe());
         response.setAccessToken(token);
         response.setUser(new UserDto(
-            user.getId().toString(),
-            user.getUsername(),
-            user.getEmail(),
-            user.getBio(),
-            user.getAvatarUrl(),
-            user.getRole(),
-            user.isActive(),
-            user.getPosts() != null ? user.getPosts().size() : 0,
-            user.getFollowers() != null ? user.getFollowers().size() : 0,
-            user.getFollowing() != null ? user.getFollowing().size() : 0,
-            user.getCreatedAt().toString()));
+                user.getId().toString(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getBio(),
+                user.getAvatarUrl(),
+                user.getRole(),
+                user.isActive(),
+                false,
+                user.getPosts() != null ? user.getPosts().size() : 0,
+                user.getFollowers() != null ? user.getFollowers().size() : 0,
+                user.getFollowing() != null ? user.getFollowing().size() : 0,
+                user.getCreatedAt().toString()));
         return response;
     }
 
@@ -95,6 +96,10 @@ public class UserService {
         if (user.getAvatarUrl() != null && !user.getAvatarUrl().isBlank()) {
             user.setAvatarUrl(minioService.getPresignedUrl(user.getAvatarUrl()));
         }
+        boolean isFollowed = userRepository.findById(getCurrentUserId())
+                .map(currentUser -> currentUser.getFollowing().stream()
+                .anyMatch(u -> u.getId().equals(id)))
+                .orElse(false);
         return new UserDto(
                 user.getId().toString(),
                 user.getUsername(),
@@ -103,6 +108,7 @@ public class UserService {
                 user.getAvatarUrl(),
                 user.getRole(),
                 user.isActive(),
+                isFollowed,
                 user.getPosts() != null ? user.getPosts().size() : 0,
                 user.getFollowers() != null ? user.getFollowers().size() : 0,
                 user.getFollowing() != null ? user.getFollowing().size() : 0,
@@ -124,6 +130,10 @@ public class UserService {
         if (user.getAvatarUrl() != null && !user.getAvatarUrl().isBlank()) {
             user.setAvatarUrl(minioService.getPresignedUrl(user.getAvatarUrl()));
         }
+        boolean isFollowed = userRepository.findById(getCurrentUserId())
+                .map(currentUser -> currentUser.getFollowing().stream()
+                .anyMatch(u -> u.getId().equals(id)))
+                .orElse(false);
         return new UserDto(
                 user.getId().toString(),
                 user.getUsername(),
@@ -132,23 +142,31 @@ public class UserService {
                 user.getAvatarUrl(),
                 user.getRole(),
                 user.isActive(),
+                isFollowed,
                 user.getPosts() != null ? user.getPosts().size() : 0,
                 user.getFollowers() != null ? user.getFollowers().size() : 0,
                 user.getFollowing() != null ? user.getFollowing().size() : 0,
                 user.getCreatedAt().toString());
     }
 
-    public void subscribeUser(UUID followerId, UUID followingId) {
-        User follower = getById(followerId);
-        User following = getById(followingId);
-        follower.getFollowing().add(following);
-        userRepository.save(follower);
-    }
+    @Transactional
+    public void toggleFollowing(UUID followerId, UUID followingId) {
+        if (followerId.equals(followingId)) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Cannot follow yourself");
+        }
 
-    public void unsubscribeUser(UUID followerId, UUID followingId) {
         User follower = getById(followerId);
-        User following = getById(followingId);
-        follower.getFollowing().remove(following);
+        User followed = getById(followingId);
+
+        boolean isFollowing = follower.getFollowing().stream()
+                .anyMatch(user -> user.getId().equals(followingId));
+
+        if (isFollowing) {
+            follower.getFollowing().removeIf(user -> user.getId().equals(followingId));
+        } else {
+            follower.getFollowing().add(followed);
+        }
+
         userRepository.save(follower);
     }
 
@@ -159,6 +177,10 @@ public class UserService {
             if (avatarUrl != null && !avatarUrl.isBlank()) {
                 avatarUrl = minioService.getPresignedUrl(avatarUrl);
             }
+            boolean isFollowed = userRepository.findById(getCurrentUserId())
+                    .map(currentUser -> currentUser.getFollowing().stream()
+                    .anyMatch(u -> u.getId().equals(user.getId())))
+                    .orElse(false);
             return new UserDto(
                     user.getId().toString(),
                     user.getUsername(),
@@ -167,6 +189,7 @@ public class UserService {
                     avatarUrl,
                     user.getRole(),
                     user.isActive(),
+                    isFollowed,
                     user.getPosts() != null ? user.getPosts().size() : 0,
                     user.getFollowers() != null ? user.getFollowers().size() : 0,
                     user.getFollowing() != null ? user.getFollowing().size() : 0,
@@ -178,12 +201,15 @@ public class UserService {
         User user = getById(id);
         user.setRole(role);
         User savedUser = userRepository.save(user);
-        
+
         String avatarUrl = savedUser.getAvatarUrl();
         if (avatarUrl != null && !avatarUrl.isBlank()) {
             avatarUrl = minioService.getPresignedUrl(avatarUrl);
         }
-        
+        boolean isFollowed = userRepository.findById(getCurrentUserId())
+                .map(currentUser -> currentUser.getFollowing().stream()
+                .anyMatch(u -> u.getId().equals(id)))
+                .orElse(false);
         return new UserDto(
                 savedUser.getId().toString(),
                 savedUser.getUsername(),
@@ -192,6 +218,7 @@ public class UserService {
                 avatarUrl,
                 savedUser.getRole(),
                 savedUser.isActive(),
+                isFollowed,
                 savedUser.getPosts() != null ? savedUser.getPosts().size() : 0,
                 savedUser.getFollowers() != null ? savedUser.getFollowers().size() : 0,
                 savedUser.getFollowing() != null ? savedUser.getFollowing().size() : 0,
@@ -215,6 +242,4 @@ public class UserService {
     public long getUserCount() {
         return userRepository.count();
     }
-
 }
-

@@ -24,7 +24,6 @@ import com.zeroOneBlog.Repositories.MediaRepository;
 import com.zeroOneBlog.Repositories.PostRepository;
 import com.zeroOneBlog.Repositories.UserRepository;
 import com.zeroOneBlog.Types.MinioBucketTypes;
-import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -156,12 +155,12 @@ public class PostService {
             );
 
             List<MediaDto> mediaDtos = post.getMedia() != null ? post.getMedia().stream()
-                .map(media -> MediaDto.builder()
-                .id(media.getId())
-                .mediaUrl(minioService.getPresignedUrl(media.getMediaUrl()))
-                .mediaType(media.getMediaType())
-                .build())
-                .collect(Collectors.toList()) : List.of();
+                    .map(media -> MediaDto.builder()
+                    .id(media.getId())
+                    .mediaUrl(minioService.getPresignedUrl(media.getMediaUrl()))
+                    .mediaType(media.getMediaType())
+                    .build())
+                    .collect(Collectors.toList()) : List.of();
 
             int likeCount = likeRepository.countByPostId(post.getId());
             int commentCount = commentRepository.countByPostId(post.getId());
@@ -276,7 +275,7 @@ public class PostService {
         }
         deletePostInternal(post);
     }
-    
+
     public void deletePostByAdmin(UUID postId) {
         Post post = getById(postId);
         deletePostInternal(post);
@@ -323,6 +322,7 @@ public class PostService {
         }
         return null; // Reject audio and other types
     }
+
     public long getPostCount() {
         return postRepository.count();
     }

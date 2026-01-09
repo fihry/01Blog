@@ -2,17 +2,33 @@ import { Injectable } from "@angular/core"
 import { HttpClient } from "@angular/common/http"
 import { Observable } from "rxjs"
 
+// {
+//     "id": "e627bbcb-6480-4c1e-a941-34f209149a41",
+//     "username": "Jakob",
+//     "email": "jacob123@email.com",
+//     "bio": null,
+//     "avatarUrl": null,
+//     "role": "USER",
+//     "postsCount": 0,
+//     "followersCount": 1,
+//     "followingCount": 0,
+//     "createdAt": "2025-12-11 10:55:02.66",
+//     "active": true,
+//     "followed": true
+// }
 export interface User {
   id: string
   username: string
   email: string
   bio: string
   avatarUrl?: string
-  createdAt: string
+  role: string
   postsCount: number
   followersCount: number
   followingCount: number
-  isFollowing?: boolean
+  createdAt: string
+  active: boolean
+  followed?: boolean
 }
 
 interface UpdateProfileRequest {
@@ -50,12 +66,12 @@ export class UserService {
   }
 
   followUser(id: string): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/${id}/follow`, {})
+    return this.http.post<void>(`${this.apiUrl}/${id}/subscribe`, {})
   }
 
-  unfollowUser(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}/follow`)
-  }
+  // unfollowUser(id: string): Observable<void> {
+  //   return this.http.delete<void>(`${this.apiUrl}/${id}/unsubscribe`)
+  // }
 
   getFollowers(id: string): Observable<User[]> {
     return this.http.get<User[]>(`${this.apiUrl}/${id}/followers`)

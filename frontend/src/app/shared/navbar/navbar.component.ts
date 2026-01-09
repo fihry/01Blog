@@ -22,6 +22,7 @@ export class NavbarComponent implements OnInit {
   isAuthenticated$: Observable<boolean>;
   currentUserDisplayName$: Observable<string>;
   currentUserDisplayAvatarUrl$: Observable<string>;
+  currentUserId: string = '';
   isAdmin = false;
 
   isMobileMenuOpen = false;
@@ -45,6 +46,9 @@ export class NavbarComponent implements OnInit {
     this.currentUserDisplayAvatarUrl$ = this.authService.currentUser$.pipe(
       map((user) => user?.avatar_url || "/assets/default-avatar.png"),
     );
+    this.authService.currentUser$.subscribe((user) => {
+      this.currentUserId = user?.id || '';
+    });
   }
 
   ngOnInit(): void {

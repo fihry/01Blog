@@ -2,9 +2,10 @@ package com.zeroOneBlog.Controllers;
 
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,9 +22,6 @@ import com.zeroOneBlog.Services.UserService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 @RestController
 @RequestMapping("/api/users")
@@ -71,13 +69,13 @@ public class UserController {
 
     @PostMapping("/{id}/subscribe")
     public ResponseEntity<?> subscribe(@PathVariable UUID id) {
-        userService.subscribeUser(userService.getCurrentUserId(), id);
-        return ResponseEntity.ok("Subscribed successfully");
+        userService.toggleFollowing(userService.getCurrentUserId(), id);
+        return ResponseEntity.ok().build();
     }
 
-    @DeleteMapping("/{id}/unsubscribe")
-    public ResponseEntity<?> unsubscribe(@PathVariable UUID id) {
-        userService.unsubscribeUser(id, id);
-        return ResponseEntity.ok("Unsubscribed successfully");
-    }
+    // @DeleteMapping("/{id}/unsubscribe")
+    // public ResponseEntity<?> unsubscribe(@PathVariable UUID id) {
+    //     userService.unsubscribeUser(id, id);
+    //     return ResponseEntity.ok().build();
+    // }
 }

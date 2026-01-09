@@ -30,13 +30,9 @@ export class ProfileComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    // Get current user ID to check if we are viewing our own profile
     this.authService.currentUser$.subscribe(user => {
-      if (user) {
-        this.currentUserId = user.id
-      }
+      this.currentUserId = user ? user.id : null
     })
-
     this.route.params.subscribe((params: any) => {
       const userId = params["id"]
       if (userId) {
@@ -50,7 +46,7 @@ export class ProfileComponent implements OnInit {
     this.userService.getUserById(userId).subscribe({
       next: (user) => {
         this.user = user
-        this.isFollowing = user.isFollowing || false
+        this.isFollowing = user.followed || false
         this.loading = false
         this.loadPosts(userId)
       },
@@ -87,18 +83,22 @@ export class ProfileComponent implements OnInit {
 
   toggleFollow() {
     if (!this.user) return
-
-    if (this.isFollowing) {
-      this.userService.unfollowUser(this.user.id).subscribe(() => {
-        this.isFollowing = false
-        this.user.followersCount--
-      })
-    } else {
-      this.userService.followUser(this.user.id).subscribe(() => {
-        this.isFollowing = true
-        this.user.followersCount++
-      })
-    }
+    this.userService.followUser(this.user.id).subscribe({
+      next: () => {
+        // Toggle the following state
+        this.isFollowing = !this.isFollowing
+        // Update followers count
+        if (this.isFollowing) {
+          this.user.followersCount++
+        } else {
+          this.user.followersCount--
+        }
+      },
+      error: (err) => {
+        console.error("Failed to toggle follow", err)
+        this.toastService.showError('Error', 'Failed to toggle follow')
+      }
+    })
   }
 
   isOwnProfile(): boolean {
