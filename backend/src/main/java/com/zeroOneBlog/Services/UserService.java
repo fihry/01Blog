@@ -94,7 +94,7 @@ public class UserService {
         User user = getById(id);
         // Only generate presigned URL if avatar exists
         if (user.getAvatarUrl() != null && !user.getAvatarUrl().isBlank()) {
-            user.setAvatarUrl(minioService.getPresignedUrl(user.getAvatarUrl()));
+            user.setAvatarUrl(minioService.getMediaUrl(user.getAvatarUrl()));
         }
         boolean isFollowed = userRepository.findById(getCurrentUserId())
                 .map(currentUser -> currentUser.getFollowing().stream()
@@ -128,7 +128,7 @@ public class UserService {
         userRepository.save(user);
         // Only generate presigned URL if avatar exists
         if (user.getAvatarUrl() != null && !user.getAvatarUrl().isBlank()) {
-            user.setAvatarUrl(minioService.getPresignedUrl(user.getAvatarUrl()));
+            user.setAvatarUrl(minioService.getMediaUrl(user.getAvatarUrl()));
         }
         boolean isFollowed = userRepository.findById(getCurrentUserId())
                 .map(currentUser -> currentUser.getFollowing().stream()
@@ -175,7 +175,7 @@ public class UserService {
             // Only generate presigned URL if avatar exists
             String avatarUrl = user.getAvatarUrl();
             if (avatarUrl != null && !avatarUrl.isBlank()) {
-                avatarUrl = minioService.getPresignedUrl(avatarUrl);
+                avatarUrl = minioService.getMediaUrl(avatarUrl);
             }
             boolean isFollowed = userRepository.findById(getCurrentUserId())
                     .map(currentUser -> currentUser.getFollowing().stream()
@@ -204,7 +204,7 @@ public class UserService {
 
         String avatarUrl = savedUser.getAvatarUrl();
         if (avatarUrl != null && !avatarUrl.isBlank()) {
-            avatarUrl = minioService.getPresignedUrl(avatarUrl);
+            avatarUrl = minioService.getMediaUrl(avatarUrl);
         }
         boolean isFollowed = userRepository.findById(getCurrentUserId())
                 .map(currentUser -> currentUser.getFollowing().stream()

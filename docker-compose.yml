@@ -8,6 +8,9 @@ services:
       - "${BACKEND_PORT}:${BACKEND_PORT}"
     env_file:
       - .env
+    environment:
+      MINIO_SERVER_URL: http://minio:9000
+      MINIO_EXTERNAL_URL: http://localhost:9000
     depends_on:
       - db
       - minio
@@ -44,6 +47,7 @@ services:
       - "${MINIO_CONSOLE_PORT}:${MINIO_CONSOLE_PORT}"
     volumes:
       - minio_data:/data
+
 
 volumes:
   db_data:

@@ -58,7 +58,7 @@ public class PostService {
         List<MediaDto> mediaDtos = post.getMedia() != null ? post.getMedia().stream()
                 .map(media -> MediaDto.builder()
                 .id(media.getId())
-                .mediaUrl(minioService.getPresignedUrl(media.getMediaUrl()))
+                .mediaUrl(minioService.getMediaUrl(media.getMediaUrl()))
                 .mediaType(media.getMediaType())
                 .build())
                 .collect(Collectors.toList()) : List.of();
@@ -113,7 +113,7 @@ public class PostService {
 
                         return MediaDto.builder()
                                 .id(media.getId())
-                                .mediaUrl(minioService.getPresignedUrl(mediaUrl))
+                                .mediaUrl(minioService.getMediaUrl(mediaUrl))
                                 .mediaType(mediaType)
                                 .build();
                     })
@@ -146,7 +146,7 @@ public class PostService {
         return postsPage.map(post -> {
             String avatarUrl = post.getAuthor().getAvatarUrl();
             if (avatarUrl != null) {
-                avatarUrl = minioService.getPresignedUrl(avatarUrl);
+                avatarUrl = minioService.getMediaUrl(avatarUrl);
             }
             UserSummaryDto authorSummary = new UserSummaryDto(
                     post.getAuthor().getId(),
@@ -157,7 +157,7 @@ public class PostService {
             List<MediaDto> mediaDtos = post.getMedia() != null ? post.getMedia().stream()
                     .map(media -> MediaDto.builder()
                     .id(media.getId())
-                    .mediaUrl(minioService.getPresignedUrl(media.getMediaUrl()))
+                    .mediaUrl(minioService.getMediaUrl(media.getMediaUrl()))
                     .mediaType(media.getMediaType())
                     .build())
                     .collect(Collectors.toList()) : List.of();
@@ -224,7 +224,7 @@ public class PostService {
 
                         return MediaDto.builder()
                                 .id(media.getId())
-                                .mediaUrl(minioService.getPresignedUrl(mediaUrl))
+                                .mediaUrl(mediaUrl)
                                 .mediaType(mediaType)
                                 .build();
                     })
@@ -235,7 +235,7 @@ public class PostService {
                 mediaDtos = updatedPost.getMedia().stream()
                         .map(media -> MediaDto.builder()
                         .id(media.getId())
-                        .mediaUrl(minioService.getPresignedUrl(media.getMediaUrl()))
+                        .mediaUrl(media.getMediaUrl())
                         .mediaType(media.getMediaType())
                         .build())
                         .collect(Collectors.toList());

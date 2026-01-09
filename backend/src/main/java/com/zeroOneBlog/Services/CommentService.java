@@ -34,7 +34,7 @@ public class CommentService {
         List<Comment> comments = commentRepository.findByPostId(postId);
         return comments.stream().map(comment -> {
             UUID parentCommentId = comment.getParentComment() != null ? comment.getParentComment().getId() : null;
-            String author = comment.getAuthor().getAvatarUrl() != null ? minioService.getPresignedUrl(comment.getAuthor().getAvatarUrl()) : null;
+            String author = comment.getAuthor().getAvatarUrl() != null ? minioService.getMediaUrl(comment.getAuthor().getAvatarUrl()) : null;
             UserSummaryDto authorSummary = new UserSummaryDto(
                     comment.getAuthor().getId(),
                     comment.getAuthor().getUsername(),
