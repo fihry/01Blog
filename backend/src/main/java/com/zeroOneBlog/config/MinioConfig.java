@@ -29,12 +29,6 @@ public class MinioConfig {
                 .build();
     }
 
-    @Bean(name = "minioSignerClient")
-    public MinioClient minioSignerClient() {
-        return MinioClient.builder()
-                .endpoint(minioExternalEndpoint)
-                .credentials(minioAccessKey, minioSecretKey)
-                .build();
-    }
+
 }
 

@@ -123,5 +123,12 @@ public class ReportService {
 
         return dto;
     }
+    public long getReportCount() {
+        return reportRepository.count();
+    }
+
+    public long getPendingReportCount() {
+        return reportRepository.findByStatus(StatusTypes.PENDING).size();
+    }
 }
 

@@ -76,7 +76,11 @@ public class UserService {
             user.getBio(),
             user.getAvatarUrl(),
             user.getRole(),
-            user.isActive()));
+            user.isActive(),
+            user.getPosts() != null ? user.getPosts().size() : 0,
+            user.getFollowers() != null ? user.getFollowers().size() : 0,
+            user.getFollowing() != null ? user.getFollowing().size() : 0,
+            user.getCreatedAt().toString()));
         return response;
     }
 
@@ -98,7 +102,11 @@ public class UserService {
                 user.getBio(),
                 user.getAvatarUrl(),
                 user.getRole(),
-                user.isActive());
+                user.isActive(),
+                user.getPosts() != null ? user.getPosts().size() : 0,
+                user.getFollowers() != null ? user.getFollowers().size() : 0,
+                user.getFollowing() != null ? user.getFollowing().size() : 0,
+                user.getCreatedAt().toString());
     }
 
     public UserDto updateUser(UUID id, com.zeroOneBlog.Dto.UserUpdateDto dto) {
@@ -123,7 +131,11 @@ public class UserService {
                 user.getBio(),
                 user.getAvatarUrl(),
                 user.getRole(),
-                user.isActive());
+                user.isActive(),
+                user.getPosts() != null ? user.getPosts().size() : 0,
+                user.getFollowers() != null ? user.getFollowers().size() : 0,
+                user.getFollowing() != null ? user.getFollowing().size() : 0,
+                user.getCreatedAt().toString());
     }
 
     public void subscribeUser(UUID followerId, UUID followingId) {
@@ -154,7 +166,11 @@ public class UserService {
                     user.getBio(),
                     avatarUrl,
                     user.getRole(),
-                    user.isActive());
+                    user.isActive(),
+                    user.getPosts() != null ? user.getPosts().size() : 0,
+                    user.getFollowers() != null ? user.getFollowers().size() : 0,
+                    user.getFollowing() != null ? user.getFollowing().size() : 0,
+                    user.getCreatedAt().toString());
         });
     }
 
@@ -175,7 +191,11 @@ public class UserService {
                 savedUser.getBio(),
                 avatarUrl,
                 savedUser.getRole(),
-                savedUser.isActive());
+                savedUser.isActive(),
+                savedUser.getPosts() != null ? savedUser.getPosts().size() : 0,
+                savedUser.getFollowers() != null ? savedUser.getFollowers().size() : 0,
+                savedUser.getFollowing() != null ? savedUser.getFollowing().size() : 0,
+                savedUser.getCreatedAt().toString());
     }
 
     public void deleteUser(UUID id) {
@@ -190,6 +210,10 @@ public class UserService {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "User not found"))
                 .getId();
+    }
+
+    public long getUserCount() {
+        return userRepository.count();
     }
 
 }

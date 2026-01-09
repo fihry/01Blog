@@ -2,7 +2,7 @@ package com.zeroOneBlog.Services;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -24,9 +24,7 @@ public class MinioService {
     @Autowired
     private MinioClient minioClient;
 
-    @Autowired
-    @Qualifier("minioSignerClient")
-    private MinioClient minioSignerClient;
+
 
     @Value("${minio.url.internal}")
     private String internalUrl;
@@ -77,9 +75,8 @@ public class MinioService {
         String object = parts[1];
 
         try {
-            // Use the signer client (configured with external URL) to generate the link.
-            // This ensures the signature matches the host the user visits (e.g. localhost or domain).
-            return minioSignerClient.getPresignedObjectUrl(
+            // Generate URL using internal client (which works)
+            String url = minioClient.getPresignedObjectUrl(
                     GetPresignedObjectUrlArgs.builder()
                             .method(Method.GET)
                             .bucket(bucket)
@@ -88,9 +85,14 @@ public class MinioService {
                             .build()
             );
 
+            // Replace internal URL with external URL for the browser
+            // internalUrl: http://minio:9000
+            // externalUrl: http://localhost:9000
+            return url.replace(internalUrl, externalUrl);
+
         } catch (Exception e) {
             e.printStackTrace();
-            throw new ApiException(HttpStatus.BAD_REQUEST, "Cannot generate presigned link");
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Cannot generate presigned link: " + e.getMessage());
         }
     }
 

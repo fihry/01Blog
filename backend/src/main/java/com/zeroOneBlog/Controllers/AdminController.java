@@ -29,6 +29,17 @@ public class AdminController {
 
     private final UserService userService;
     private final PostService postService;
+    private final com.zeroOneBlog.Services.ReportService reportService;
+
+    @GetMapping("/stats")
+    public ResponseEntity<com.zeroOneBlog.Dto.AdminStatsDto> getStats() {
+        return ResponseEntity.ok(com.zeroOneBlog.Dto.AdminStatsDto.builder()
+                .total_users(userService.getUserCount())
+                .total_posts(postService.getPostCount())
+                .total_reports(reportService.getReportCount())
+                .pending_reports(reportService.getPendingReportCount())
+                .build());
+    }
 
     @GetMapping("/users")
     public ResponseEntity<Page<UserDto>> getAllUsers(Pageable pageable) {

@@ -24,6 +24,7 @@ import com.zeroOneBlog.Repositories.MediaRepository;
 import com.zeroOneBlog.Repositories.PostRepository;
 import com.zeroOneBlog.Repositories.UserRepository;
 import com.zeroOneBlog.Types.MinioBucketTypes;
+import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -321,5 +322,8 @@ public class PostService {
             return MinioBucketTypes.IMAGES;
         }
         return null; // Reject audio and other types
+    }
+    public long getPostCount() {
+        return postRepository.count();
     }
 }

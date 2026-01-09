@@ -2,12 +2,13 @@ import { Component } from "@angular/core"
 import { CommonModule } from "@angular/common"
 import { RouterModule } from "@angular/router"
 import { FormsModule } from "@angular/forms"
+import { UserService, User } from "../../../core/services/user.service"
 
 @Component({
-    selector: "app-users",
-    standalone: true,
-    imports: [CommonModule, RouterModule, FormsModule],
-    template: `
+  selector: "app-users",
+  standalone: true,
+  imports: [CommonModule, RouterModule, FormsModule],
+  template: `
     <div class="min-h-screen pt-5 mt-5">
       <div class="container-m mx-auto p-4">
         
@@ -43,18 +44,20 @@ import { FormsModule } from "@angular/forms"
         <div *ngIf="viewMode === 'grid'" class="row g-4">
           <div *ngFor="let user of users" class="col-md-6 col-lg-4">
             <div class="app-widget-card p-4 text-center hover:shadow-lg transition">
-              <div class="avatar-large-placeholder w-20 h-20 mx-auto mb-3"></div>
-              <h3 class="text-lg font-bold text-foreground mb-1">{{ user.name }}</h3>
-              <p class="text-sm text-muted-foreground mb-3">@{{ user.username }}</p>
+              <div class="avatar-large-placeholder w-20 h-20 mx-auto mb-3">
+                  <img *ngIf="user.avatarUrl" [src]="user.avatarUrl" class="w-full h-full object-cover rounded-full">
+              </div>
+              <h3 class="text-lg font-bold text-foreground mb-1">{{ user.username }}</h3>
+              <p class="text-sm text-muted-foreground mb-3">{{ user.email }}</p>
               <p class="text-sm text-muted-foreground mb-3 line-clamp-2">{{ user.bio }}</p>
               
               <div class="d-flex justify-content-center gap-4 mb-3 text-sm">
                 <div>
-                  <span class="font-bold text-foreground">{{ user.posts }}</span>
+                  <span class="font-bold text-foreground">{{ user.postsCount }}</span>
                   <span class="text-muted-foreground ms-1">Posts</span>
                 </div>
                 <div>
-                  <span class="font-bold text-foreground">{{ user.followers }}</span>
+                  <span class="font-bold text-foreground">{{ user.followersCount }}</span>
                   <span class="text-muted-foreground ms-1">Followers</span>
                 </div>
               </div>
@@ -71,14 +74,16 @@ import { FormsModule } from "@angular/forms"
         <div *ngIf="viewMode === 'list'" class="d-flex flex-column gap-3">
           <div *ngFor="let user of users" class="app-widget-card p-4 hover:bg-muted/50 transition">
             <div class="d-flex gap-4 align-items-center">
-              <div class="avatar-placeholder w-12 h-12 flex-shrink-0"></div>
+              <div class="avatar-placeholder w-12 h-12 flex-shrink-0">
+                 <img *ngIf="user.avatarUrl" [src]="user.avatarUrl" class="w-full h-full object-cover rounded-full">
+              </div>
               <div class="flex-grow-1 min-w-0">
-                <h3 class="text-lg font-bold text-foreground mb-1">{{ user.name }}</h3>
-                <p class="text-sm text-muted-foreground mb-2">@{{ user.username }}</p>
+                <h3 class="text-lg font-bold text-foreground mb-1">{{ user.username }}</h3>
+                <p class="text-sm text-muted-foreground mb-2">{{ user.email }}</p>
                 <p class="text-sm text-muted-foreground mb-2 line-clamp-2">{{ user.bio }}</p>
                 <div class="d-flex gap-4 text-sm">
-                  <span><span class="font-semibold">{{ user.posts }}</span> posts</span>
-                  <span><span class="font-semibold">{{ user.followers }}</span> followers</span>
+                  <span><span class="font-semibold">{{ user.postsCount }}</span> posts</span>
+                  <span><span class="font-semibold">{{ user.followersCount }}</span> followers</span>
                 </div>
               </div>
               <div class="d-flex gap-2 flex-shrink-0">
@@ -94,57 +99,24 @@ import { FormsModule } from "@angular/forms"
   `,
 })
 export class UsersComponent {
-    viewMode: 'grid' | 'list' = 'grid';
-    searchQuery = '';
+  viewMode: 'grid' | 'list' = 'grid';
+  searchQuery = '';
+  users: User[] = [];
 
-    users = [
-        {
-            id: 1,
-            name: 'Sarah Williams',
-            username: 'sarahw',
-            bio: 'Full-stack developer passionate about clean code and user experience. Love building scalable web applications.',
-            posts: 45,
-            followers: 2345
-        },
-        {
-            id: 2,
-            name: 'David Brown',
-            username: 'davidb',
-            bio: 'Frontend engineer specializing in React and Angular. Always learning new technologies.',
-            posts: 32,
-            followers: 1876
-        },
-        {
-            id: 3,
-            name: 'Emma Davis',
-            username: 'emmad',
-            bio: 'UI/UX designer turned developer. Creating beautiful and functional web experiences.',
-            posts: 28,
-            followers: 1543
-        },
-        {
-            id: 4,
-            name: 'Michael Johnson',
-            username: 'mikej',
-            bio: 'Backend developer with expertise in Node.js and microservices architecture.',
-            posts: 51,
-            followers: 2987
-        },
-        {
-            id: 5,
-            name: 'Lisa Anderson',
-            username: 'lisaa',
-            bio: 'DevOps engineer passionate about automation and cloud infrastructure.',
-            posts: 39,
-            followers: 2156
-        },
-        {
-            id: 6,
-            name: 'James Wilson',
-            username: 'jamesw',
-            bio: 'Mobile app developer building cross-platform solutions with React Native.',
-            posts: 24,
-            followers: 1234
-        }
-    ];
+  constructor(private userService: UserService) { }
+
+  ngOnInit() {
+    this.loadUsers();
+  }
+
+  loadUsers() {
+    this.userService.getUsers(0, 50).subscribe({
+      next: (page: any) => {
+        this.users = page.content;
+      },
+      error: (err) => {
+        console.error('Failed to load users', err);
+      }
+    });
+  }
 }
