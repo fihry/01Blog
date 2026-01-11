@@ -45,8 +45,8 @@ public class MinioService {
             if (!minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucketName).build())) {
                 minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucketName).build());
 
-                // Make only images bucket public
-                if (bucketType == MinioBucketTypes.IMAGES) {
+                // Make images and videos buckets public
+                if (bucketType == MinioBucketTypes.IMAGES || bucketType == MinioBucketTypes.VIDEOS) {
                     minioClient.setBucketPolicy(
                         io.minio.SetBucketPolicyArgs.builder()
                             .bucket(bucketName)
@@ -91,8 +91,8 @@ public class MinioService {
         String bucket = parts[0];
         String object = parts[1];
 
-        // Public images
-        if (bucket.equals("images")) {
+        // Public images and videos
+        if (bucket.equals("images") || bucket.equals("videos")) {
             return externalUrl + "/" + bucket + "/" + object;
         }
 
