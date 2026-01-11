@@ -4,7 +4,7 @@ import { ActivatedRoute, RouterModule, Router } from "@angular/router"
 import { UserService } from "../../../core/services/user.service"
 import { AuthService } from "../../../core/services/auth.service"
 import { PostCardComponent } from "../../post/post-card/post-card.component"
-import { PostService } from "../../../core/services/post.service"
+import { Post, PostService, PostPage } from "../../../core/services/post.service"
 import { ToastService } from "../../../shared/services/toast.service"
 
 @Component({
@@ -15,7 +15,7 @@ import { ToastService } from "../../../shared/services/toast.service"
 })
 export class ProfileComponent implements OnInit {
   user: any = null
-  posts: any[] = []
+  posts: Post[] = []
   currentUserId: string | null = null
   isFollowing: boolean = false
   loading: boolean = true
@@ -37,6 +37,7 @@ export class ProfileComponent implements OnInit {
       const userId = params["id"]
       if (userId) {
         this.loadProfile(userId)
+        this.loadPosts(userId)
       }
     })
   }
@@ -48,7 +49,6 @@ export class ProfileComponent implements OnInit {
         this.user = user
         this.isFollowing = user.followed || false
         this.loading = false
-        this.loadPosts(userId)
       },
       error: (err) => {
         console.error("Failed to load profile", err)
@@ -61,24 +61,20 @@ export class ProfileComponent implements OnInit {
       }
     })
   }
-
-  loadPosts(userId: string) {
-    this.userService.getUserPosts(userId).subscribe({
-      next: (posts) => {
-        this.posts = posts.map(post => ({
-          id: post.id,
-          title: post.title,
-          content: post.content,
-          author: this.user.username, // Profile page posts are always by the profile owner
-          likes: post.like_count,
-          comments: post.comment_count,
-          timestamp: new Date(post.created_at).toLocaleDateString(), // Format as needed
-          isOwner: this.currentUserId === post.author?.id || this.currentUserId === userId,
-          likedByCurrentUser: post.liked_by_user
-        }))
-      },
-      error: (err) => console.error("Failed to load posts", err)
-    })
+loadPosts(userId: string) {
+  this.userService.getUserPosts(userId).subscribe({
+    next: (pageResp: PostPage) => {
+      this.posts = pageResp.content.map((post) => ({
+        ...post,
+        createdAt: new Date(post.createdAt).toLocaleString(),
+        updatedAt: new Date(post.updatedAt).toLocaleString(),
+      }))
+    },
+    error: (err) => console.error("Failed to load posts", err)
+  })
+}
+  private mapPost(apiPost: Post): Post {
+    return apiPost
   }
 
   toggleFollow() {

@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,10 +16,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.zeroOneBlog.Dto.PostDto;
 import com.zeroOneBlog.Dto.UserDto;
 import com.zeroOneBlog.Dto.UserUpdateDto;
+import com.zeroOneBlog.Entities.Post;
 import com.zeroOneBlog.Exceptions.ApiException;
+import com.zeroOneBlog.Security.CustomUserDetails;
 import com.zeroOneBlog.Services.UserService;
+import com.zeroOneBlog.Services.PostService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +34,7 @@ import lombok.RequiredArgsConstructor;
 public class UserController {
 
     private final UserService userService;
+    private final PostService postService;
 
     @GetMapping
     public ResponseEntity<Page<UserDto>> getAllUsers(Pageable pageable) {
@@ -78,4 +84,11 @@ public class UserController {
     //     userService.unsubscribeUser(id, id);
     //     return ResponseEntity.ok().build();
     // }
+    @GetMapping("/{UserId}/posts")
+    public ResponseEntity<Page<PostDto>> getAllUserPosts(@PathVariable UUID UserId, @AuthenticationPrincipal CustomUserDetails userDetails){
+        Pageable page = Pageable.unpaged();
+
+        Page<PostDto> posts = postService.getAllUserPosts(page, UserId,userDetails.getId());
+        return ResponseEntity.ok(posts);
+    }
 }

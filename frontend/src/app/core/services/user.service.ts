@@ -1,6 +1,7 @@
 import { Injectable } from "@angular/core"
 import { HttpClient } from "@angular/common/http"
 import { Observable } from "rxjs"
+import { PostPage } from "./post.service"
 
 // {
 //     "id": "e627bbcb-6480-4c1e-a941-34f209149a41",
@@ -49,8 +50,8 @@ export class UserService {
     return this.http.get<User>(`${this.apiUrl}/${id}`)
   }
 
-  getUserPosts(id: string, page = 0, limit = 10): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/${id}/posts?page=${page}&limit=${limit}`)
+  getUserPosts(id: string, page = 0, limit = 10): Observable<PostPage> {
+    return this.http.get<PostPage>(`${this.apiUrl}/${id}/posts?page=${page}&limit=${limit}`)
   }
 
   getUsers(page: number, limit: number): Observable<any> {

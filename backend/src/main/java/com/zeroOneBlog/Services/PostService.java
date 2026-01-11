@@ -56,15 +56,14 @@ public class PostService {
         UserSummaryDto authorSummary = new UserSummaryDto(
                 post.getAuthor().getId(),
                 post.getAuthor().getUsername(),
-                avatarUrl
-        );
+                avatarUrl);
 
         List<MediaDto> mediaDtos = post.getMedia() != null ? post.getMedia().stream()
                 .map(media -> MediaDto.builder()
-                .id(media.getId())
-                .mediaUrl(minioService.getMediaUrl(media.getMediaUrl()))
-                .mediaType(media.getMediaType())
-                .build())
+                        .id(media.getId())
+                        .mediaUrl(minioService.getMediaUrl(media.getMediaUrl()))
+                        .mediaType(media.getMediaType())
+                        .build())
                 .collect(Collectors.toList()) : List.of();
 
         int likeCount = likeRepository.countByPostId(postId);
@@ -81,8 +80,7 @@ public class PostService {
                 post.getUpdatedAt(),
                 likeCount,
                 commentCount,
-                likedByUser
-        );
+                likedByUser);
     }
 
     public PostDto createPost(PostCreateDto dto, UUID currentUserId) {
@@ -127,8 +125,7 @@ public class PostService {
         UserSummaryDto authorSummary = new UserSummaryDto(
                 author.getId(),
                 author.getUsername(),
-                author.getAvatarUrl()
-        );
+                author.getAvatarUrl());
 
         return new PostDto(
                 savedPost.getId(),
@@ -140,8 +137,7 @@ public class PostService {
                 savedPost.getUpdatedAt(),
                 0,
                 0,
-                false
-        );
+                false);
     }
 
     public Page<PostDto> getAllPosts(Pageable pageable, UUID currentUserId) {
@@ -155,15 +151,14 @@ public class PostService {
             UserSummaryDto authorSummary = new UserSummaryDto(
                     post.getAuthor().getId(),
                     post.getAuthor().getUsername(),
-                    avatarUrl
-            );
+                    avatarUrl);
 
             List<MediaDto> mediaDtos = post.getMedia() != null ? post.getMedia().stream()
                     .map(media -> MediaDto.builder()
-                    .id(media.getId())
-                    .mediaUrl(minioService.getMediaUrl(media.getMediaUrl()))
-                    .mediaType(media.getMediaType())
-                    .build())
+                            .id(media.getId())
+                            .mediaUrl(minioService.getMediaUrl(media.getMediaUrl()))
+                            .mediaType(media.getMediaType())
+                            .build())
                     .collect(Collectors.toList()) : List.of();
 
             int likeCount = likeRepository.countByPostId(post.getId());
@@ -179,8 +174,7 @@ public class PostService {
                     post.getUpdatedAt(),
                     likeCount,
                     commentCount,
-                    likedByUser
-            );
+                    likedByUser);
         });
     }
 
@@ -238,10 +232,10 @@ public class PostService {
             if (updatedPost.getMedia() != null) {
                 mediaDtos = updatedPost.getMedia().stream()
                         .map(media -> MediaDto.builder()
-                        .id(media.getId())
-                        .mediaUrl(media.getMediaUrl())
-                        .mediaType(media.getMediaType())
-                        .build())
+                                .id(media.getId())
+                                .mediaUrl(media.getMediaUrl())
+                                .mediaType(media.getMediaType())
+                                .build())
                         .collect(Collectors.toList());
             }
         }
@@ -249,8 +243,7 @@ public class PostService {
         UserSummaryDto authorSummary = new UserSummaryDto(
                 updatedPost.getAuthor().getId(),
                 updatedPost.getAuthor().getUsername(),
-                updatedPost.getAuthor().getAvatarUrl()
-        );
+                updatedPost.getAuthor().getAvatarUrl());
 
         int likeCount = likeRepository.countByPostId(postId);
         int commentCount = commentRepository.countByPostId(postId);
@@ -266,8 +259,7 @@ public class PostService {
                 updatedPost.getUpdatedAt(),
                 likeCount,
                 commentCount,
-                likedByUser
-        );
+                likedByUser);
     }
 
     public void deletePost(UUID postId, UUID currentUserId) {
@@ -313,7 +305,8 @@ public class PostService {
         }
     }
 
-    // Helper method to determine media type from content type (only images and videos for posts)
+    // Helper method to determine media type from content type (only images and
+    // videos for posts)
     private MinioBucketTypes getPostMediaType(String contentType) {
         if (contentType == null) {
             return null;
@@ -329,5 +322,44 @@ public class PostService {
 
     public long getPostCount() {
         return postRepository.count();
+    }
+
+    public Page<PostDto> getAllUserPosts(Pageable pageable, UUID useruUuid , UUID currentUserId) {
+        pageable = (pageable == null) ? Pageable.unpaged() : pageable;
+        User user = userRepository.getReferenceById(currentUserId);
+        Page<Post> postsPage = postRepository.findByAuthorOrderByCreatedAtDesc(user,pageable);
+        return postsPage.map(post -> {
+            String avatarUrl = post.getAuthor().getAvatarUrl();
+            if (avatarUrl != null) {
+                avatarUrl = minioService.getMediaUrl(avatarUrl);
+            }
+            UserSummaryDto authorSummary = new UserSummaryDto(
+                    post.getAuthor().getId(),
+                    post.getAuthor().getUsername(),
+                    avatarUrl);
+
+            List<MediaDto> mediaDtos = post.getMedia() != null ? post.getMedia().stream()
+                    .map(media -> MediaDto.builder()
+                            .id(media.getId())
+                            .mediaUrl(minioService.getMediaUrl(media.getMediaUrl()))
+                            .mediaType(media.getMediaType())
+                            .build())
+                    .collect(Collectors.toList()) : List.of();
+
+            int likeCount = likeRepository.countByPostId(post.getId());
+            int commentCount = commentRepository.countByPostId(post.getId());
+            boolean likedByUser = likeRepository.existsByPostIdAndUserId(post.getId(), currentUserId);
+            return new PostDto(
+                    post.getId(),
+                    post.getTitle(),
+                    post.getContent(),
+                    mediaDtos,
+                    authorSummary,
+                    post.getCreatedAt(),
+                    post.getUpdatedAt(),
+                    likeCount,
+                    commentCount,
+                    likedByUser);
+        });
     }
 }
