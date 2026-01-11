@@ -49,10 +49,14 @@ public class PostService {
     public PostDto getByPostId(UUID postId, UUID currentUserId) {
         Post post = getById(postId);
 
+        String avatarUrl = post.getAuthor().getAvatarUrl();
+        if (avatarUrl != null) {
+            avatarUrl = minioService.getMediaUrl(avatarUrl);
+        }
         UserSummaryDto authorSummary = new UserSummaryDto(
                 post.getAuthor().getId(),
                 post.getAuthor().getUsername(),
-                post.getAuthor().getAvatarUrl()
+                avatarUrl
         );
 
         List<MediaDto> mediaDtos = post.getMedia() != null ? post.getMedia().stream()

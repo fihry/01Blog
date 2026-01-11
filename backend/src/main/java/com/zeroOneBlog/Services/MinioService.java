@@ -91,9 +91,13 @@ public class MinioService {
         String bucket = parts[0];
         String object = parts[1];
 
+        System.out.println("DEBUG getMediaUrl: fullPath=" + fullPath + ", bucket=" + bucket + ", externalUrl=" + externalUrl);
+
         // Public images and videos
         if (bucket.equals("images") || bucket.equals("videos")) {
-            return externalUrl + "/" + bucket + "/" + object;
+            String result = externalUrl + "/" + bucket + "/" + object;
+            System.out.println("DEBUG getMediaUrl returning: " + result);
+            return result;
         }
 
         // Private media → presigned URL

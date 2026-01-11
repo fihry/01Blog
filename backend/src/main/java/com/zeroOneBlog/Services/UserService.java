@@ -68,13 +68,25 @@ public class UserService {
         AuthResponseDto response = new AuthResponseDto();
         // generate token or session here if needed
         String token = jwtService.generateToken(user.getUsername(), dto.isRememberMe());
+        
+        // Generate full media URL for avatar if it exists
+        String avatarUrl = user.getAvatarUrl();
+        if (avatarUrl != null && !avatarUrl.isBlank()) {
+            try {
+                avatarUrl = minioService.getMediaUrl(avatarUrl);
+            } catch (Exception e) {
+                System.err.println("Failed to generate media URL for avatar: " + e.getMessage());
+                // Keep original path if URL generation fails
+            }
+        }
+        
         response.setAccessToken(token);
         response.setUser(new UserDto(
                 user.getId().toString(),
                 user.getUsername(),
                 user.getEmail(),
                 user.getBio(),
-                user.getAvatarUrl(),
+                avatarUrl,
                 user.getRole(),
                 user.isActive(),
                 false,
