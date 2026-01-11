@@ -6,20 +6,10 @@ import { FormsModule } from "@angular/forms"
 import { RouterModule } from "@angular/router"
 import { PostCardComponent } from "../post-card/post-card.component"
 import { CreatePostModalComponent } from "../create-post-modal/create-post-modal.component"
-import { PostService, type Post as ApiPost, type PostPage } from "../../../core/services/post.service"
-import { ToastService } from "../../../shared/services/toast.service"
+import { Post, PostService, type Post as ApiPost, type PostPage } from "../../../core/services/post.service"
+import { UserService } from "../../../core/services/user.service"
+import { AuthService } from "../../../core/services/auth.service"
 
-interface Post {
-  id: string
-  title: string
-  content: string
-  author: string
-  likes: number
-  comments: number
-  timestamp: string
-  isOwner: boolean
-  likedByCurrentUser: boolean
-}
 
 @Component({
   selector: "app-feed",
@@ -34,11 +24,19 @@ export class FeedComponent implements OnInit {
 
   isLoading = false
   errorMessage: string | null = null
-
-  constructor(private postService: PostService ,private toastService: ToastService) {}
+  curentUser: any = null
+  constructor(private postService: PostService, private userService: UserService, private authService: AuthService) {}
 
   ngOnInit(): void {
     this.loadFeed()
+    this.authService.currentUser$.subscribe(user => {
+      if (user) {
+        this.curentUser = user.id;
+      }
+    });
+    this.userService.getUserById(this.curentUser).subscribe(user => {
+      this.curentUser = user;
+    });
   }
 
   private loadFeed(page = 0, limit = 10): void {
@@ -46,7 +44,11 @@ export class FeedComponent implements OnInit {
     this.errorMessage = null
     this.postService.getFeed(page, limit).subscribe({
       next: (pageResp: PostPage) => {
-        this.posts = pageResp.content.map((post) => this.mapPost(post))
+        this.posts = pageResp.content.map((post) => this.mapPost({
+          ...post,
+          createdAt: new Date(post.createdAt).toLocaleString(),
+          updatedAt: new Date(post.updatedAt).toLocaleString(),
+        }))
         this.isLoading = false
       },
       error: (err) => {
@@ -58,23 +60,12 @@ export class FeedComponent implements OnInit {
   }
 
   private mapPost(apiPost: ApiPost): Post {
-    return {
-      id: apiPost.id,
-      title: apiPost.title,
-      content: apiPost.content,
-      author: apiPost.author?.username ?? "Unknown",
-      likes: apiPost.likeCount ?? 0,
-      comments: apiPost.commentCount ?? 0,
-      // TODO: Replace with proper relative time formatting
-      timestamp: new Date(apiPost.createdAt).toLocaleString(),
-      // TODO: Use AuthService to determine if current user is owner
-      isOwner: false,
-      likedByCurrentUser: apiPost.likedByCurrentUser ?? false,
-    }
+    return apiPost
   }
 
   onPostCreated(apiPost: ApiPost): void {
     const mapped = this.mapPost(apiPost)
     this.posts = [mapped, ...this.posts]
+    this.curentUser.postsCount += 1;
   }
 }

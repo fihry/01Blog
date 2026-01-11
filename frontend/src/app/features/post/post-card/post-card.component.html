@@ -1,13 +1,16 @@
 <div class="app-widget-card mb-3 p-4">
 
     <div class="d-flex align-items-start mb-3">
-        <div class="avatar-placeholder me-3"></div>
+        <a class="avatar-placeholder me-3" [routerLink]="['/profile', post.author.id]" style="width: 50px; height: 50px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+            <img *ngIf="post.author.avatarUrl" [src]="post.author.avatarUrl"
+                class="w-100 h-100 rounded-circle object-cover">
+        </a>
 
         <div class="flex-grow-1">
             <div class="d-flex align-items-center gap-2">
-                <h4 class="text-sm font-semibold mb-0 text-foreground">{{ post.author }}</h4>
+                <h4 class="text-sm font-semibold mb-0 text-foreground">{{ post.author.username }}</h4>
                 <span class="text-xs text-muted-foreground">·</span>
-                <span class="text-xs text-muted-foreground">{{ post.timestamp }}</span>
+                <span class="text-xs text-muted-foreground">{{ post.createdAt }}</span>
             </div>
             <p class="text-xs text-muted-foreground">Posted within the community</p>
         </div>
@@ -37,13 +40,13 @@
                 [ngClass]="post.likedByCurrentUser ? 'text-danger' : 'text-muted-foreground hover:text-primary'"
                 (click)="onLike()" [disabled]="isLiking" title="Like">
                 <i class="bi" [ngClass]="post.likedByCurrentUser ? 'bi-heart-fill' : 'bi-heart'"></i>
-                <span>{{ post.likes }}</span>
+                <span>{{ post.likeCount }}</span>
             </button>
             <button
                 class="btn btn-ghost btn-sm text-muted-foreground hover:text-primary d-flex align-items-center gap-2"
                 (click)="onComment()" title="Comment">
                 <i class="bi bi-chat-dots"></i>
-                <span>{{ post.comments }}</span>
+                <span>{{ post.commentCount }}</span>
             </button>
 
         </div>

@@ -23,6 +23,7 @@ export interface Post {
   likeCount: number
   commentCount: number
   likedByCurrentUser: boolean
+  isOwner?: boolean
 }
 
 export interface PostPage {

@@ -3,24 +3,24 @@
 import { Component, Input, Output, EventEmitter } from "@angular/core"
 import { CommonModule } from "@angular/common"
 import { Router, RouterModule } from "@angular/router"
-import { PostService } from "../../../core/services/post.service"
+import { PostService ,Post} from "../../../core/services/post.service"
 import { SafeMarkdownService } from "../../../shared/services/markdown.service"
 import { ToastService } from "../../../shared/services/toast.service"
 
 
 
 
-interface Post {
-  id: string
-  title: string
-  content: string
-  author: string
-  likes: number
-  comments: number
-  timestamp: string
-  isOwner: boolean
-  likedByCurrentUser: boolean
-}
+// interface Post {
+//   id: string
+//   title: string
+//   content: string
+//   author: string
+//   likes: number
+//   comments: number
+//   timestamp: string
+//   isOwner: boolean
+//   likedByCurrentUser: boolean
+// }
 
 @Component({
   selector: "app-post-card",
@@ -30,7 +30,7 @@ interface Post {
   styleUrls: ["./post-card.component.scss"],
 })
 export class PostCardComponent {
-  @Input() post!: Post
+  @Input() post!: Post;
   //OUTPUT: Event to notify the parent component (FeedComponent) when to delete the post
   @Output() deletePost = new EventEmitter<string>();
 
@@ -56,10 +56,10 @@ export class PostCardComponent {
         // Optimistic toggle
         if (this.post.likedByCurrentUser) {
           this.post.likedByCurrentUser = false
-          this.post.likes = Math.max(0, this.post.likes - 1)
+          this.post.likeCount = Math.max(0, this.post.likeCount - 1)
         } else {
           this.post.likedByCurrentUser = true
-          this.post.likes = this.post.likes + 1
+          this.post.likeCount = this.post.likeCount + 1
         }
         this.isLiking = false
       },

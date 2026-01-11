@@ -22,22 +22,31 @@
                     <!-- User Stats Card -->
                     <div class="app-widget-card">
                         <div class="text-center mb-3">
-                            <div class="avatar-large-placeholder mx-auto mb-3"></div>
+                            <div class="avatar-large-placeholder mx-auto mb-3">
+                                <div class="position-relative d-inline-block">
+                                    <div class="avatar-large-placeholder">
+                                        <img src="{{curentUser?.avatarUrl}}" alt="User Avatar" class="rounded-circle w-100 h-100 object-fit-cover">
+                                    </div>
+                                    <span
+                                        class="position-absolute bottom-0 end-0 translate-middle p-1 bg-success border border-light rounded-circle">
+                                        <span class="visually-hidden">Online</span>
+                                    </span>
+                                </div>
+                            </div>
                             <h6 class="mb-1 text-foreground font-semibold">Your Profile</h6>
-                            <p class="text-xs text-muted-foreground">@username</p>
+                            <p class="text-xs text-muted-foreground">@{{curentUser?.username}}</p>
                         </div>
-
                         <div class="d-flex justify-content-around text-center border-top border-muted pt-3">
                             <div>
-                                <strong class="d-block text-foreground text-lg">23</strong>
+                                <strong class="d-block text-foreground text-lg">{{curentUser?.postsCount}}</strong>
                                 <span class="text-xs text-muted-foreground">Posts</span>
                             </div>
                             <div>
-                                <strong class="d-block text-foreground text-lg">45</strong>
+                                <strong class="d-block text-foreground text-lg">{{curentUser?.followersCount}}</strong>
                                 <span class="text-xs text-muted-foreground">Followers</span>
                             </div>
                             <div>
-                                <strong class="d-block text-foreground text-lg">32</strong>
+                                <strong class="d-block text-foreground text-lg">{{curentUser?.followingCount}}</strong>
                                 <span class="text-xs text-muted-foreground">Following</span>
                             </div>
                         </div>
@@ -60,8 +69,7 @@
                 </div>
 
                 <!-- Inline LinkedIn-style Create Post Composer -->
-                <app-create-post-modal
-                    (postCreated)="onPostCreated($event)">
+                <app-create-post-modal (postCreated)="onPostCreated($event)">
                 </app-create-post-modal>
 
                 <!-- Posts List -->
@@ -164,7 +172,7 @@
                             <span>·</span>
                             <a href="#" class="text-muted-foreground text-decoration-none hover:underline">Terms</a>
                         </div>
-                        <p class="m-0">© 2025 ZeroOneBlog</p>
+                        <p class="m-0">© 2026 ZeroOneBlog</p>
                     </div>
                 </div>
             </div>

@@ -44,7 +44,7 @@ export class NavbarComponent implements OnInit {
       map((user) => user?.username || "Guest"),
     );
     this.currentUserDisplayAvatarUrl$ = this.authService.currentUser$.pipe(
-      map((user) => user?.avatar_url || "/assets/default-avatar.png"),
+      map((user) => user?.avatarUrl || ''),
     );
     this.authService.currentUser$.subscribe((user) => {
       this.currentUserId = user?.id || '';

@@ -11,7 +11,7 @@ interface AuthResponse {
     username: string
     email: string
     role: string
-    avatar_url?: string
+    avatarUrl?: string
   }
 }
 
