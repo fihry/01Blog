@@ -32,7 +32,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
-    private final MinioService minioService;
+    private final MediaService mediaService;
 
     // Registration
     public User register(@Valid RegisterRequestDto dto) {
@@ -73,7 +73,7 @@ public class UserService {
         String avatarUrl = user.getAvatarUrl();
         if (avatarUrl != null && !avatarUrl.isBlank()) {
             try {
-                avatarUrl = minioService.getMediaUrl(avatarUrl);
+                avatarUrl = mediaService.getMediaUrl(avatarUrl);
             } catch (Exception e) {
                 System.err.println("Failed to generate media URL for avatar: " + e.getMessage());
                 // Keep original path if URL generation fails
@@ -106,7 +106,7 @@ public class UserService {
         User user = getById(id);
         // Only generate presigned URL if avatar exists
         if (user.getAvatarUrl() != null && !user.getAvatarUrl().isBlank()) {
-            user.setAvatarUrl(minioService.getMediaUrl(user.getAvatarUrl()));
+            user.setAvatarUrl(mediaService.getMediaUrl(user.getAvatarUrl()));
         }
         boolean isFollowed = userRepository.findById(getCurrentUserId())
                 .map(currentUser -> currentUser.getFollowing().stream()
@@ -134,13 +134,13 @@ public class UserService {
             user.setBio(dto.getBio());
         }
         if (dto.getAvatar() != null && !dto.getAvatar().isEmpty()) {
-            String avatar_url = minioService.uploadFile(dto.getAvatar());
+            String avatar_url = mediaService.uploadFile(dto.getAvatar());
             user.setAvatarUrl(avatar_url);
         }
         userRepository.save(user);
         // Only generate presigned URL if avatar exists
         if (user.getAvatarUrl() != null && !user.getAvatarUrl().isBlank()) {
-            user.setAvatarUrl(minioService.getMediaUrl(user.getAvatarUrl()));
+            user.setAvatarUrl(mediaService.getMediaUrl(user.getAvatarUrl()));
         }
         boolean isFollowed = userRepository.findById(getCurrentUserId())
                 .map(currentUser -> currentUser.getFollowing().stream()
@@ -187,7 +187,7 @@ public class UserService {
             // Only generate presigned URL if avatar exists
             String avatarUrl = user.getAvatarUrl();
             if (avatarUrl != null && !avatarUrl.isBlank()) {
-                avatarUrl = minioService.getMediaUrl(avatarUrl);
+                avatarUrl = mediaService.getMediaUrl(avatarUrl);
             }
             boolean isFollowed = userRepository.findById(getCurrentUserId())
                     .map(currentUser -> currentUser.getFollowing().stream()
@@ -216,7 +216,7 @@ public class UserService {
 
         String avatarUrl = savedUser.getAvatarUrl();
         if (avatarUrl != null && !avatarUrl.isBlank()) {
-            avatarUrl = minioService.getMediaUrl(avatarUrl);
+            avatarUrl = mediaService.getMediaUrl(avatarUrl);
         }
         boolean isFollowed = userRepository.findById(getCurrentUserId())
                 .map(currentUser -> currentUser.getFollowing().stream()

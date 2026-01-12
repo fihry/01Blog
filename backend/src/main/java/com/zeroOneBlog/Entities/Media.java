@@ -3,7 +3,7 @@ package com.zeroOneBlog.Entities;
 import java.sql.Timestamp;
 import java.util.UUID;
 
-import com.zeroOneBlog.Types.MinioBucketTypes;
+import com.zeroOneBlog.Types.MediaType;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -38,7 +38,7 @@ public class Media {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private MinioBucketTypes mediaType; // IMAGES, VIDEOS, or AUDIOS
+    private MediaType mediaType; // IMAGES, VIDEOS, or AUDIOS
 
     private Timestamp createdAt = new Timestamp(System.currentTimeMillis());
 }

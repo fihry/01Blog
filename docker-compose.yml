@@ -8,12 +8,9 @@ services:
       - "${BACKEND_PORT}:${BACKEND_PORT}"
     env_file:
       - .env
-    environment:
-      MINIO_SERVER_URL: http://minio:9000
-      MINIO_EXTERNAL_URL: http://localhost:9000
     depends_on:
       - db
-      - minio
+      - storage
 
   frontend:
     build: ./frontend
@@ -33,22 +30,39 @@ services:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
-      - "${DB_PORT}:${DB_PORT}"
+      - "${DB_PORT}:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
-  minio:
-    image: minio/minio
-    container_name: minio
-    env_file:
-      - .env
-    command: server /data --console-address ":${MINIO_CONSOLE_PORT}"
-    ports:
-      - "${MINIO_PORT}:${MINIO_PORT}"
-      - "${MINIO_CONSOLE_PORT}:${MINIO_CONSOLE_PORT}"
-    volumes:
-      - minio_data:/data
 
+  storage:
+    image: ghcr.io/achtungsoftware/alarik:latest
+    container_name: storage
+    restart: unless-stopped
+    ports:
+      - "${STORAGE_API_PORT}:8080"
+    environment:
+      - API_BASE_URL=${STORAGE_API_BASE_URL}
+      - CONSOLE_BASE_URL=${STORAGE_CONSOLE_BASE_URL}
+      - ADMIN_USERNAME=${STORAGE_ACCESS_KEY}
+      - ADMIN_PASSWORD=${STORAGE_SECRET_KEY}
+      - JWT=${JWT_SECRET}
+      - ALLOW_ACCOUNT_CREATION=${ALARIK_ALLOW_ACCOUNT_CREATION}
+    volumes:
+      - storage_data:/app/Storage
+
+  storage-console:
+    image: ghcr.io/achtungsoftware/alarik-console:latest
+    container_name: storage-console
+    restart: unless-stopped
+    ports:
+      - "${STORAGE_CONSOLE_PORT}:3000"
+    environment:
+      - NUXT_PUBLIC_API_BASE_URL=${STORAGE_API_BASE_URL}
+      - NUXT_PUBLIC_CONSOLE_BASE_URL=${STORAGE_CONSOLE_BASE_URL}
+      - NUXT_PUBLIC_ALLOW_ACCOUNT_CREATION=${ALARIK_ALLOW_ACCOUNT_CREATION}
+    depends_on:
+      - storage
 
 volumes:
   db_data:
-  minio_data:
+  storage_data:

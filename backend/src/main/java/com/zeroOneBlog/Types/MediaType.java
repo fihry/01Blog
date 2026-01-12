@@ -1,6 +1,6 @@
 package com.zeroOneBlog.Types;
 
-public enum MinioBucketTypes {
+public enum MediaType {
     VIDEOS,
     IMAGES,
     AUDIOS,

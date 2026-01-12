@@ -28,7 +28,7 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
     private final PostRepository postRepository;
-    private final MinioService minioService;
+    private final MediaService minioService;
 
     public List<CommentDto> getCommentsByPostId(UUID postId) {
         List<Comment> comments = commentRepository.findByPostId(postId);

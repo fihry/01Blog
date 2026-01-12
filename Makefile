@@ -1,4 +1,4 @@
-.PHONY: help env-check db minio app compose status
+.PHONY: help env-check db storage app compose status
 
 include .env
 export
@@ -15,10 +15,10 @@ help:
 	@echo "    make db-logs     - Show DB logs"
 	@echo "    make db-shell    - Connect to DB shell"
 	@echo ""
-	@echo "  MinIO:"
-	@echo "    make minio-up    - Start MinIO"
-	@echo "    make minio-down  - Stop MinIO"
-	@echo "    make minio-logs  - Show MinIO logs"
+	@echo "  Storage (Alarik):"
+	@echo "    make storage-up    - Start Alarik storage"
+	@echo "    make storage-down  - Stop Alarik storage"
+	@echo "    make storage-logs  - Show storage logs"
 	@echo ""
 	@echo "  App:"
 	@echo "    make run         - Run backend locally"
@@ -47,7 +47,7 @@ env-check:
 	@echo "DB_USER: $(DB_USER)"
 	@echo "BACKEND_PORT: $(BACKEND_PORT)"
 	@echo "FRONTEND_PORT: $(FRONTEND_PORT)"
-	@echo "MINIO_PORT: $(MINIO_PORT)"
+	@echo "STORAGE_PORT: 9000"
 	@echo "JWT_SECRET: $$(echo $(JWT_SECRET) | cut -c1-10)..."
 	@echo "JWT_EXPIRATION": $(JWT_EXPIRATION)
 
@@ -86,16 +86,20 @@ db-shell:
 	docker compose exec db psql -U $(DB_USER) -d $(DB_NAME)
 
 # --------------------------
-# MinIO commands
+# Storage (Alarik) commands
 # --------------------------
-minio-up:
-	docker compose up -d minio
+storage-up:
+	@echo "🚀 Starting Alarik storage..."
+	docker compose up -d storage
+	@echo "✅ Storage started!"
 
-minio-down:
-	docker compose stop minio && docker compose rm -f minio
+storage-down:
+	@echo "🛑 Stopping Alarik storage..."
+	docker compose stop storage && docker compose rm -f storage
+	@echo "✅ Storage stopped!"
 
-minio-logs:
-	docker compose logs -f minio
+storage-logs:
+	docker compose logs -f storage
 
 # --------------------------
 # Backend app commands
@@ -118,6 +122,6 @@ test:
 status: env-check
 	@echo "=== System Status ==="
 	@docker ps --filter "name=db" --format "PostgreSQL: {{.Status}}"
-	@docker ps --filter "name=minio" --format "MinIO: {{.Status}}"
+	@docker ps --filter "name=storage" --format "Storage: {{.Status}}"
 	@docker ps --filter "name=backend" --format "Backend: {{.Status}}"
 	@docker ps --filter "name=frontend" --format "Frontend: {{.Status}}"

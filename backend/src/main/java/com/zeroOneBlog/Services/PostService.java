@@ -23,7 +23,7 @@ import com.zeroOneBlog.Repositories.LikeRepository;
 import com.zeroOneBlog.Repositories.MediaRepository;
 import com.zeroOneBlog.Repositories.PostRepository;
 import com.zeroOneBlog.Repositories.UserRepository;
-import com.zeroOneBlog.Types.MinioBucketTypes;
+import com.zeroOneBlog.Types.MediaType;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -37,7 +37,7 @@ public class PostService {
     private final CommentRepository commentRepository;
     private final LikeRepository likeRepository;
     private final MediaRepository mediaRepository;
-    private final MinioService minioService;
+    private final MediaService mediaService;
 
     // Fetch post entity or throw 404
     public Post getById(UUID postId) {
@@ -51,7 +51,7 @@ public class PostService {
 
         String avatarUrl = post.getAuthor().getAvatarUrl();
         if (avatarUrl != null) {
-            avatarUrl = minioService.getMediaUrl(avatarUrl);
+            avatarUrl = mediaService.getMediaUrl(avatarUrl);
         }
         UserSummaryDto authorSummary = new UserSummaryDto(
                 post.getAuthor().getId(),
@@ -61,7 +61,7 @@ public class PostService {
         List<MediaDto> mediaDtos = post.getMedia() != null ? post.getMedia().stream()
                 .map(media -> MediaDto.builder()
                         .id(media.getId())
-                        .mediaUrl(minioService.getMediaUrl(media.getMediaUrl()))
+                        .mediaUrl(mediaService.getMediaUrl(media.getMediaUrl()))
                         .mediaType(media.getMediaType())
                         .build())
                 .collect(Collectors.toList()) : List.of();
@@ -100,8 +100,8 @@ public class PostService {
             mediaDtos = dto.getMediaFiles().stream()
                     .filter(file -> file != null && !file.isEmpty())
                     .map(file -> {
-                        String mediaUrl = minioService.uploadFile(file);
-                        MinioBucketTypes mediaType = getPostMediaType(file.getContentType());
+                        String mediaUrl = mediaService.uploadFile(file);
+                        MediaType mediaType = getPostMediaType(file.getContentType());
 
                         if (mediaType == null) {
                             throw new ApiException(HttpStatus.BAD_REQUEST, "Posts only support images and videos");
@@ -115,7 +115,7 @@ public class PostService {
 
                         return MediaDto.builder()
                                 .id(media.getId())
-                                .mediaUrl(minioService.getMediaUrl(mediaUrl))
+                                .mediaUrl(mediaService.getMediaUrl(mediaUrl))
                                 .mediaType(mediaType)
                                 .build();
                     })
@@ -146,7 +146,7 @@ public class PostService {
         return postsPage.map(post -> {
             String avatarUrl = post.getAuthor().getAvatarUrl();
             if (avatarUrl != null) {
-                avatarUrl = minioService.getMediaUrl(avatarUrl);
+                avatarUrl = mediaService.getMediaUrl(avatarUrl);
             }
             UserSummaryDto authorSummary = new UserSummaryDto(
                     post.getAuthor().getId(),
@@ -156,7 +156,7 @@ public class PostService {
             List<MediaDto> mediaDtos = post.getMedia() != null ? post.getMedia().stream()
                     .map(media -> MediaDto.builder()
                             .id(media.getId())
-                            .mediaUrl(minioService.getMediaUrl(media.getMediaUrl()))
+                            .mediaUrl(mediaService.getMediaUrl(media.getMediaUrl()))
                             .mediaType(media.getMediaType())
                             .build())
                     .collect(Collectors.toList()) : List.of();
@@ -198,7 +198,7 @@ public class PostService {
             // Delete old media
             if (updatedPost.getMedia() != null) {
                 for (Media oldMedia : updatedPost.getMedia()) {
-                    minioService.deleteFile(oldMedia.getMediaUrl());
+                    mediaService.deleteFile(oldMedia.getMediaUrl());
                     mediaRepository.delete(oldMedia);
                 }
             }
@@ -207,8 +207,8 @@ public class PostService {
             mediaDtos = dto.getMediaFiles().stream()
                     .filter(file -> file != null && !file.isEmpty())
                     .map(file -> {
-                        String mediaUrl = minioService.uploadFile(file);
-                        MinioBucketTypes mediaType = getPostMediaType(file.getContentType());
+                        String mediaUrl = mediaService.uploadFile(file);
+                        MediaType mediaType = getPostMediaType(file.getContentType());
 
                         if (mediaType == null) {
                             throw new ApiException(HttpStatus.BAD_REQUEST, "Posts only support images and videos");
@@ -281,7 +281,7 @@ public class PostService {
         // Delete associated media files from Minio
         if (post.getMedia() != null) {
             for (Media media : post.getMedia()) {
-                minioService.deleteFile(media.getMediaUrl());
+                mediaService.deleteFile(media.getMediaUrl());
             }
         }
         postRepository.delete(post);
@@ -307,15 +307,15 @@ public class PostService {
 
     // Helper method to determine media type from content type (only images and
     // videos for posts)
-    private MinioBucketTypes getPostMediaType(String contentType) {
+    private MediaType getPostMediaType(String contentType) {
         if (contentType == null) {
             return null;
         }
         if (contentType.startsWith("video")) {
-            return MinioBucketTypes.VIDEOS;
+            return MediaType.VIDEOS;
         }
         if (contentType.startsWith("image")) {
-            return MinioBucketTypes.IMAGES;
+            return MediaType.IMAGES;
         }
         return null; // Reject audio and other types
     }
@@ -331,7 +331,7 @@ public class PostService {
         return postsPage.map(post -> {
             String avatarUrl = post.getAuthor().getAvatarUrl();
             if (avatarUrl != null) {
-                avatarUrl = minioService.getMediaUrl(avatarUrl);
+                avatarUrl = mediaService.getMediaUrl(avatarUrl);
             }
             UserSummaryDto authorSummary = new UserSummaryDto(
                     post.getAuthor().getId(),
@@ -341,7 +341,7 @@ public class PostService {
             List<MediaDto> mediaDtos = post.getMedia() != null ? post.getMedia().stream()
                     .map(media -> MediaDto.builder()
                             .id(media.getId())
-                            .mediaUrl(minioService.getMediaUrl(media.getMediaUrl()))
+                            .mediaUrl(mediaService.getMediaUrl(media.getMediaUrl()))
                             .mediaType(media.getMediaType())
                             .build())
                     .collect(Collectors.toList()) : List.of();
