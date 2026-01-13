@@ -39,4 +39,7 @@ export class ReportService {
   updateReportStatus(id: string, status: string): Observable<Report> {
     return this.http.put<Report>(`${this.apiUrl}/${id}`, { status })
   }
+  deleteReport(id:string){
+    return this.http.delete<Report>(`${this.apiUrl}/${id}`)
+  }
 }

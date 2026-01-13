@@ -1,0 +1,135 @@
+<div class="min-h-screen pt-5 mt-5 bg-background text-foreground">
+  <div class="container-xl mx-auto py-5 px-4">
+
+    <h1 class="text-3xl font-bold mb-5 flex items-center gap-2">
+      <i class="bi bi-speedometer2"></i>
+      Admin Dashboard
+    </h1>
+
+    <!-- SWITCH -->
+    <div class="segmented-control mb-4">
+      <button class="segment" [class.active]="activeTab==='users'" (click)="switchTab('users')">
+        <i class="bi bi-people"></i> Users
+      </button>
+      <button class="segment" [class.active]="activeTab==='posts'" (click)="switchTab('posts')">
+        <i class="bi bi-file-earmark-text"></i> Posts
+      </button>
+      <button class="segment" [class.active]="activeTab==='reports'" (click)="switchTab('reports')">
+        <i class="bi bi-flag"></i> Reports
+      </button>
+    </div>
+
+    <div class="app-widget-card shadow-md">
+
+      <!-- USERS -->
+      <div *ngIf="activeTab==='users'" class="table-responsive">
+        <table class="table app-table">
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Email</th>
+              <th>Posts</th>
+              <th>Status</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let u of users" (click)="goToUser(u.id)">
+              <td class="font-semibold">{{ u.username }}</td>
+              <td class="text-muted-foreground">{{ u.email }}</td>
+              <td>{{ u.postsCount }}</td>
+              <td>
+                <span class="badge"
+                  [ngClass]="u.active ? 'bg-success' : 'bg-destructive'">
+                  <i class="bi"
+                     [ngClass]="u.active ? 'bi-check-circle' : 'bi-x-circle'"></i>
+                  {{ u.active ? 'Active' : 'Inactive' }}
+                </span>
+              </td>
+              <td class="text-end">
+                <button class="btn btn-sm btn-ghost"
+                        (click)="$event.stopPropagation(); toggleUser(u)">
+                  <i class="bi bi-slash-circle"></i>
+                </button>
+                <button class="btn btn-sm btn-ghost text-destructive"
+                        (click)="$event.stopPropagation(); deleteUser(u.id)">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- POSTS -->
+      <div *ngIf="activeTab==='posts'" class="table-responsive">
+        <table class="table app-table">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Author</th>
+              <th><i class="bi bi-heart"></i></th>
+              <th><i class="bi bi-chat"></i></th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let p of posts" (click)="goToPost(p.id)">
+              <td class="font-medium wrap">{{ p.title }}</td>
+              <td class="text-muted-foreground">{{ p.author.username }}</td>
+              <td>{{ p.likeCount }}</td>
+              <td>{{ p.commentCount }}</td>
+              <td class="text-end">
+                <button class="btn btn-sm btn-ghost text-destructive"
+                        (click)="$event.stopPropagation(); deletePost(p.id)">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- REPORTS -->
+      <div *ngIf="activeTab==='reports'" class="table-responsive">
+        <table class="table app-table">
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>Reason</th>
+              <th>Status</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let r of filteredReports()">
+              <td>{{ r.type }}</td>
+              <td class="wrap text-muted-foreground">{{ r.reason }}</td>
+              <td>
+                <span class="badge"
+                  [ngClass]="{
+                    'bg-warning': r.status==='pending',
+                    'bg-info': r.status==='reviewed',
+                    'bg-success': r.status==='resolved'
+                  }">
+                  {{ r.status }}
+                </span>
+              </td>
+              <td class="text-end">
+                <button class="btn btn-sm btn-ghost"
+                        (click)="updateReport(r.id,'reviewed')">
+                  <i class="bi bi-eye"></i>
+                </button>
+                <button class="btn btn-sm btn-ghost text-destructive"
+                        (click)="deleteReport(r.id)">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</div>
