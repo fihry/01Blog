@@ -7,7 +7,7 @@ import { RouterModule } from "@angular/router"
   imports: [RouterModule],
   template: `
     <div class="min-h-screen d-flex align-items-center justify-content-center bg-background">
-      <div class="container-m mx-auto p-4">
+      <div class="container-xl mx-auto p-4">
         <div class="text-center max-w-2xl mx-auto">
           
           <!-- 404 Illustration -->

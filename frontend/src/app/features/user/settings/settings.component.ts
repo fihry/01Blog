@@ -9,7 +9,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from "@angula
     imports: [CommonModule, RouterModule, ReactiveFormsModule],
     template: `
     <div class="min-h-screen pt-5 mt-5">
-      <div class="container-m mx-auto py-5 px-4">
+      <div class="container-xl mx-auto py-5 px-4">
         
         <h1 class="text-3xl font-bold text-foreground mb-5">Settings</h1>
 
