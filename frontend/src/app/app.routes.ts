@@ -1,5 +1,5 @@
 import type { Routes } from "@angular/router"
-import { NonAuthGuard } from '../app/core/guards/auth.guard';
+import { AccessGuard} from './core/guards/acsess.guard';
 import { LoginComponent } from "../app/features/auth/login/login.component"
 import { RegisterComponent } from "../app/features/auth/register/register.component"
 import { FeedComponent } from "./features/post/feed/feed.component"
@@ -12,15 +12,59 @@ import { UsersComponent } from "./features/user/users/users.component"
 import { NotFoundComponent } from "./shared/components/not-found/not-found.component"
 
 export const routes: Routes = [
-  { path: "", redirectTo: "/feed", pathMatch: "full" },
-  { path: "login", component: LoginComponent, canActivate: [NonAuthGuard] },
-  { path: "register", component: RegisterComponent, canActivate: [NonAuthGuard] },
-  { path: "feed", component: FeedComponent },
-  { path: "users", component: UsersComponent },
-  { path: "profile/:id", component: ProfileComponent },
-  { path: "post/:id", component: PostDetailComponent },
-  { path: "notifications", component: NotificationListComponent },
-  { path: "settings", component: SettingsComponent },
-  { path: "admin", component: AdminDashboardComponent },
+
+  { path: "login",
+    component: LoginComponent,
+    canActivate: [AccessGuard],
+    data: { access: 'guest' }
+  },
+
+  { path: "register",
+    component: RegisterComponent,
+    canActivate: [AccessGuard],
+    data: { access: 'guest' }
+  },
+
+  { path: "feed",
+    component: FeedComponent,
+    canActivate: [AccessGuard],
+    data: { access: 'auth' }
+  },
+
+  { path: "profile/:id",
+    component: ProfileComponent,
+    canActivate: [AccessGuard],
+    data: { access: 'auth' }
+  },
+  { path: "users",
+    component: UsersComponent,
+    canActivate: [AccessGuard],
+    data: { access: 'auth' }
+  },
+
+  { path: "post/:id",
+    component: PostDetailComponent,
+    canActivate: [AccessGuard],
+    data: { access: 'auth' }
+  },
+
+  { path: "notifications",
+    component: NotificationListComponent,
+    canActivate: [AccessGuard],
+    data: { access: 'auth' }
+  },
+
+  { path: "settings",
+    component: SettingsComponent,
+    canActivate: [AccessGuard],
+    data: { access: 'auth' }
+  },
+
+  { path: "admin",
+    component: AdminDashboardComponent,
+    canActivate: [AccessGuard],
+    data: { access: 'admin' }
+  },
+
   { path: "**", component: NotFoundComponent }
-]
+];

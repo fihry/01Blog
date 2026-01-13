@@ -45,7 +45,6 @@ export class AuthService {
       tap((response) => {
         localStorage.setItem("token", response.accessToken)
         localStorage.setItem("user", JSON.stringify(response.user))
-        console.log(`respons token: ${response.accessToken}`)
         this.currentUserSubject.next(response.user)
         this.isAuthenticatedSubject.next(true)
       }),
@@ -87,7 +86,6 @@ export class AuthService {
         this.logout()
       }
     } else if (token) {
-      // Token exists but user doesn't - might want to fetch profile here
       this.isAuthenticatedSubject.next(true)
     }
   }
