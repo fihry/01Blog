@@ -95,8 +95,10 @@ public class PostService {
         Post savedPost = postRepository.save(post);
 
         // Upload media files if present
+        String content = dto.getContent();
         List<MediaDto> mediaDtos = List.of();
         if (dto.getMediaFiles() != null && !dto.getMediaFiles().isEmpty()) {
+            final String[] mutableContent = {content};
             mediaDtos = dto.getMediaFiles().stream()
                     .filter(file -> file != null && !file.isEmpty())
                     .map(file -> {
@@ -113,19 +115,33 @@ public class PostService {
                         media.setMediaType(mediaType);
                         mediaRepository.save(media);
 
+                        String permanentUrl = minioService.getMediaUrl(mediaUrl);
+
+                        // Replace the first occurrence of a data: URL or temporary preview URL in the content
+                        // Note: This assumes the frontend sends the files in the same order as they appear in the HTML
+                        if (mediaType == MinioBucketTypes.IMAGES) {
+                            mutableContent[0] = mutableContent[0].replaceFirst("src=\"data:image/[^;]+;base64,[^\"]+\"", "src=\"" + permanentUrl + "\"");
+                        } else if (mediaType == MinioBucketTypes.VIDEOS) {
+                            mutableContent[0] = mutableContent[0].replaceFirst("src=\"data:video/[^;]+;base64,[^\"]+\"", "src=\"" + permanentUrl + "\"");
+                        }
+
                         return MediaDto.builder()
                                 .id(media.getId())
-                                .mediaUrl(minioService.getMediaUrl(mediaUrl))
+                                .mediaUrl(permanentUrl)
                                 .mediaType(mediaType)
                                 .build();
                     })
                     .collect(Collectors.toList());
+            
+            content = mutableContent[0];
+            savedPost.setContent(content);
+            postRepository.save(savedPost);
         }
 
         UserSummaryDto authorSummary = new UserSummaryDto(
                 author.getId(),
                 author.getUsername(),
-                author.getAvatarUrl());
+                minioService.getMediaUrl(author.getAvatarUrl()));
 
         return new PostDto(
                 savedPost.getId(),
@@ -193,6 +209,7 @@ public class PostService {
         Post updatedPost = postRepository.save(post);
 
         // Handle media updates if provided
+        String content = dto.getContent();
         List<MediaDto> mediaDtos = List.of();
         if (dto.getMediaFiles() != null && !dto.getMediaFiles().isEmpty()) {
             // Delete old media
@@ -204,6 +221,7 @@ public class PostService {
             }
 
             // Upload new media
+            final String[] mutableContent = {content};
             mediaDtos = dto.getMediaFiles().stream()
                     .filter(file -> file != null && !file.isEmpty())
                     .map(file -> {
@@ -220,20 +238,32 @@ public class PostService {
                         media.setMediaType(mediaType);
                         mediaRepository.save(media);
 
+                        String permanentUrl = minioService.getMediaUrl(mediaUrl);
+
+                        if (mediaType == MinioBucketTypes.IMAGES) {
+                            mutableContent[0] = mutableContent[0].replaceFirst("src=\"data:image/[^;]+;base64,[^\"]+\"", "src=\"" + permanentUrl + "\"");
+                        } else if (mediaType == MinioBucketTypes.VIDEOS) {
+                            mutableContent[0] = mutableContent[0].replaceFirst("src=\"data:video/[^;]+;base64,[^\"]+\"", "src=\"" + permanentUrl + "\"");
+                        }
+
                         return MediaDto.builder()
                                 .id(media.getId())
-                                .mediaUrl(mediaUrl)
+                                .mediaUrl(permanentUrl)
                                 .mediaType(mediaType)
                                 .build();
                     })
                     .collect(Collectors.toList());
+            
+            content = mutableContent[0];
+            updatedPost.setContent(content);
+            postRepository.save(updatedPost);
         } else {
             // Keep existing media if no new files provided
             if (updatedPost.getMedia() != null) {
                 mediaDtos = updatedPost.getMedia().stream()
                         .map(media -> MediaDto.builder()
                                 .id(media.getId())
-                                .mediaUrl(media.getMediaUrl())
+                                .mediaUrl(minioService.getMediaUrl(media.getMediaUrl()))
                                 .mediaType(media.getMediaType())
                                 .build())
                         .collect(Collectors.toList());

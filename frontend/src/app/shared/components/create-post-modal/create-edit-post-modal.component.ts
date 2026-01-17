@@ -29,15 +29,15 @@ export class CreateEditPostModalComponent implements OnChanges {
   @ViewChild("editor") editor!: ElementRef<HTMLDivElement>;
 
   constructor(
-    private postService: PostService, 
+    private postService: PostService,
     private toastService: ToastService
-  ) {}
+  ) { }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['postToEdit'] && this.postToEdit && this.editMode) {
       this.loadPostForEditing();
     }
-    
+
     if (changes['isOpen'] && !this.isOpen) {
       this.resetForm();
     }
@@ -52,7 +52,7 @@ export class CreateEditPostModalComponent implements OnChanges {
     // Set editor content after view is initialized
     setTimeout(() => {
       if (this.editor) {
-        this.editor.nativeElement.innerText = this.content;
+        this.editor.nativeElement.innerHTML = this.content;
       }
     }, 0);
   }
@@ -76,13 +76,13 @@ export class CreateEditPostModalComponent implements OnChanges {
 
   updateContent(): void {
     if (!this.editor) return;
-    this.content = this.editor.nativeElement.innerText;
+    this.content = this.editor.nativeElement.innerHTML;
   }
 
   applyFormat(type: "bold" | "italic" | "h1" | "h2" | "bullet"): void {
     if (!this.editor) return;
     this.editor.nativeElement.focus();
-    
+
     switch (type) {
       case "bold":
         this.insertAtCursor("**bold text**");
@@ -106,12 +106,12 @@ export class CreateEditPostModalComponent implements OnChanges {
   private insertAtCursor(text: string) {
     const sel = window.getSelection();
     if (!sel || !sel.rangeCount) return;
-    
+
     const range = sel.getRangeAt(0);
     range.deleteContents();
     const node = document.createTextNode(text);
     range.insertNode(node);
-    
+
     range.setStartAfter(node);
     range.collapse(true);
     sel.removeAllRanges();
@@ -130,7 +130,7 @@ export class CreateEditPostModalComponent implements OnChanges {
       const reader = new FileReader();
       reader.onload = () => {
         if (!this.editor) return;
-        
+
         const el = this.editor.nativeElement;
         el.focus();
         const selection = window.getSelection();
@@ -142,7 +142,7 @@ export class CreateEditPostModalComponent implements OnChanges {
           img.style.maxWidth = "300px";
           img.style.margin = "5px 0";
           range?.insertNode(img);
-          
+
           const br = document.createElement("br");
           range?.insertNode(br);
         } else if (file.type.startsWith("video/")) {
@@ -152,7 +152,7 @@ export class CreateEditPostModalComponent implements OnChanges {
           video.style.maxWidth = "300px";
           video.style.margin = "5px 0";
           range?.insertNode(video);
-          
+
           const br = document.createElement("br");
           range?.insertNode(br);
         }

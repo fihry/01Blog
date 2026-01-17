@@ -15,6 +15,8 @@ import com.zeroOneBlog.Dto.AuthResponseDto;
 import com.zeroOneBlog.Dto.LoginRequestDto;
 import com.zeroOneBlog.Dto.RegisterRequestDto;
 import com.zeroOneBlog.Dto.UserDto;
+import com.zeroOneBlog.Entities.Media;
+import com.zeroOneBlog.Entities.Post;
 import com.zeroOneBlog.Entities.User;
 import com.zeroOneBlog.Exceptions.ApiException;
 import com.zeroOneBlog.Repositories.UserRepository;
@@ -237,11 +239,34 @@ public class UserService {
                 savedUser.getCreatedAt().toString());
     }
 
+    @Transactional
     public void deleteUser(UUID id) {
-        if (!userRepository.existsById(id)) {
-            throw new ApiException(HttpStatus.NOT_FOUND, "User not found");
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "User not found"));
+
+        // 1. Delete files from Minio
+        if (user.getPosts() != null) {
+            for (Post post : user.getPosts()) {
+                if (post.getMedia() != null) {
+                    for (Media media : post.getMedia()) {
+                        minioService.deleteFile(media.getMediaUrl());
+                    }
+                }
+            }
         }
-        userRepository.deleteById(id);
+        if (user.getAvatarUrl() != null && !user.getAvatarUrl().isBlank()) {
+            minioService.deleteFile(user.getAvatarUrl());
+        }
+
+        // 2. Clear subscriptions (ManyToMany relationships usually need manual clearing)
+        for (User follower : user.getFollowers()) {
+            follower.getFollowing().remove(user);
+        }
+        user.getFollowing().clear();
+        user.getFollowers().clear();
+
+        // 3. Final Delete - Cascades handle Posts, Comments, Likes, Notifications, Reports
+        userRepository.delete(user);
     }
 
     public UUID getCurrentUserId() {

@@ -54,7 +54,7 @@ export class SafeMarkdownService {
 
   // Allow only http(s) or data URLs
   private sanitizeUrl(url: string): string {
-    if (/^(https?:|data:)/.test(url)) return url;
+    if (/^(\/|https?:|data:)/.test(url)) return url;
     return "";
   }
 }

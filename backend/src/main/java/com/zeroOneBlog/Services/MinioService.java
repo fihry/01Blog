@@ -1,9 +1,9 @@
 package com.zeroOneBlog.Services;
 
+import java.io.InputStream;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -12,24 +12,19 @@ import com.zeroOneBlog.Exceptions.ApiException;
 import com.zeroOneBlog.Types.MinioBucketTypes;
 
 import io.minio.BucketExistsArgs;
-import io.minio.GetPresignedObjectUrlArgs;
+import io.minio.GetObjectArgs;
 import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
 import io.minio.RemoveObjectArgs;
-import io.minio.http.Method;
+import io.minio.StatObjectArgs;
+import io.minio.StatObjectResponse;
 
 @Service
 public class MinioService {
 
     @Autowired
     private MinioClient minioClient;
-
-    @Value("${minio.url.internal}")
-    private String internalUrl; // example: http://minio:9000
-
-    @Value("${minio.url.external}")
-    private String externalUrl; // example: http://localhost:9000
 
     /**
      * Upload a file to the correct bucket based on content type.
@@ -81,43 +76,34 @@ public class MinioService {
      */
     public String getMediaUrl(String fullPath) {
         if (fullPath == null || fullPath.isBlank()) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "Media path is missing");
+            return null;
         }
-        if (!fullPath.contains("/")) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "Invalid media path format: " + fullPath);
-        }
+        return "/api/media/" + fullPath;
+    }
 
-        String[] parts = fullPath.split("/", 2);
-        String bucket = parts[0];
-        String object = parts[1];
-
-        System.out.println("DEBUG getMediaUrl: fullPath=" + fullPath + ", bucket=" + bucket + ", externalUrl=" + externalUrl);
-
-        // Public images and videos
-        if (bucket.equals("images") || bucket.equals("videos")) {
-            String result = externalUrl + "/" + bucket + "/" + object;
-            System.out.println("DEBUG getMediaUrl returning: " + result);
-            return result;
-        }
-
-        // Private media → presigned URL
+    public InputStream getObjectStream(String bucket, String object) {
         try {
-            String presignedUrl = minioClient.getPresignedObjectUrl(
-                    GetPresignedObjectUrlArgs.builder()
-                            .method(Method.GET)
+            return minioClient.getObject(
+                    GetObjectArgs.builder()
                             .bucket(bucket)
                             .object(object)
-                            .expiry(24 * 60 * 60) // 24h
                             .build()
             );
-            
-            // Replace internal URL with external URL for client access
-            presignedUrl = presignedUrl.replace(internalUrl, externalUrl);
-            
-            return presignedUrl;
         } catch (Exception e) {
-            e.printStackTrace();
-            throw new ApiException(HttpStatus.BAD_REQUEST, "Cannot generate presigned link: " + e.getMessage());
+            throw new ApiException(HttpStatus.NOT_FOUND, "Media not found");
+        }
+    }
+
+    public StatObjectResponse getObjectStat(String bucket, String object) {
+        try {
+            return minioClient.statObject(
+                    StatObjectArgs.builder()
+                            .bucket(bucket)
+                            .object(object)
+                            .build()
+            );
+        } catch (Exception e) {
+            throw new ApiException(HttpStatus.NOT_FOUND, "Media not found");
         }
     }
 
