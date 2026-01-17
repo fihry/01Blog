@@ -326,7 +326,8 @@ public class PostService {
 
     public Page<PostDto> getAllUserPosts(Pageable pageable, UUID useruUuid , UUID currentUserId) {
         pageable = (pageable == null) ? Pageable.unpaged() : pageable;
-        User user = userRepository.getReferenceById(currentUserId);
+        User user = userRepository.findById(useruUuid)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "User not found"));
         Page<Post> postsPage = postRepository.findByAuthorOrderByCreatedAtDesc(user,pageable);
         return postsPage.map(post -> {
             String avatarUrl = post.getAuthor().getAvatarUrl();

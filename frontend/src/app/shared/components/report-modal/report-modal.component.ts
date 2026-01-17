@@ -4,7 +4,7 @@ import { CommonModule } from "@angular/common"
 import { FormsModule } from "@angular/forms"
 
 export interface ReportData {
-  type: "post" | "user" | "comment"
+  reportType: "POST" | "USER" | "COMMENT"
   targetId: string
   reason: string
 }
@@ -13,12 +13,12 @@ export interface ReportData {
   selector: "app-report-modal",
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl:"report-modal.component.html",
-  styleUrl:"report-modal.component.scss"
+  templateUrl: "report-modal.component.html",
+  styleUrl: "report-modal.component.scss"
 })
 export class ReportModalComponent {
   @Input() isOpen = false
-  @Input() reportType: "post" | "user" | "comment" = "post"
+  @Input() reportType: "POST" | "USER" | "COMMENT" = "POST"
   @Input() targetId = ""
   @Output() close = new EventEmitter<void>()
   @Output() submit = new EventEmitter<ReportData>()
@@ -54,14 +54,14 @@ export class ReportModalComponent {
   onSubmit(): void {
     if (!this.isValidReport || this.isSubmitting) return
 
-    const reason = this.selectedReason === "other" 
-      ? this.customReason.trim() 
+    const reason = this.selectedReason === "other"
+      ? this.customReason.trim()
       : this.reportOptions.find(opt => opt.value === this.selectedReason)?.label || this.selectedReason
 
     this.isSubmitting = true
-    
+
     this.submit.emit({
-      type: this.reportType,
+      reportType: this.reportType,
       targetId: this.targetId,
       reason,
     })

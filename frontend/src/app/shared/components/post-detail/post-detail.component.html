@@ -219,7 +219,7 @@
   <!-- Report Modal -->
   <app-report-modal
     [isOpen]="showReportModal"
-    [reportType]="'post'"
+    [reportType]="'POST'"
     [targetId]="post?.id || ''"
     (close)="closeReportModal()"
     (submit)="handleReportSubmit($event)">

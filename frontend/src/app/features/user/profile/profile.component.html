@@ -15,9 +15,13 @@
                 <h1 class="text-3xl font-bold text-foreground">{{user.username}}</h1>
                 <p class="text-muted-foreground" *ngIf="user.bio">{{user.bio}}</p>
             </div>
-            <div class="d-flex justify-content-end m-5">
+            <div class="d-flex justify-content-end m-5 gap-2">
+                <button *ngIf="!isOwnProfile()" class="btn btn-outline-danger py-2 fw-medium"
+                    (click)="openReportModal()">
+                    <i class="bi bi-flag me-1"></i> Report
+                </button>
                 <button *ngIf="!isOwnProfile()" class="btn w-20 py-2 fw-medium" [class.btn-primary]="!isFollowing"
-                    [class.btn-outline-secondary]="user.followed" (click)="toggleFollow()">
+                    [class.btn-outline-secondary]="isFollowing" (click)="toggleFollow()">
                     {{ isFollowing ? 'Unfollow' : 'Follow' }}
                 </button>
                 <button *ngIf="isOwnProfile()" class="btn btn-outline-primary w-20  py-2" [routerLink]="['/settings']">
@@ -63,6 +67,10 @@
 
     </div>
 </div>
+
+<app-report-modal [isOpen]="showReportModal" [reportType]="'USER'" [targetId]="user?.id" (close)="closeReportModal()"
+    (submit)="handleReportSubmit($event)">
+</app-report-modal>
 <ng-template #loadingTpl>
     <div class="min-h-screen pt-5 mt-5 flex justify-center items-center">
         <div class="spinner-border text-primary" role="status">

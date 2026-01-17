@@ -33,7 +33,7 @@ import { AuthService } from "../../../core/services/auth.service"
 })
 export class PostDetailComponent implements OnInit, OnDestroy {
   @ViewChild(ReportModalComponent) reportModal?: ReportModalComponent
-  
+
   post: Post | null = null
   isLoadingPost = false
   isLoadingComments = false
@@ -41,12 +41,12 @@ export class PostDetailComponent implements OnInit, OnDestroy {
   parsedContent = ""
   comments: Array<Comment> = []
   id = ""
-  curentUserId:string | undefined
+  currentUserId: string | undefined
   commentContent = ""
   showDropdown = false
   showReportModal = false
   showEditModal = false
-  
+
   private routeSubscription?: Subscription
 
   constructor(
@@ -57,26 +57,26 @@ export class PostDetailComponent implements OnInit, OnDestroy {
     private markdown: SafeMarkdownService,
     private toastService: ToastService,
     private reportService: ReportService,
-    private authService : AuthService
-  ) {}
+    private authService: AuthService
+  ) { }
 
   ngOnInit(): void {
     this.routeSubscription = this.route.paramMap.subscribe((params) => {
       const id = params.get("id")
-      
+
       if (!id) {
         this.post = null
         this.id = ""
         this.comments = []
         return
       }
-      
+
       this.id = id
       this.fetchPost(id)
       this.fetchComments(id)
     })
-    this.authService.currentUser$.subscribe(user=>{
-      this.curentUserId= user?.id
+    this.authService.currentUser$.subscribe(user => {
+      this.currentUserId = user?.id
     })
     // Close dropdown when clicking outside
     document.addEventListener('click', this.closeDropdown.bind(this))
@@ -95,7 +95,7 @@ export class PostDetailComponent implements OnInit, OnDestroy {
     this.isLoadingPost = true
     this.postService.getPost(id).subscribe({
       next: (post) => {
-        post.isOwner = post.author.id == this.curentUserId
+        post.isOwner = post.author.id == this.currentUserId
         this.post = post
         this.parsedContent = this.markdown.parse(post.content || "", false)
         this.isLoadingPost = false
@@ -114,11 +114,11 @@ export class PostDetailComponent implements OnInit, OnDestroy {
     this.commentService.getComments(id).subscribe({
       next: (comments) => {
         this.comments = comments
-        
+
         if (this.post) {
           this.post = { ...this.post, commentCount: comments.length }
         }
-        
+
         console.log("Comments loaded:", comments)
         this.isLoadingComments = false
       },
@@ -140,12 +140,12 @@ export class PostDetailComponent implements OnInit, OnDestroy {
     }
 
     const content = this.commentContent.trim()
-    
+
     this.isSubmittingComment = true
     this.commentService.createComment(this.id, { content }).subscribe({
       next: (comment) => {
         this.comments.unshift(comment)
-        
+
         if (this.post) {
           this.post = { ...this.post, commentCount: this.post.commentCount + 1 }
         }
@@ -173,9 +173,9 @@ export class PostDetailComponent implements OnInit, OnDestroy {
   editPost(event: Event): void {
     event.stopPropagation()
     this.closeDropdown()
-    
+
     if (!this.post) return
-    
+
     this.showEditModal = true
   }
 
@@ -192,9 +192,9 @@ export class PostDetailComponent implements OnInit, OnDestroy {
   deletePost(event: Event): void {
     event.stopPropagation()
     this.closeDropdown()
-    
+
     if (!this.post) return
-    
+
     if (confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
       this.postService.deletePost(this.post.id).subscribe({
         next: () => {
@@ -212,9 +212,9 @@ export class PostDetailComponent implements OnInit, OnDestroy {
   reportPost(event: Event): void {
     event.stopPropagation()
     this.closeDropdown()
-    
+
     if (!this.post) return
-    
+
     this.showReportModal = true
   }
 
@@ -223,10 +223,7 @@ export class PostDetailComponent implements OnInit, OnDestroy {
   }
 
   handleReportSubmit(reportData: ReportData): void {
-    this.reportService.createReport(reportData.targetId, {
-      type: reportData.type,
-      reason: reportData.reason,
-    }).subscribe({
+    this.reportService.createReport(reportData).subscribe({
       next: () => {
         this.toastService.showSuccess("Success", "Report submitted successfully. Our team will review it.")
         this.reportModal?.completeSubmission()

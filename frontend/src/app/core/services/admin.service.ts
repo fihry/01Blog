@@ -12,20 +12,21 @@ export interface AdminStats {
 
 export interface AdminReport {
   id: string
-  reporter_id: string
-  target_id: string
-  type: string
+  reporter: { id: string; username: string; avatarUrl?: string }
+  targetId: string
+  reportType: "POST" | "USER" | "COMMENT"
   reason: string
-  status: string
-  created_at: string
-  reporter?: { username: string; avatar_url?: string }
+  status: "PENDING" | "REVIEWED" | "RESOLVED" | "REJECTED"
+  createdAt: string
 }
+
+import { environment } from "../../../environments/environment"
 
 @Injectable({
   providedIn: "root",
 })
 export class AdminService {
-  private apiUrl = "http://localhost:8000/api/admin"
+  private apiUrl = `${environment.apiUrl}/admin`
 
   constructor(private http: HttpClient) { }
 
@@ -33,12 +34,12 @@ export class AdminService {
     return this.http.get<AdminStats>(`${this.apiUrl}/stats`)
   }
 
-  getReports(status: string = "ALL"): Observable<AdminReport[]> {
-    return this.http.get<AdminReport[]>(`http://localhost:8000/api/admin/reports/${status}`)
+  getReports(status: string = "PENDING"): Observable<AdminReport[]> {
+    return this.http.get<AdminReport[]>(`${environment.apiUrl}/admin/reports/${status}`)
   }
 
   updateReportStatus(id: string, status: string): Observable<AdminReport> {
-    return this.http.put<AdminReport>(`${this.apiUrl}/reports/${id}`, { status })
+    return this.http.put<AdminReport>(`${environment.apiUrl}/admin/reports/${id}/status`, { status })
   }
 
   deletePost(id: string): Observable<void> {
@@ -47,6 +48,10 @@ export class AdminService {
 
   banUser(id: string): Observable<void> {
     return this.http.post<void>(`${this.apiUrl}/users/${id}/ban`, {})
+  }
+
+  deleteUser(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/users/${id}`)
   }
 
   getUsers(page = 0, limit = 20): Observable<any> {

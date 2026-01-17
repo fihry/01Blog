@@ -2,6 +2,7 @@ import { Injectable } from "@angular/core"
 import { HttpClient } from "@angular/common/http"
 import { BehaviorSubject, type Observable } from "rxjs"
 import { tap } from "rxjs/operators"
+import { environment } from "../../../environments/environment"
 
 interface AuthResponse {
   accessToken: string
@@ -30,7 +31,7 @@ interface RegisterRequest {
   providedIn: "root",
 })
 export class AuthService {
-  private apiUrl = "http://localhost:8000/api/auth"
+  private apiUrl = `${environment.apiUrl}/auth`
   private currentUserSubject = new BehaviorSubject<AuthResponse["user"] | null>(null)
   public currentUser$ = this.currentUserSubject.asObservable()
   private isAuthenticatedSubject = new BehaviorSubject<boolean>(false)

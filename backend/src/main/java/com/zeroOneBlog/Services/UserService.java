@@ -251,6 +251,12 @@ public class UserService {
                 .getId();
     }
 
+    public void toggleUserActive(UUID id) {
+        User user = getById(id);
+        user.setActive(!user.isActive());
+        userRepository.save(user);
+    }
+
     public long getUserCount() {
         return userRepository.count();
     }

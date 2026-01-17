@@ -83,8 +83,9 @@ export class ReportModalComponent {
     if (this.reportForm.get("reason")?.value) {
       this.isLoading = true
       this.reportService
-        .createReport(this.targetId, {
-          type: this.targetType,
+        .createReport({
+          targetId: this.targetId,
+          reportType: this.targetType.toUpperCase() as "POST" | "USER" | "COMMENT",
           reason: this.reportForm.get("reason")!.value,
         })
         .subscribe({

@@ -15,14 +15,14 @@ export class UsersComponent {
   viewMode: 'grid' | 'list' = 'grid';
   searchQuery = '';
   users: User[] = [];
-  curentUserId: string | null = null;
+  currentUserId: string | null = null;
 
   constructor(private userService: UserService, private authService: AuthService) { }
 
   ngOnInit() {
     this.loadUsers();
     this.authService.currentUser$.subscribe(user => {
-      this.curentUserId = user ? user.id : null;
+      this.currentUserId = user ? user.id : null;
     }
     );
   }
@@ -31,7 +31,7 @@ export class UsersComponent {
     this.userService.getUsers(0, 50).subscribe({
       next: (page: any) => {
         this.users = page.content.filter((user: User) => {
-          return user.id !== this.curentUserId;
+          return user.id !== this.currentUserId;
         });
       },
       error: (err) => {
@@ -41,7 +41,7 @@ export class UsersComponent {
   }
   toggleFollow(user: User) {
     console.log('Toggling follow for user:', user);
-    this.userService.followUser(user.id).subscribe({
+    this.userService.toggleFollow(user.id).subscribe({
       next: () => {
         user.followed = !user.followed;
         user.followersCount += user.followed ? 1 : -1;

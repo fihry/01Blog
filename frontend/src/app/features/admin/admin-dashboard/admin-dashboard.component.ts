@@ -12,13 +12,13 @@ import { User } from "../../../core/services/user.service";
   selector: "app-admin-dashboard",
   standalone: true,
   imports: [CommonModule, RouterModule, FormsModule],
-  templateUrl:"./admin-dashboard.component.html",
-  styleUrl:"./admin-dashboard.component.css"
+  templateUrl: "./admin-dashboard.component.html",
+  styleUrl: "./admin-dashboard.component.css"
 })
 export class AdminDashboardComponent {
 
   activeTab: 'users' | 'posts' | 'reports' = 'users';
-  reportStatus: 'all' | 'pending' | 'reviewed' | 'resolved' = 'all';
+  reportStatus: 'PENDING' | 'REVIEWED' | 'RESOLVED' | 'REJECTED' = 'PENDING';
 
   users: User[] = [];
   posts: Post[] = [];
@@ -36,7 +36,7 @@ export class AdminDashboardComponent {
     private postService: PostService,
     private reportService: ReportService,
     private router: Router
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.adminService.getStats().subscribe(s => {
@@ -46,17 +46,20 @@ export class AdminDashboardComponent {
       this.statsCards[3].value = s.pending_reports;
     });
 
-    this.adminService.getUsers(0,50).subscribe(p => this.users = p.content);
+    this.adminService.getUsers(0, 50).subscribe(p => this.users = p.content);
     this.postService.getFeed().subscribe(p => this.posts = p.content);
-    this.adminService.getReports().subscribe(r => this.reports = r);
+    this.adminService.getReports('PENDING').subscribe(r => this.reports = r);
   }
 
   switchTab(tab: any) { this.activeTab = tab; }
 
+  setReportStatus(status: 'PENDING' | 'REVIEWED' | 'RESOLVED' | 'REJECTED') {
+    this.reportStatus = status;
+    this.adminService.getReports(status).subscribe(r => this.reports = r);
+  }
+
   filteredReports() {
-    return this.reportStatus === 'all'
-      ? this.reports
-      : this.reports.filter(r => r.status === this.reportStatus);
+    return this.reports;
   }
 
   goToUser(id: string) { this.router.navigate(['/profile', id]); }
@@ -68,7 +71,7 @@ export class AdminDashboardComponent {
 
   deleteUser(id: string) {
     if (confirm('Delete user?'))
-      this.adminService.banUser(id).subscribe(() =>
+      this.adminService.deleteUser(id).subscribe(() =>
         this.users = this.users.filter(u => u.id !== id));
   }
 
@@ -78,10 +81,13 @@ export class AdminDashboardComponent {
         this.posts = this.posts.filter(p => p.id !== id));
   }
 
-  updateReport(id: string, status: 'reviewed'|'resolved') {
-    this.adminService.updateReportStatus(id, status).subscribe(() => {
-      const r = this.reports.find(r => r.id === id);
-      if (r) r.status = status;
+  updateReport(id: string, status: 'REVIEWED' | 'RESOLVED') {
+    this.adminService.updateReportStatus(id, status).subscribe({
+      next: (updatedReport) => {
+        this.reports = this.reports.filter(r => r.id !== id);
+        // Optional: you could re-fetch or keep it if you want to show it in the filtered list
+      },
+      error: (err) => console.error("Failed to update report", err)
     });
   }
 

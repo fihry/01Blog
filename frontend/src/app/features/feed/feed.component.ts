@@ -24,18 +24,17 @@ export class FeedComponent implements OnInit {
 
   isLoading = false
   errorMessage: string | null = null
-  curentUser: any = null
-  constructor(private postService: PostService, private userService: UserService, private authService: AuthService) {}
+  currentUser: any = null
+  constructor(private postService: PostService, private userService: UserService, private authService: AuthService) { }
 
   ngOnInit(): void {
     this.loadFeed()
     this.authService.currentUser$.subscribe(user => {
       if (user) {
-        this.curentUser = user.id;
+        this.userService.getUserById(user.id).subscribe(userData => {
+          this.currentUser = userData;
+        });
       }
-    });
-    this.userService.getUserById(this.curentUser).subscribe(user => {
-      this.curentUser = user;
     });
   }
 
@@ -52,8 +51,8 @@ export class FeedComponent implements OnInit {
         this.isLoading = false
       },
       error: (err) => {
-          console.error("Failed to load feed", err)
-          this.errorMessage = "Unable to load posts. Please try again later."
+        console.error("Failed to load feed", err)
+        this.errorMessage = "Unable to load posts. Please try again later."
         this.isLoading = false
       },
     })
@@ -66,6 +65,6 @@ export class FeedComponent implements OnInit {
   onPostCreated(apiPost: ApiPost): void {
     const mapped = this.mapPost(apiPost)
     this.posts = [mapped, ...this.posts]
-    this.curentUser.postsCount += 1;
+    this.currentUser.postsCount += 1;
   }
 }

@@ -2,6 +2,7 @@ import { Injectable } from "@angular/core"
 import { HttpClient } from "@angular/common/http"
 import { BehaviorSubject, type Observable } from "rxjs"
 import { tap } from "rxjs/operators"
+import { environment } from "../../../environments/environment"
 
 // Backend DTO shape (matches PostDto from Spring Boot backend)
 export interface Post {
@@ -44,11 +45,11 @@ export interface CreatePostRequest {
   providedIn: "root",
 })
 export class PostService {
-  private apiUrl = "http://localhost:8000/api/posts"
+  private apiUrl = `${environment.apiUrl}/posts`
   private postsSubject = new BehaviorSubject<Post[]>([])
   public posts$ = this.postsSubject.asObservable()
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getFeed(page = 0, size = 10): Observable<PostPage> {
     return this.http.get<PostPage>(`${this.apiUrl}?page=${page}&size=${size}`).pipe(
