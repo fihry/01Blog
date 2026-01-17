@@ -16,11 +16,11 @@ import lombok.NoArgsConstructor;
 public class PostCreateDto {
 
     @NotBlank(message = "Title cannot be empty")
-    @Size(min = 10, max = 100, message = "Title must be between 10 and 100 characters")
+    @Size(min = 3, max = 100, message = "Title must be between 3 and 100 characters")
     private String title;
 
     @NotBlank(message = "Content cannot be empty")
-    @Size(min = 100, max = 10000, message = "Content must be between 100 and 10000 characters")
+    @Size(min = 1, max = 50000, message = "Content must be between 1 and 50000 characters")
     private String content;
 
     private List<MultipartFile> mediaFiles;

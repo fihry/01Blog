@@ -21,7 +21,6 @@ export interface User {
 }
 
 interface UpdateProfileRequest {
-  username?: string
   bio?: string
   avatar?: File
 }
@@ -48,10 +47,13 @@ export class UserService {
 
   updateProfile(id: string, data: UpdateProfileRequest): Observable<User> {
     const formData = new FormData()
-    if (data.username) formData.append("username", data.username)
     if (data.bio) formData.append("bio", data.bio)
     if (data.avatar) formData.append("avatar", data.avatar)
     return this.http.put<User>(`${this.apiUrl}/${id}`, formData)
+  }
+
+  changePassword(id: string, data: any): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/${id}/change-password`, data)
   }
 
   toggleFollow(id: string): Observable<void> {

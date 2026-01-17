@@ -14,12 +14,15 @@ import org.springframework.stereotype.Service;
 import com.zeroOneBlog.Dto.AuthResponseDto;
 import com.zeroOneBlog.Dto.LoginRequestDto;
 import com.zeroOneBlog.Dto.RegisterRequestDto;
+import com.zeroOneBlog.Dto.PasswordChangeDto;
 import com.zeroOneBlog.Dto.UserDto;
+import com.zeroOneBlog.Dto.UserUpdateDto;
 import com.zeroOneBlog.Entities.Media;
 import com.zeroOneBlog.Entities.Post;
 import com.zeroOneBlog.Entities.User;
 import com.zeroOneBlog.Exceptions.ApiException;
 import com.zeroOneBlog.Repositories.UserRepository;
+import com.zeroOneBlog.Security.CustomUserDetails;
 import com.zeroOneBlog.Security.JwtService;
 import com.zeroOneBlog.Types.RoleTypes;
 
@@ -129,7 +132,7 @@ public class UserService {
                 user.getCreatedAt().toString());
     }
 
-    public UserDto updateUser(UUID id, com.zeroOneBlog.Dto.UserUpdateDto dto) {
+    public UserDto updateUser(UUID id, UserUpdateDto dto) {
         User user = getById(id);
         // Only update bio when provided (avoid overwriting with null)
         if (dto.getBio() != null) {
@@ -270,6 +273,10 @@ public class UserService {
     }
 
     public UUID getCurrentUserId() {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principal instanceof CustomUserDetails) {
+            return ((CustomUserDetails) principal).getId();
+        }
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "User not found"))
@@ -279,6 +286,16 @@ public class UserService {
     public void toggleUserActive(UUID id) {
         User user = getById(id);
         user.setActive(!user.isActive());
+        userRepository.save(user);
+    }
+
+    public void changePassword(UUID id, PasswordChangeDto dto) {
+        User user = getById(id);
+        if (!passwordEncoder.matches(dto.getCurrentPassword(), user.getPassword())) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Current password is incorrect");
+        }
+        user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
+        user.setUpdatedAt(new java.sql.Timestamp(System.currentTimeMillis()));
         userRepository.save(user);
     }
 

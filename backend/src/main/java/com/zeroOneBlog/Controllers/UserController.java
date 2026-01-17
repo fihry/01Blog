@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.zeroOneBlog.Dto.PostDto;
 import com.zeroOneBlog.Dto.UserDto;
 import com.zeroOneBlog.Dto.UserUpdateDto;
-import com.zeroOneBlog.Entities.Post;
+import com.zeroOneBlog.Dto.PasswordChangeDto;
 import com.zeroOneBlog.Exceptions.ApiException;
 import com.zeroOneBlog.Security.CustomUserDetails;
 import com.zeroOneBlog.Services.UserService;
@@ -49,10 +49,10 @@ public class UserController {
     @PutMapping(path = "/{id}", consumes = {"multipart/form-data"})
     public ResponseEntity<UserDto> updateUserMultipart(
             @PathVariable UUID id,
-            @ModelAttribute @Valid UserUpdateDto dto) throws Exception {
+            @ModelAttribute @Valid UserUpdateDto dto,
+            @AuthenticationPrincipal CustomUserDetails userDetails) throws Exception {
         // Check authorization: user can only update their own profile
-        UUID currentUserId = userService.getCurrentUserId();
-        if (!currentUserId.equals(id)) {
+        if (!userDetails.getId().equals(id)) {
             throw new ApiException(HttpStatus.FORBIDDEN, "You can only update your own profile");
         }
         UserDto updatedUser = userService.updateUser(id, dto);
@@ -63,10 +63,10 @@ public class UserController {
     @PutMapping(path = "/{id}", consumes = {"application/json"})
     public ResponseEntity<UserDto> updateUserJson(
             @PathVariable UUID id,
-            @RequestBody @Valid UserUpdateDto dto) {
+            @RequestBody @Valid UserUpdateDto dto,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
         // Check authorization: user can only update their own profile
-        UUID currentUserId = userService.getCurrentUserId();
-        if (!currentUserId.equals(id)) {
+        if (!userDetails.getId().equals(id)) {
             throw new ApiException(HttpStatus.FORBIDDEN, "You can only update your own profile");
         }
         UserDto updatedUser = userService.updateUser(id, dto);
@@ -76,6 +76,18 @@ public class UserController {
     @PostMapping("/{id}/subscribe")
     public ResponseEntity<?> subscribe(@PathVariable UUID id) {
         userService.toggleFollowing(userService.getCurrentUserId(), id);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{id}/change-password")
+    public ResponseEntity<?> changePassword(
+            @PathVariable UUID id,
+            @RequestBody @Valid PasswordChangeDto dto,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        if (!userDetails.getId().equals(id)) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "You can only change your own password");
+        }
+        userService.changePassword(id, dto);
         return ResponseEntity.ok().build();
     }
 

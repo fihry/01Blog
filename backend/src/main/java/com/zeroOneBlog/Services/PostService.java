@@ -20,7 +20,6 @@ import com.zeroOneBlog.Entities.User;
 import com.zeroOneBlog.Exceptions.ApiException;
 import com.zeroOneBlog.Repositories.CommentRepository;
 import com.zeroOneBlog.Repositories.LikeRepository;
-import com.zeroOneBlog.Repositories.MediaRepository;
 import com.zeroOneBlog.Repositories.PostRepository;
 import com.zeroOneBlog.Repositories.UserRepository;
 import com.zeroOneBlog.Types.MinioBucketTypes;
@@ -36,7 +35,6 @@ public class PostService {
     private final UserRepository userRepository;
     private final CommentRepository commentRepository;
     private final LikeRepository likeRepository;
-    private final MediaRepository mediaRepository;
     private final MinioService minioService;
 
     // Fetch post entity or throw 404
@@ -48,7 +46,10 @@ public class PostService {
     // Get post as DTO with counts and current user like info
     public PostDto getByPostId(UUID postId, UUID currentUserId) {
         Post post = getById(postId);
+        return mapToDto(post, currentUserId);
+    }
 
+    private PostDto mapToDto(Post post, UUID currentUserId) {
         String avatarUrl = post.getAuthor().getAvatarUrl();
         if (avatarUrl != null) {
             avatarUrl = minioService.getMediaUrl(avatarUrl);
@@ -66,10 +67,10 @@ public class PostService {
                         .build())
                 .collect(Collectors.toList()) : List.of();
 
-        int likeCount = likeRepository.countByPostId(postId);
-        int commentCount = commentRepository.countByPostId(postId);
+        int likeCount = likeRepository.countByPostId(post.getId());
+        int commentCount = commentRepository.countByPostId(post.getId());
+        boolean likedByUser = likeRepository.existsByPostIdAndUserId(post.getId(), currentUserId);
 
-        boolean likedByUser = likeRepository.existsByPostIdAndUserId(postId, currentUserId);
         return new PostDto(
                 post.getId(),
                 post.getTitle(),
@@ -94,104 +95,20 @@ public class PostService {
 
         Post savedPost = postRepository.save(post);
 
-        // Upload media files if present
-        String content = dto.getContent();
-        List<MediaDto> mediaDtos = List.of();
+        // Process media files
         if (dto.getMediaFiles() != null && !dto.getMediaFiles().isEmpty()) {
-            final String[] mutableContent = {content};
-            mediaDtos = dto.getMediaFiles().stream()
-                    .filter(file -> file != null && !file.isEmpty())
-                    .map(file -> {
-                        String mediaUrl = minioService.uploadFile(file);
-                        MinioBucketTypes mediaType = getPostMediaType(file.getContentType());
-
-                        if (mediaType == null) {
-                            throw new ApiException(HttpStatus.BAD_REQUEST, "Posts only support images and videos");
-                        }
-
-                        Media media = new Media();
-                        media.setPost(savedPost);
-                        media.setMediaUrl(mediaUrl);
-                        media.setMediaType(mediaType);
-                        mediaRepository.save(media);
-
-                        String permanentUrl = minioService.getMediaUrl(mediaUrl);
-
-                        // Replace the first occurrence of a data: URL or temporary preview URL in the content
-                        // Note: This assumes the frontend sends the files in the same order as they appear in the HTML
-                        if (mediaType == MinioBucketTypes.IMAGES) {
-                            mutableContent[0] = mutableContent[0].replaceFirst("src=\"data:image/[^;]+;base64,[^\"]+\"", "src=\"" + permanentUrl + "\"");
-                        } else if (mediaType == MinioBucketTypes.VIDEOS) {
-                            mutableContent[0] = mutableContent[0].replaceFirst("src=\"data:video/[^;]+;base64,[^\"]+\"", "src=\"" + permanentUrl + "\"");
-                        }
-
-                        return MediaDto.builder()
-                                .id(media.getId())
-                                .mediaUrl(permanentUrl)
-                                .mediaType(mediaType)
-                                .build();
-                    })
-                    .collect(Collectors.toList());
-            
-            content = mutableContent[0];
-            savedPost.setContent(content);
+            String newContent = processMediaFiles(savedPost, dto.getMediaFiles(), dto.getContent());
+            savedPost.setContent(newContent);
             postRepository.save(savedPost);
         }
 
-        UserSummaryDto authorSummary = new UserSummaryDto(
-                author.getId(),
-                author.getUsername(),
-                minioService.getMediaUrl(author.getAvatarUrl()));
-
-        return new PostDto(
-                savedPost.getId(),
-                savedPost.getTitle(),
-                savedPost.getContent(),
-                mediaDtos,
-                authorSummary,
-                savedPost.getCreatedAt(),
-                savedPost.getUpdatedAt(),
-                0,
-                0,
-                false);
+        return mapToDto(savedPost, currentUserId);
     }
 
     public Page<PostDto> getAllPosts(Pageable pageable, UUID currentUserId) {
         pageable = (pageable == null) ? Pageable.unpaged() : pageable;
         Page<Post> postsPage = postRepository.findAllByOrderByCreatedAtDesc(pageable);
-        return postsPage.map(post -> {
-            String avatarUrl = post.getAuthor().getAvatarUrl();
-            if (avatarUrl != null) {
-                avatarUrl = minioService.getMediaUrl(avatarUrl);
-            }
-            UserSummaryDto authorSummary = new UserSummaryDto(
-                    post.getAuthor().getId(),
-                    post.getAuthor().getUsername(),
-                    avatarUrl);
-
-            List<MediaDto> mediaDtos = post.getMedia() != null ? post.getMedia().stream()
-                    .map(media -> MediaDto.builder()
-                            .id(media.getId())
-                            .mediaUrl(minioService.getMediaUrl(media.getMediaUrl()))
-                            .mediaType(media.getMediaType())
-                            .build())
-                    .collect(Collectors.toList()) : List.of();
-
-            int likeCount = likeRepository.countByPostId(post.getId());
-            int commentCount = commentRepository.countByPostId(post.getId());
-            boolean likedByUser = likeRepository.existsByPostIdAndUserId(post.getId(), currentUserId);
-            return new PostDto(
-                    post.getId(),
-                    post.getTitle(),
-                    post.getContent(),
-                    mediaDtos,
-                    authorSummary,
-                    post.getCreatedAt(),
-                    post.getUpdatedAt(),
-                    likeCount,
-                    commentCount,
-                    likedByUser);
-        });
+        return postsPage.map(post -> mapToDto(post, currentUserId));
     }
 
     public PostDto updatePost(UUID postId, PostCreateDto dto, UUID currentUserId) {
@@ -203,93 +120,70 @@ public class PostService {
         }
 
         post.setTitle(dto.getTitle());
-        post.setContent(dto.getContent());
         post.setUpdatedAt(new java.sql.Timestamp(System.currentTimeMillis()));
 
-        Post updatedPost = postRepository.save(post);
-
-        // Handle media updates if provided
-        String content = dto.getContent();
-        List<MediaDto> mediaDtos = List.of();
-        if (dto.getMediaFiles() != null && !dto.getMediaFiles().isEmpty()) {
-            // Delete old media
-            if (updatedPost.getMedia() != null) {
-                for (Media oldMedia : updatedPost.getMedia()) {
-                    minioService.deleteFile(oldMedia.getMediaUrl());
-                    mediaRepository.delete(oldMedia);
+        // Sync existing media: remove media records that are no longer referenced in the content
+        if (post.getMedia() != null) {
+            String updatedContent = dto.getContent();
+            java.util.Iterator<Media> iterator = post.getMedia().iterator();
+            while (iterator.hasNext()) {
+                Media media = iterator.next();
+                String relativeUrl = minioService.getMediaUrl(media.getMediaUrl());
+                if (!updatedContent.contains(relativeUrl)) {
+                    minioService.deleteFile(media.getMediaUrl());
+                    iterator.remove(); // Hibernate handles delete via orphanRemoval=true
                 }
-            }
-
-            // Upload new media
-            final String[] mutableContent = {content};
-            mediaDtos = dto.getMediaFiles().stream()
-                    .filter(file -> file != null && !file.isEmpty())
-                    .map(file -> {
-                        String mediaUrl = minioService.uploadFile(file);
-                        MinioBucketTypes mediaType = getPostMediaType(file.getContentType());
-
-                        if (mediaType == null) {
-                            throw new ApiException(HttpStatus.BAD_REQUEST, "Posts only support images and videos");
-                        }
-
-                        Media media = new Media();
-                        media.setPost(updatedPost);
-                        media.setMediaUrl(mediaUrl);
-                        media.setMediaType(mediaType);
-                        mediaRepository.save(media);
-
-                        String permanentUrl = minioService.getMediaUrl(mediaUrl);
-
-                        if (mediaType == MinioBucketTypes.IMAGES) {
-                            mutableContent[0] = mutableContent[0].replaceFirst("src=\"data:image/[^;]+;base64,[^\"]+\"", "src=\"" + permanentUrl + "\"");
-                        } else if (mediaType == MinioBucketTypes.VIDEOS) {
-                            mutableContent[0] = mutableContent[0].replaceFirst("src=\"data:video/[^;]+;base64,[^\"]+\"", "src=\"" + permanentUrl + "\"");
-                        }
-
-                        return MediaDto.builder()
-                                .id(media.getId())
-                                .mediaUrl(permanentUrl)
-                                .mediaType(mediaType)
-                                .build();
-                    })
-                    .collect(Collectors.toList());
-            
-            content = mutableContent[0];
-            updatedPost.setContent(content);
-            postRepository.save(updatedPost);
-        } else {
-            // Keep existing media if no new files provided
-            if (updatedPost.getMedia() != null) {
-                mediaDtos = updatedPost.getMedia().stream()
-                        .map(media -> MediaDto.builder()
-                                .id(media.getId())
-                                .mediaUrl(minioService.getMediaUrl(media.getMediaUrl()))
-                                .mediaType(media.getMediaType())
-                                .build())
-                        .collect(Collectors.toList());
             }
         }
 
-        UserSummaryDto authorSummary = new UserSummaryDto(
-                updatedPost.getAuthor().getId(),
-                updatedPost.getAuthor().getUsername(),
-                updatedPost.getAuthor().getAvatarUrl());
+        // Handle new media uploads
+        if (dto.getMediaFiles() != null && !dto.getMediaFiles().isEmpty()) {
+            String finalContent = processMediaFiles(post, dto.getMediaFiles(), dto.getContent());
+            post.setContent(finalContent);
+        } else {
+            post.setContent(dto.getContent());
+        }
 
-        int likeCount = likeRepository.countByPostId(postId);
-        int commentCount = commentRepository.countByPostId(postId);
-        boolean likedByUser = likeRepository.existsByPostIdAndUserId(postId, currentUserId);
+        Post updatedPost = postRepository.save(post);
+        return mapToDto(updatedPost, currentUserId);
+    }
 
-        return new PostDto(
-                updatedPost.getId(),
-                updatedPost.getTitle(),
-                updatedPost.getContent(),
-                mediaDtos,
-                authorSummary,
-                updatedPost.getCreatedAt(),
-                updatedPost.getUpdatedAt(),
-                likeCount,
-                commentCount,
-                likedByUser);
+    private String processMediaFiles(Post post, List<org.springframework.web.multipart.MultipartFile> files, String content) {
+        if (files == null || files.isEmpty()) return content;
+
+        final String[] mutableContent = {content};
+        
+        if (post.getMedia() == null) {
+            post.setMedia(new java.util.ArrayList<>());
+        }
+
+        files.stream()
+                .filter(file -> file != null && !file.isEmpty())
+                .forEach(file -> {
+                    String mediaUrl = minioService.uploadFile(file);
+                    MinioBucketTypes mediaType = getPostMediaType(file.getContentType());
+
+                    if (mediaType == null) {
+                        throw new ApiException(HttpStatus.BAD_REQUEST, "Posts only support images and videos");
+                    }
+
+                    Media media = new Media();
+                    media.setPost(post);
+                    media.setMediaUrl(mediaUrl);
+                    media.setMediaType(mediaType);
+                    post.getMedia().add(media);
+
+                    String relativeUrl = minioService.getMediaUrl(mediaUrl);
+
+                    // Replace the first occurrence of a data: URL in the content
+                    if (mediaType == MinioBucketTypes.IMAGES) {
+                        mutableContent[0] = mutableContent[0].replaceFirst("src=\"data:image/[^;]+;base64,[^\"]+\"", "src=\"" + relativeUrl + "\"");
+                    } else if (mediaType == MinioBucketTypes.VIDEOS) {
+                        mutableContent[0] = mutableContent[0].replaceFirst("src=\"data:video/[^;]+;base64,[^\"]+\"", "src=\"" + relativeUrl + "\"");
+                    }
+                });
+
+        return mutableContent[0];
     }
 
     public void deletePost(UUID postId, UUID currentUserId) {
@@ -354,43 +248,11 @@ public class PostService {
         return postRepository.count();
     }
 
-    public Page<PostDto> getAllUserPosts(Pageable pageable, UUID useruUuid , UUID currentUserId) {
+    public Page<PostDto> getAllUserPosts(Pageable pageable, UUID useruUuid, UUID currentUserId) {
         pageable = (pageable == null) ? Pageable.unpaged() : pageable;
         User user = userRepository.findById(useruUuid)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "User not found"));
-        Page<Post> postsPage = postRepository.findByAuthorOrderByCreatedAtDesc(user,pageable);
-        return postsPage.map(post -> {
-            String avatarUrl = post.getAuthor().getAvatarUrl();
-            if (avatarUrl != null) {
-                avatarUrl = minioService.getMediaUrl(avatarUrl);
-            }
-            UserSummaryDto authorSummary = new UserSummaryDto(
-                    post.getAuthor().getId(),
-                    post.getAuthor().getUsername(),
-                    avatarUrl);
-
-            List<MediaDto> mediaDtos = post.getMedia() != null ? post.getMedia().stream()
-                    .map(media -> MediaDto.builder()
-                            .id(media.getId())
-                            .mediaUrl(minioService.getMediaUrl(media.getMediaUrl()))
-                            .mediaType(media.getMediaType())
-                            .build())
-                    .collect(Collectors.toList()) : List.of();
-
-            int likeCount = likeRepository.countByPostId(post.getId());
-            int commentCount = commentRepository.countByPostId(post.getId());
-            boolean likedByUser = likeRepository.existsByPostIdAndUserId(post.getId(), currentUserId);
-            return new PostDto(
-                    post.getId(),
-                    post.getTitle(),
-                    post.getContent(),
-                    mediaDtos,
-                    authorSummary,
-                    post.getCreatedAt(),
-                    post.getUpdatedAt(),
-                    likeCount,
-                    commentCount,
-                    likedByUser);
-        });
+        Page<Post> postsPage = postRepository.findByAuthorOrderByCreatedAtDesc(user, pageable);
+        return postsPage.map(post -> mapToDto(post, currentUserId));
     }
 }

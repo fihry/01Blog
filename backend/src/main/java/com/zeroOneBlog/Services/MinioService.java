@@ -26,6 +26,8 @@ public class MinioService {
     @Autowired
     private MinioClient minioClient;
 
+    
+
     /**
      * Upload a file to the correct bucket based on content type.
      * Returns the bucket/object path (e.g., images/uuid-file.png)
