@@ -1,7 +1,7 @@
 import { Component } from "@angular/core"
 import { CommonModule } from "@angular/common"
 import { Observable } from "rxjs";
-import { ToastService, type Toast } from "../services/toast.service"
+import { ToastService, type Toast } from "../../core/services/toast.service"
 
 @Component({
   selector: "app-toast",

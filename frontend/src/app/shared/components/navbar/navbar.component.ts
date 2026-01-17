@@ -3,11 +3,11 @@
 import { Component, HostBinding, OnInit } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { RouterLink, Router } from "@angular/router";
-import { AuthService } from "../../core/services/auth.service";
+import { AuthService } from "../../../core/services/auth.service";
 import { Observable } from "rxjs";
 import { map } from "rxjs/operators";
 import { NgbDropdownModule } from '@ng-bootstrap/ng-bootstrap';
-import { NotificationBellComponent } from "../../features/notification/notification-bell/notification-bell.component";
+import { NotificationBellComponent } from "../../../features/notification/notification-bell/notification-bell.component";
 
 @Component({
   selector: "app-navbar",

@@ -3,9 +3,9 @@ import { CommonModule } from "@angular/common"
 import { ActivatedRoute, RouterModule, Router } from "@angular/router"
 import { UserService } from "../../../core/services/user.service"
 import { AuthService } from "../../../core/services/auth.service"
-import { PostCardComponent } from "../../post/post-card/post-card.component"
+import { PostCardComponent } from "../../../shared/components/post-card/post-card.component"
 import { Post, PostService, PostPage } from "../../../core/services/post.service"
-import { ToastService } from "../../../shared/services/toast.service"
+import { ToastService } from "../../../core/services/toast.service"
 
 @Component({
   selector: "app-profile",

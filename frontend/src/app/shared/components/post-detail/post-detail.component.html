@@ -49,15 +49,59 @@
                 {{ post.title }}
               </h1>
 
-              <!-- Post Stats -->
-              <div class="d-flex gap-4 mb-4">
-                <div class="d-flex align-items-center gap-2 text-muted-foreground">
-                  <i class="bi bi-heart"></i>
-                  <span class="small">{{ post.likeCount }}</span>
+              <!-- Post Stats & Menu -->
+              <div class="d-flex align-items-center justify-content-between mb-4">
+                <div class="d-flex gap-4">
+                  <div class="d-flex align-items-center gap-2 text-muted-foreground">
+                    <i class="bi bi-heart"></i>
+                    <span class="small">{{ post.likeCount }}</span>
+                  </div>
+                  <div class="d-flex align-items-center gap-2 text-muted-foreground">
+                    <i class="bi bi-chat-dots"></i>
+                    <span class="small">{{ post.commentCount }}</span>
+                  </div>
                 </div>
-                <div class="d-flex align-items-center gap-2 text-muted-foreground">
-                  <i class="bi bi-chat-dots"></i>
-                  <span class="small">{{ post.commentCount }}</span>
+
+                <!-- Post Menu Button -->
+                <div class="position-relative">
+                  <button 
+                    class="btn btn-ghost p-2 rounded-circle transition"
+                    (click)="toggleDropdown($event)"
+                    type="button"
+                    title="More options"
+                    style="width: 40px; height: 40px;">
+                    <i class="bi bi-three-dots-vertical fs-5"></i>
+                  </button>
+
+                  <div 
+                    class="dropdown-menu-custom position-absolute end-0 mt-2 animate-in"
+                    [class.d-none]="!showDropdown"
+                    style="min-width: 200px; z-index: 1050; top: 100%;">
+                    <ng-container *ngIf="post.isOwner; else notOwner">
+                      <button 
+                        class="dropdown-item d-flex align-items-center gap-2"
+                        (click)="editPost($event)">
+                        <i class="bi bi-pencil-square"></i>
+                        <span>Edit Post</span>
+                      </button>
+                      <div class="dropdown-divider"></div>
+                      <button 
+                        class="dropdown-item d-flex align-items-center gap-2 text-destructive"
+                        (click)="deletePost($event)">
+                        <i class="bi bi-trash"></i>
+                        <span>Delete Post</span>
+                      </button>
+                    </ng-container>
+
+                    <ng-template #notOwner>
+                      <button 
+                        class="dropdown-item d-flex align-items-center gap-2 text-destructive"
+                        (click)="reportPost($event)">
+                        <i class="bi bi-flag-fill"></i>
+                        <span>Report Post</span>
+                      </button>
+                    </ng-template>
+                  </div>
                 </div>
               </div>
             </header>
@@ -100,8 +144,15 @@
                     <textarea class="form-control border-0 bg-muted mb-3" rows="3" placeholder="Share your thoughts..."
                       [(ngModel)]="commentContent" name="commentContent" style="resize: none;"></textarea>
                     <div class="d-flex justify-content-end">
-                      <button class="btn btn-primary px-4" (click)="createComment()">
-                        Post Comment
+                      <button 
+                        class="btn btn-primary px-4" 
+                        (click)="createComment()"
+                        [disabled]="isSubmittingComment || !commentContent.trim()">
+                        <span *ngIf="!isSubmittingComment">Post Comment</span>
+                        <span *ngIf="isSubmittingComment">
+                          <span class="spinner-border spinner-border-sm me-2"></span>
+                          Posting...
+                        </span>
                       </button>
                     </div>
                   </div>
@@ -134,7 +185,6 @@
                           <i class="bi bi-trash"></i>
                         </button> -->
                       </div>
-
                       <!-- Comment Content -->
                       <p class="mb-0 text-foreground" style="line-height: 1.6;">
                         {{ comment.content }}
@@ -165,4 +215,22 @@
       </ng-template>
     </ng-template>
   </div>
+
+  <!-- Report Modal -->
+  <app-report-modal
+    [isOpen]="showReportModal"
+    [reportType]="'post'"
+    [targetId]="post?.id || ''"
+    (close)="closeReportModal()"
+    (submit)="handleReportSubmit($event)">
+  </app-report-modal>
+
+  <!-- Edit Post Modal -->
+  <app-create-edit-post-modal
+    [isOpen]="showEditModal"
+    [editMode]="true"
+    [postToEdit]="post"
+    (postUpdated)="handlePostUpdated($event)"
+    (closeModal)="closeEditModal()">
+  </app-create-edit-post-modal>
 </div>
