@@ -20,7 +20,7 @@ public class PostCreateDto {
     private String title;
 
     @NotBlank(message = "Content cannot be empty")
-    @Size(min = 1, max = 50000, message = "Content must be between 1 and 50000 characters")
+    @Size(min = 1, max = 10000000, message = "Content must be between 1 and 10,000,000 characters")
     private String content;
 
     private List<MultipartFile> mediaFiles;

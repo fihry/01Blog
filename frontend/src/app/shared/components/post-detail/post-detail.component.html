@@ -64,29 +64,20 @@
 
                 <!-- Post Menu Button -->
                 <div class="position-relative">
-                  <button 
-                    class="btn btn-ghost p-2 rounded-circle transition"
-                    (click)="toggleDropdown($event)"
-                    type="button"
-                    title="More options"
-                    style="width: 40px; height: 40px;">
+                  <button class="btn btn-ghost p-2 rounded-circle transition" (click)="toggleDropdown($event)"
+                    type="button" title="More options" style="width: 40px; height: 40px;">
                     <i class="bi bi-three-dots-vertical fs-5"></i>
                   </button>
 
-                  <div 
-                    class="dropdown-menu-custom position-absolute end-0 mt-2 animate-in"
-                    [class.d-none]="!showDropdown"
-                    style="min-width: 200px; z-index: 1050; top: 100%;">
+                  <div class="dropdown-menu-custom position-absolute end-0 mt-2 animate-in"
+                    [class.d-none]="!showDropdown" style="min-width: 200px; z-index: 1050; top: 100%;">
                     <ng-container *ngIf="post.isOwner; else notOwner">
-                      <button 
-                        class="dropdown-item d-flex align-items-center gap-2"
-                        (click)="editPost($event)">
+                      <button class="dropdown-item d-flex align-items-center gap-2" (click)="editPost($event)">
                         <i class="bi bi-pencil-square"></i>
                         <span>Edit Post</span>
                       </button>
                       <div class="dropdown-divider"></div>
-                      <button 
-                        class="dropdown-item d-flex align-items-center gap-2 text-destructive"
+                      <button class="dropdown-item d-flex align-items-center gap-2 text-destructive"
                         (click)="deletePost($event)">
                         <i class="bi bi-trash"></i>
                         <span>Delete Post</span>
@@ -94,8 +85,7 @@
                     </ng-container>
 
                     <ng-template #notOwner>
-                      <button 
-                        class="dropdown-item d-flex align-items-center gap-2 text-destructive"
+                      <button class="dropdown-item d-flex align-items-center gap-2 text-destructive"
                         (click)="reportPost($event)">
                         <i class="bi bi-flag-fill"></i>
                         <span>Report Post</span>
@@ -106,17 +96,7 @@
               </div>
             </header>
 
-            <!-- Featured Media -->
-            <ng-container *ngIf="post.media && post.media.length > 0">
-              <div class="mb-5 rounded-4 overflow-hidden shadow-sm">
-                <ng-container [ngSwitch]="post.media[0].mediaType">
-                  <img *ngSwitchCase="'IMAGES'" [src]="post.media[0].mediaUrl" alt="Post media" class="img-fluid w-100"
-                    style="object-fit: cover; max-height: 500px;" />
-                  <video *ngSwitchCase="'VIDEOS'" [src]="post.media[0].mediaUrl" controls class="w-100"
-                    style="max-height: 500px;"></video>
-                </ng-container>
-              </div>
-            </ng-container>
+
 
             <!-- Post Content -->
             <article class="mb-5">
@@ -144,9 +124,7 @@
                     <textarea class="form-control border-0 bg-muted mb-3" rows="3" placeholder="Share your thoughts..."
                       [(ngModel)]="commentContent" name="commentContent" style="resize: none;"></textarea>
                     <div class="d-flex justify-content-end">
-                      <button 
-                        class="btn btn-primary px-4" 
-                        (click)="createComment()"
+                      <button class="btn btn-primary px-4" (click)="createComment()"
                         [disabled]="isSubmittingComment || !commentContent.trim()">
                         <span *ngIf="!isSubmittingComment">Post Comment</span>
                         <span *ngIf="isSubmittingComment">
@@ -178,12 +156,6 @@
                             {{ comment.updatedAt }}
                           </span>
                         </div>
-                        <!-- Comment Actions -->
-                        <!-- <button *ngIf="comment.isOwner" 
-                                class="btn btn-sm btn-ghost text-danger p-2"
-                                title="Delete comment">
-                          <i class="bi bi-trash"></i>
-                        </button> -->
                       </div>
                       <!-- Comment Content -->
                       <p class="mb-0 text-foreground" style="line-height: 1.6;">
@@ -217,20 +189,12 @@
   </div>
 
   <!-- Report Modal -->
-  <app-report-modal
-    [isOpen]="showReportModal"
-    [reportType]="'POST'"
-    [targetId]="post?.id || ''"
-    (close)="closeReportModal()"
-    (submit)="handleReportSubmit($event)">
+  <app-report-modal [isOpen]="showReportModal" [reportType]="'POST'" [targetId]="post?.id || ''"
+    (close)="closeReportModal()" (submit)="handleReportSubmit($event)">
   </app-report-modal>
 
   <!-- Edit Post Modal -->
-  <app-create-edit-post-modal
-    [isOpen]="showEditModal"
-    [editMode]="true"
-    [postToEdit]="post"
-    (postUpdated)="handlePostUpdated($event)"
-    (closeModal)="closeEditModal()">
+  <app-create-edit-post-modal [isOpen]="showEditModal" [editMode]="true" [postToEdit]="post"
+    (postUpdated)="handlePostUpdated($event)" (closeModal)="closeEditModal()">
   </app-create-edit-post-modal>
 </div>

@@ -1,10 +1,26 @@
 // create-edit-post-modal.component.ts
-import { Component, ViewChild, ElementRef, Output, EventEmitter, Input, OnChanges, SimpleChanges } from "@angular/core";
+import {
+  Component,
+  ViewChild,
+  ElementRef,
+  Output,
+  EventEmitter,
+  Input,
+  OnChanges,
+  SimpleChanges,
+} from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { PostService } from "../../../core/services/post.service";
 import { ToastService } from "../../../core/services/toast.service";
 import type { Post } from "../../../core/services/post.service";
+
+type FormatType = "bold" | "italic" | "h1" | "h2" | "bullet";
+
+interface MediaFile {
+  url: string;
+  file: File;
+}
 
 @Component({
   selector: "app-create-edit-post-modal",
@@ -16,45 +32,41 @@ export class CreateEditPostModalComponent implements OnChanges {
   @Input() isOpen = false;
   @Input() editMode = false;
   @Input() postToEdit: Post | null = null;
+
   @Output() postCreated = new EventEmitter<Post>();
   @Output() postUpdated = new EventEmitter<Post>();
   @Output() closeModal = new EventEmitter<void>();
 
+  @ViewChild("editor") editor!: ElementRef<HTMLDivElement>;
+
   title = "";
   content = "";
-  selectedFiles: File[] = [];
   isSubmitting = false;
   errorMessage: string | null = null;
 
-  @ViewChild("editor") editor!: ElementRef<HTMLDivElement>;
+  private activeFileUrls = new Map<string, File>();
+
+  private readonly FORMAT_TEMPLATES: Record<FormatType, string> = {
+    bold: "**bold text**",
+    italic: "_italic text_",
+    h1: "\n# Heading 1\n",
+    h2: "\n## Heading 2\n",
+    bullet: "\n- List item\n",
+  };
 
   constructor(
-    private postService: PostService,
-    private toastService: ToastService
+    private readonly postService: PostService,
+    private readonly toastService: ToastService
   ) { }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['postToEdit'] && this.postToEdit && this.editMode) {
+    if (this.shouldLoadPostForEditing(changes)) {
       this.loadPostForEditing();
     }
 
-    if (changes['isOpen'] && !this.isOpen) {
+    if (this.shouldResetForm(changes)) {
       this.resetForm();
     }
-  }
-
-  private loadPostForEditing(): void {
-    if (!this.postToEdit) return;
-
-    this.title = this.postToEdit.title;
-    this.content = this.postToEdit.content || "";
-
-    // Set editor content after view is initialized
-    setTimeout(() => {
-      if (this.editor) {
-        this.editor.nativeElement.innerHTML = this.content;
-      }
-    }, 0);
   }
 
   openOverlay(): void {
@@ -64,14 +76,12 @@ export class CreateEditPostModalComponent implements OnChanges {
   }
 
   closeOverlay(): void {
-    if (!this.isSubmitting) {
-      this.isOpen = false;
-      this.resetForm();
-      if (this.editor) {
-        this.editor.nativeElement.innerHTML = "";
-      }
-      this.closeModal.emit();
-    }
+    if (this.isSubmitting) return;
+
+    this.isOpen = false;
+    this.resetForm();
+    this.clearEditorContent();
+    this.closeModal.emit();
   }
 
   updateContent(): void {
@@ -79,153 +89,261 @@ export class CreateEditPostModalComponent implements OnChanges {
     this.content = this.editor.nativeElement.innerHTML;
   }
 
-  applyFormat(type: "bold" | "italic" | "h1" | "h2" | "bullet"): void {
+  applyFormat(type: FormatType): void {
     if (!this.editor) return;
-    this.editor.nativeElement.focus();
 
-    switch (type) {
-      case "bold":
-        this.insertAtCursor("**bold text**");
-        break;
-      case "italic":
-        this.insertAtCursor("_italic text_");
-        break;
-      case "h1":
-        this.insertAtCursor("\n# Heading 1\n");
-        break;
-      case "h2":
-        this.insertAtCursor("\n## Heading 2\n");
-        break;
-      case "bullet":
-        this.insertAtCursor("\n- List item\n");
-        break;
-    }
+    this.editor.nativeElement.focus();
+    this.insertAtCursor(this.FORMAT_TEMPLATES[type]);
     this.updateContent();
   }
 
-  private insertAtCursor(text: string) {
-    const sel = window.getSelection();
-    if (!sel || !sel.rangeCount) return;
-
-    const range = sel.getRangeAt(0);
-    range.deleteContents();
-    const node = document.createTextNode(text);
-    range.insertNode(node);
-
-    range.setStartAfter(node);
-    range.collapse(true);
-    sel.removeAllRanges();
-    sel.addRange(range);
-  }
-
   onFilesSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    if (!input.files) return;
+    const files = this.getFilesFromEvent(event);
+    if (!files) return;
 
-    // Store files for upload
-    this.selectedFiles = Array.from(input.files);
-
-    // Preview files in editor
-    Array.from(input.files).forEach(file => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (!this.editor) return;
-
-        const el = this.editor.nativeElement;
-        el.focus();
-        const selection = window.getSelection();
-        const range = selection?.getRangeAt(0);
-
-        if (file.type.startsWith("image/")) {
-          const img = document.createElement("img");
-          img.src = reader.result as string;
-          img.style.maxWidth = "300px";
-          img.style.margin = "5px 0";
-          range?.insertNode(img);
-
-          const br = document.createElement("br");
-          range?.insertNode(br);
-        } else if (file.type.startsWith("video/")) {
-          const video = document.createElement("video");
-          video.src = reader.result as string;
-          video.controls = true;
-          video.style.maxWidth = "300px";
-          video.style.margin = "5px 0";
-          range?.insertNode(video);
-
-          const br = document.createElement("br");
-          range?.insertNode(br);
-        }
-        this.updateContent();
-      };
-      reader.readAsDataURL(file);
-    });
-
-    input.value = "";
+    files.forEach((file) => this.processFile(file));
+    this.clearFileInput(event);
   }
 
   onSubmit(): void {
-    if (!this.title.trim() || !this.content.trim()) {
+    if (!this.isFormValid()) {
       this.errorMessage = "Title and content are required.";
       return;
     }
 
-    this.isSubmitting = true;
-    this.errorMessage = null;
+    this.startSubmission();
+
+    const { processedContent, files } = this.processContentForSubmission();
+    const postData = {
+      title: this.title.trim(),
+      content: processedContent,
+      media: files.length > 0 ? files : undefined,
+    };
 
     if (this.editMode && this.postToEdit) {
-      // Update existing post
-      this.postService
-        .updatePost(this.postToEdit.id, {
-          title: this.title.trim(),
-          content: this.content.trim(),
-          media: this.selectedFiles.length > 0 ? this.selectedFiles : undefined,
-        })
-        .subscribe({
-          next: (updatedPost) => {
-            this.isSubmitting = false;
-            this.toastService.showSuccess("Post updated", "Your post has been updated successfully.");
-            this.postUpdated.emit(updatedPost);
-            this.closeOverlay();
-          },
-          error: (err) => {
-            this.isSubmitting = false;
-            console.error(err);
-            const message = err.error?.message || "Failed to update post. Please try again.";
-            this.errorMessage = message;
-            this.toastService.showError("Error", message);
-          },
-        });
+      this.updateExistingPost(postData);
     } else {
-      // Create new post
-      this.postService
-        .createPost({
-          title: this.title.trim(),
-          content: this.content.trim(),
-          media: this.selectedFiles,
-        })
-        .subscribe({
-          next: (createdPost) => {
-            this.isSubmitting = false;
-            this.toastService.showSuccess("Post created", "Your post has been published.");
-            this.postCreated.emit(createdPost);
-            this.closeOverlay();
-          },
-          error: (err) => {
-            this.isSubmitting = false;
-            console.error(err);
-            const message = err.error?.message || "Failed to create post. Please try again.";
-            this.errorMessage = message;
-            this.toastService.showError("Error", message);
-          },
-        });
+      this.createNewPost(postData);
     }
+  }
+
+  // Private helper methods
+
+  private shouldLoadPostForEditing(changes: SimpleChanges): boolean {
+    return Boolean(
+      changes["postToEdit"] && this.postToEdit && this.editMode
+    );
+  }
+
+  private shouldResetForm(changes: SimpleChanges): boolean {
+    return Boolean(changes["isOpen"] && !this.isOpen);
+  }
+
+  private loadPostForEditing(): void {
+    if (!this.postToEdit) return;
+
+    this.title = this.postToEdit.title;
+    this.content = this.postToEdit.content || "";
+
+    setTimeout(() => this.setEditorContent(this.content), 0);
+  }
+
+  private setEditorContent(content: string): void {
+    if (this.editor) {
+      this.editor.nativeElement.innerHTML = content;
+    }
+  }
+
+  private clearEditorContent(): void {
+    this.setEditorContent("");
+  }
+
+  private insertAtCursor(text: string): void {
+    const selection = window.getSelection();
+    if (!selection?.rangeCount) return;
+
+    const range = selection.getRangeAt(0);
+    range.deleteContents();
+
+    const textNode = document.createTextNode(text);
+    range.insertNode(textNode);
+
+    this.updateCursorPosition(range, textNode, selection);
+  }
+
+  private updateCursorPosition(
+    range: Range,
+    node: Node,
+    selection: Selection
+  ): void {
+    range.setStartAfter(node);
+    range.collapse(true);
+    selection.removeAllRanges();
+    selection.addRange(range);
+  }
+
+  private getFilesFromEvent(event: Event): File[] | null {
+    const input = event.target as HTMLInputElement;
+    return input.files ? Array.from(input.files) : null;
+  }
+
+  private processFile(file: File): void {
+    const url = URL.createObjectURL(file);
+    this.activeFileUrls.set(url, file);
+
+    if (!this.editor) return;
+
+    this.insertMediaElement(file, url);
+    this.updateContent();
+  }
+
+  private insertMediaElement(file: File, url: string): void {
+    const selection = window.getSelection();
+    const range = selection?.getRangeAt(0);
+    if (!range) return;
+
+    const element = this.createMediaElement(file, url);
+    range.insertNode(element);
+    range.insertNode(document.createElement("br"));
+  }
+
+  private createMediaElement(file: File, url: string): HTMLElement {
+    const element = file.type.startsWith("image/")
+      ? this.createImageElement(url)
+      : this.createVideoElement(url);
+
+    return element;
+  }
+
+  private createImageElement(url: string): HTMLImageElement {
+    const img = document.createElement("img");
+    img.src = url;
+    img.style.maxWidth = "300px";
+    img.style.margin = "5px 0";
+    return img;
+  }
+
+  private createVideoElement(url: string): HTMLVideoElement {
+    const video = document.createElement("video");
+    video.src = url;
+    video.controls = true;
+    video.style.maxWidth = "300px";
+    video.style.margin = "5px 0";
+    return video;
+  }
+
+  private clearFileInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    input.value = "";
+  }
+
+  private isFormValid(): boolean {
+    return Boolean(this.title.trim() && this.content.trim());
+  }
+
+  private startSubmission(): void {
+    this.isSubmitting = true;
+    this.errorMessage = null;
+  }
+
+  private processContentForSubmission(): {
+    processedContent: string;
+    files: File[];
+  } {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(this.content, "text/html");
+
+    const files = this.replaceMediaWithPlaceholders(doc);
+    const processedContent = this.convertHtmlToText(doc);
+
+    return { processedContent, files };
+  }
+
+  private replaceMediaWithPlaceholders(doc: Document): File[] {
+    const mediaElements = doc.querySelectorAll("img, video");
+    const files: File[] = [];
+
+    mediaElements.forEach((element) => {
+      const src = element.getAttribute("src");
+      if (!src || !this.activeFileUrls.has(src)) return;
+
+      const file = this.activeFileUrls.get(src)!;
+      files.push(file);
+
+      const placeholder = document.createTextNode(
+        `![image]({{MEDIA_INDEX_${files.length - 1}}})`
+      );
+      element.replaceWith(placeholder);
+    });
+
+    return files;
+  }
+
+  private convertHtmlToText(doc: Document): string {
+    this.convertBreaksToNewlines(doc);
+    this.convertBlocksToNewlines(doc);
+    return doc.body.textContent || "";
+  }
+
+  private convertBreaksToNewlines(doc: Document): void {
+    doc.querySelectorAll("br").forEach((br) => br.replaceWith("\n"));
+  }
+
+  private convertBlocksToNewlines(doc: Document): void {
+    doc.querySelectorAll("div, p").forEach((block) => {
+      block.prepend(document.createTextNode("\n"));
+    });
+  }
+
+  private createNewPost(postData: any): void {
+    this.postService.createPost(postData).subscribe({
+      next: (post) => this.handlePostCreated(post),
+      error: (err) => this.handleError(err, "Failed to create post."),
+    });
+  }
+
+  private updateExistingPost(postData: any): void {
+    if (!this.postToEdit) return;
+
+    this.postService.updatePost(this.postToEdit.id, postData).subscribe({
+      next: (post) => this.handlePostUpdated(post),
+      error: (err) => this.handleError(err, "Failed to update post."),
+    });
+  }
+
+  private handlePostCreated(post: Post): void {
+    this.isSubmitting = false;
+    this.toastService.showSuccess(
+      "Post created",
+      "Your post has been published."
+    );
+    this.postCreated.emit(post);
+    this.closeOverlay();
+  }
+
+  private handlePostUpdated(post: Post): void {
+    this.isSubmitting = false;
+    this.toastService.showSuccess(
+      "Post updated",
+      "Your post has been updated successfully."
+    );
+    this.postUpdated.emit(post);
+    this.closeOverlay();
+  }
+
+  private handleError(error: any, defaultMessage: string): void {
+    this.isSubmitting = false;
+    console.error(error);
+
+    const message = error.error?.message || `${defaultMessage} Please try again.`;
+    this.errorMessage = message;
+    this.toastService.showError("Error", message);
   }
 
   private resetForm(): void {
     this.title = "";
     this.content = "";
-    this.selectedFiles = [];
+    this.activeFileUrls.clear();
     this.errorMessage = null;
     this.editMode = false;
     this.postToEdit = null;

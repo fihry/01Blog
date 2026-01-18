@@ -109,9 +109,9 @@ public class UserService {
 
     public UserDto getUserById(UUID id) {
         User user = getById(id);
-        // Only generate presigned URL if avatar exists
-        if (user.getAvatarUrl() != null && !user.getAvatarUrl().isBlank()) {
-            user.setAvatarUrl(minioService.getMediaUrl(user.getAvatarUrl()));
+        String avatarUrl = user.getAvatarUrl();
+        if (avatarUrl != null && !avatarUrl.isBlank()) {
+            avatarUrl = minioService.getMediaUrl(avatarUrl);
         }
         boolean isFollowed = userRepository.findById(getCurrentUserId())
                 .map(currentUser -> currentUser.getFollowing().stream()
@@ -122,7 +122,7 @@ public class UserService {
                 user.getUsername(),
                 user.getEmail(),
                 user.getBio(),
-                user.getAvatarUrl(),
+                avatarUrl,
                 user.getRole(),
                 user.isActive(),
                 isFollowed,
@@ -143,10 +143,12 @@ public class UserService {
             user.setAvatarUrl(avatar_url);
         }
         userRepository.save(user);
-        // Only generate presigned URL if avatar exists
-        if (user.getAvatarUrl() != null && !user.getAvatarUrl().isBlank()) {
-            user.setAvatarUrl(minioService.getMediaUrl(user.getAvatarUrl()));
+        
+        String responseAvatarUrl = user.getAvatarUrl();
+        if (responseAvatarUrl != null && !responseAvatarUrl.isBlank()) {
+            responseAvatarUrl = minioService.getMediaUrl(responseAvatarUrl);
         }
+
         boolean isFollowed = userRepository.findById(getCurrentUserId())
                 .map(currentUser -> currentUser.getFollowing().stream()
                 .anyMatch(u -> u.getId().equals(id)))
@@ -156,7 +158,7 @@ public class UserService {
                 user.getUsername(),
                 user.getEmail(),
                 user.getBio(),
-                user.getAvatarUrl(),
+                responseAvatarUrl,
                 user.getRole(),
                 user.isActive(),
                 isFollowed,

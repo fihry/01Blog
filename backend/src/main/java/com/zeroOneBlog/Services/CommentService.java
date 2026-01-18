@@ -60,8 +60,12 @@ public class CommentService {
         Post post = postRepository.findById(comment.getPostId())
                 .orElseThrow(() -> new ApiException(HttpStatus.BAD_REQUEST, "Post not found"));
 
+        String avatarUrl = author.getAvatarUrl();
+        if (avatarUrl != null) {
+            avatarUrl = minioService.getMediaUrl(avatarUrl);
+        }
         UserSummaryDto authorSummary = new UserSummaryDto(
-                author.getId(), author.getUsername(), author.getAvatarUrl()
+                author.getId(), author.getUsername(), avatarUrl
         );
 
         Comment newComment = new Comment();
@@ -98,7 +102,11 @@ public class CommentService {
         }
         existingComment.setContent(comment.getContent());
         Comment updatedComment = commentRepository.save(existingComment);
-        UserSummaryDto authorSummary = new UserSummaryDto(author.getId(), author.getUsername(), author.getAvatarUrl());
+        String avatarUrl = author.getAvatarUrl();
+        if (avatarUrl != null) {
+            avatarUrl = minioService.getMediaUrl(avatarUrl);
+        }
+        UserSummaryDto authorSummary = new UserSummaryDto(author.getId(), author.getUsername(), avatarUrl);
         return new CommentCreateDto(
                 updatedComment.getId(),
                 updatedComment.getPost().getId(),

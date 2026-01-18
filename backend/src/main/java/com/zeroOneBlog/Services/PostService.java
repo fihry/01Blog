@@ -128,7 +128,7 @@ public class PostService {
             java.util.Iterator<Media> iterator = post.getMedia().iterator();
             while (iterator.hasNext()) {
                 Media media = iterator.next();
-                String relativeUrl = minioService.getMediaUrl(media.getMediaUrl());
+                String relativeUrl = minioService.getPermalink(media.getMediaUrl());
                 if (!updatedContent.contains(relativeUrl)) {
                     minioService.deleteFile(media.getMediaUrl());
                     iterator.remove(); // Hibernate handles delete via orphanRemoval=true
@@ -151,39 +151,41 @@ public class PostService {
     private String processMediaFiles(Post post, List<org.springframework.web.multipart.MultipartFile> files, String content) {
         if (files == null || files.isEmpty()) return content;
 
-        final String[] mutableContent = {content};
+        String mutableContent = content; // String is immutable, but we reassign
         
         if (post.getMedia() == null) {
             post.setMedia(new java.util.ArrayList<>());
         }
 
-        files.stream()
-                .filter(file -> file != null && !file.isEmpty())
-                .forEach(file -> {
-                    String mediaUrl = minioService.uploadFile(file);
-                    MinioBucketTypes mediaType = getPostMediaType(file.getContentType());
+        for (int i = 0; i < files.size(); i++) {
+            org.springframework.web.multipart.MultipartFile file = files.get(i);
+            if (file == null || file.isEmpty()) continue;
 
-                    if (mediaType == null) {
-                        throw new ApiException(HttpStatus.BAD_REQUEST, "Posts only support images and videos");
-                    }
+            String mediaUrl = minioService.uploadFile(file);
+            MinioBucketTypes mediaType = getPostMediaType(file.getContentType());
 
-                    Media media = new Media();
-                    media.setPost(post);
-                    media.setMediaUrl(mediaUrl);
-                    media.setMediaType(mediaType);
-                    post.getMedia().add(media);
+            if (mediaType == null) {
+                // Should we delete the uploaded file if type is wrong? Theoretically yes.
+                // But for now keeping error behavior simple.
+                throw new ApiException(HttpStatus.BAD_REQUEST, "Posts only support images and videos");
+            }
 
-                    String relativeUrl = minioService.getMediaUrl(mediaUrl);
+            Media media = new Media();
+            media.setPost(post);
+            media.setMediaUrl(mediaUrl);
+            media.setMediaType(mediaType);
+            post.getMedia().add(media);
 
-                    // Replace the first occurrence of a data: URL in the content
-                    if (mediaType == MinioBucketTypes.IMAGES) {
-                        mutableContent[0] = mutableContent[0].replaceFirst("src=\"data:image/[^;]+;base64,[^\"]+\"", "src=\"" + relativeUrl + "\"");
-                    } else if (mediaType == MinioBucketTypes.VIDEOS) {
-                        mutableContent[0] = mutableContent[0].replaceFirst("src=\"data:video/[^;]+;base64,[^\"]+\"", "src=\"" + relativeUrl + "\"");
-                    }
-                });
+            String relativeUrl = minioService.getPermalink(mediaUrl);
 
-        return mutableContent[0];
+            // Replace the placeholder {{MEDIA_INDEX_i}} with the relative URL
+            // We use replace (not replaceAll) because we expect specific instances, but replace() replaces all occurrences in String (which is fine)
+            // relativeUrl is e.g., /media/images/key.png
+            String placeholder = "{{MEDIA_INDEX_" + i + "}}";
+            mutableContent = mutableContent.replace(placeholder, relativeUrl);
+        }
+
+        return mutableContent;
     }
 
     public void deletePost(UUID postId, UUID currentUserId) {

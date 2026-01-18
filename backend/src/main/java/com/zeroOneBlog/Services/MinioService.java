@@ -19,6 +19,10 @@ import io.minio.PutObjectArgs;
 import io.minio.RemoveObjectArgs;
 import io.minio.StatObjectArgs;
 import io.minio.StatObjectResponse;
+import io.minio.GetPresignedObjectUrlArgs;
+import io.minio.http.Method;
+import java.util.concurrent.TimeUnit;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 @Service
 public class MinioService {
@@ -26,12 +30,11 @@ public class MinioService {
     @Autowired
     private MinioClient minioClient;
 
-    
+    @Autowired
+    @Qualifier("minioExternalClient")
+    private MinioClient minioExternalClient;
 
-    /**
-     * Upload a file to the correct bucket based on content type.
-     * Returns the bucket/object path (e.g., images/uuid-file.png)
-     */
+    
     public String uploadFile(MultipartFile file) {
         MinioBucketTypes bucketType = getBucketByContentType(file.getContentType());
         String bucketName = bucketType.name().toLowerCase(); // images, videos, audios
@@ -71,16 +74,42 @@ public class MinioService {
         }
     }
 
-    /**
-     * Return the URL for front-end access.
-     * - Images → public URL
-     * - Videos / Audios → presigned URL
-     */
+    public String getPermalink(String fullPath) {
+        if (fullPath == null || fullPath.isBlank()) {
+            return null;
+        }
+        return "/media/" + fullPath;
+    }
+
+
     public String getMediaUrl(String fullPath) {
         if (fullPath == null || fullPath.isBlank()) {
             return null;
         }
-        return "/api/media/" + fullPath;
+
+        String[] parts = fullPath.split("/", 2);
+        if (parts.length < 2) {
+            return getPermalink(fullPath);
+        }
+
+        String bucket = parts[0];
+        String object = parts[1];
+
+        try {
+            // Generate a presigned URL that is valid for 2 hours
+            // This is safer and more efficient as it allows direct client-to-minio access
+            return minioExternalClient.getPresignedObjectUrl(
+                    GetPresignedObjectUrlArgs.builder()
+                            .method(Method.GET)
+                            .bucket(bucket)
+                            .object(object)
+                            .expiry(2, TimeUnit.HOURS)
+                            .build()
+            );
+        } catch (Exception e) {
+            System.err.println("Failed to generate presigned URL for: " + fullPath + " Error: " + e.getMessage());
+            return getPermalink(fullPath);
+        }
     }
 
     public InputStream getObjectStream(String bucket, String object) {

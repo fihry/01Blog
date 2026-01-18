@@ -81,7 +81,19 @@ export class PostService {
   }
 
   updatePost(id: string, data: Partial<CreatePostRequest>): Observable<Post> {
-    return this.http.put<Post>(`${this.apiUrl}/${id}`, data)
+    const formData = new FormData();
+    const postPayload = {
+      title: data.title,
+      content: data.content,
+    };
+    formData.append(
+      "post",
+      new Blob([JSON.stringify(postPayload)], { type: "application/json" }),
+    );
+    if (data.media) {
+      data.media.forEach((file) => formData.append("media", file));
+    }
+    return this.http.put<Post>(`${this.apiUrl}/${id}`, formData);
   }
 
   deletePost(id: string): Observable<void> {
