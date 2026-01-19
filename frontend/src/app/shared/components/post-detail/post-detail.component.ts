@@ -97,7 +97,7 @@ export class PostDetailComponent implements OnInit, OnDestroy {
       next: (post) => {
         post.isOwner = post.author.id == this.currentUserId
         this.post = post
-        this.parsedContent = this.markdown.parse(post.content || "", false)
+        this.parsedContent = this.markdown.parse(post.content || "", false, post.media)
         this.isLoadingPost = false
       },
       error: (err) => {
