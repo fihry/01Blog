@@ -45,15 +45,15 @@ public class MinioService {
             if (!minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucketName).build())) {
                 minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucketName).build());
 
-                // Make images and videos buckets public
-                if (bucketType == MinioBucketTypes.IMAGES || bucketType == MinioBucketTypes.VIDEOS) {
-                    minioClient.setBucketPolicy(
-                        io.minio.SetBucketPolicyArgs.builder()
-                            .bucket(bucketName)
-                            .config("{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":\"*\",\"Action\":[\"s3:GetObject\"],\"Resource\":[\"arn:aws:s3:::" + bucketName + "/*\"]}]}")
-                            .build()
-                    );
-                }
+                    // // Make images and videos buckets public
+                    // if (bucketType == MinioBucketTypes.IMAGES || bucketType == MinioBucketTypes.VIDEOS) {
+                    //     minioClient.setBucketPolicy(
+                    //         io.minio.SetBucketPolicyArgs.builder()
+                    //             .bucket(bucketName)
+                    //             .config("{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":\"*\",\"Action\":[\"s3:GetObject\"],\"Resource\":[\"arn:aws:s3:::" + bucketName + "/*\"]}]}")
+                    //             .build()
+                    //     );
+                    // }
             }
 
             // Upload file
@@ -83,6 +83,10 @@ public class MinioService {
 
 
     public String getMediaUrl(String fullPath) {
+        return getPermalink(fullPath);
+    }
+
+    public String getPresignedUrl(String fullPath) {
         if (fullPath == null || fullPath.isBlank()) {
             return null;
         }

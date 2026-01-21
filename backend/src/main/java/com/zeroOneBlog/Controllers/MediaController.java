@@ -30,7 +30,7 @@ public class MediaController {
     public ResponseEntity<?> streamMedia(@PathVariable String bucket, @PathVariable String object) {
         String fullPath = bucket + "/" + object;
         try {
-            String mediaUrl = minioService.getMediaUrl(fullPath);
+            String mediaUrl = minioService.getPresignedUrl(fullPath);
             
             // If we got a full URL (starts with http), redirect the client
             if (mediaUrl != null && mediaUrl.startsWith("http")) {
