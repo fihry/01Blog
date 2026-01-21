@@ -4,7 +4,7 @@ import { Component, Input, Output, EventEmitter } from "@angular/core"
 import { CommonModule } from "@angular/common"
 import { Router, RouterModule } from "@angular/router"
 import { PostService, Post } from "../../../core/services/post.service"
-import { SafeMarkdownService } from "../../../core/services/markdown.service"
+import { MarkdownService } from "../../../core/services/markdown.service"
 import { ToastService } from "../../../core/services/toast.service"
 
 
@@ -39,13 +39,13 @@ export class PostCardComponent {
   constructor(
     private postService: PostService,
     private router: Router,
-    private markdown: SafeMarkdownService,
+    private markdown: MarkdownService,
     private toastService: ToastService,
   ) { }
 
   // --- Interaction Methods ---
   ngOnInit() {
-    this.parsedContent = this.markdown.parse(this.post.content, false, this.post.media)
+    this.parsedContent = this.markdown.parse(this.post.content, true, this.post.media)
   }
   onLike() {
     if (this.isLiking) return

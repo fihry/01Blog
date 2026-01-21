@@ -9,6 +9,7 @@
   transition: all 0.2s ease-in-out;
   box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   gap: 0.8rem;
+  overflow: hidden;
 
   // Subtle hover effect for engagement
   &:hover {
@@ -33,6 +34,13 @@
 
 .post-title {
   color: var(--foreground);
+  overflow: hidden;
+}
+
+.title {
+  word-break: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
 
 .post-content {
@@ -95,10 +103,11 @@
     margin-bottom: 0.5rem;
   }
 }
+
 .action-panel {
   background: var(--card);
   border-radius: 0.5rem;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   padding: 0.25rem 0;
   display: flex;
   flex-direction: column;
@@ -118,11 +127,11 @@
     }
 
     &.text-danger:hover {
-      background: rgba(255,0,0,0.1);
+      background: rgba(255, 0, 0, 0.1);
     }
 
     &.text-warning:hover {
-      background: rgba(255,165,0,0.1);
+      background: rgba(255, 165, 0, 0.1);
     }
   }
 }
