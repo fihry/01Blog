@@ -1,0 +1,25 @@
+.modal-backdrop {
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-backdrop.show {
+    opacity: 1;
+}
+
+.modal.show {
+    display: block;
+}
+
+.form-check-input:checked {
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+.form-check-label {
+    cursor: pointer;
+    user-select: none;
+}
+
+.alert {
+    font-size: 0.875rem;
+}

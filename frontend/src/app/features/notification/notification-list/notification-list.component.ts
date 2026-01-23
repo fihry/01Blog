@@ -1,105 +1,21 @@
 import { Component, type OnInit } from "@angular/core"
 import { CommonModule } from "@angular/common"
-import { NotificationService } from "../../../core/services/notification.service"
+import { NotificationService, Notification } from "../../../core/services/notification.service"
 
 @Component({
   selector: "app-notification-list",
   standalone: true,
   imports: [CommonModule],
-  template: `
-    <div class="min-h-screen pt-5 mt-5">
-      <div class="container-m mx-auto p-4 max-w-3xl">
-        
-        <!-- Header -->
-        <div class="d-flex justify-content-between align-items-center mb-5">
-          <h1 class="text-3xl font-bold text-foreground m-0">Notifications</h1>
-          <button 
-            class="btn btn-ghost text-sm text-primary"
-            (click)="markAllAsRead()"
-            *ngIf="hasUnread"
-          >
-            <i class="bi bi-check-all me-2"></i>Mark all as read
-          </button>
-        </div>
-
-        <!-- Filter Tabs -->
-        <div class="segmented-control mb-4">
-          <button 
-            class="segment" 
-            [class.active]="activeFilter === 'all'"
-            (click)="activeFilter = 'all'"
-          >
-            All
-          </button>
-          <button 
-            class="segment" 
-            [class.active]="activeFilter === 'unread'"
-            (click)="activeFilter = 'unread'"
-          >
-            Unread
-          </button>
-          <button 
-            class="segment" 
-            [class.active]="activeFilter === 'mentions'"
-            (click)="activeFilter = 'mentions'"
-          >
-            Mentions
-          </button>
-        </div>
-
-        <!-- Notifications List -->
-        <div class="d-flex flex-column gap-3" *ngIf="filteredNotifications.length > 0">
-          <div *ngFor="let notification of filteredNotifications" 
-               class="app-widget-card p-4 hover:bg-muted/50 transition"
-               [class.bg-primary/5]="!notification.read">
-            <div class="d-flex gap-4 align-items-center">
-              <div class="avatar-placeholder w-10 h-10 flex-shrink-0"></div>
-              <div class="flex-grow-1">
-                <p class="text-foreground font-semibold mb-1 text-sm">{{ notification.title }}</p>
-                <p class="text-muted-foreground text-sm mb-1">{{ notification.message }}</p>
-                <p class="text-muted-foreground text-xs">{{ notification.createdAt | date:'short' }}</p>
-              </div>
-              <div class="d-flex align-items-center gap-2">
-                <span 
-                  *ngIf="!notification.read"
-                  class="indicator-dot position-relative"
-                  style="top: 0; right: 0;"
-                ></span>
-                <button 
-                  *ngIf="!notification.read"
-                  (click)="markAsRead(notification.id)"
-                  class="btn btn-sm btn-ghost h-fit text-primary"
-                  title="Mark as Read"
-                >
-                  <i class="bi bi-check-circle text-lg"></i>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Empty State -->
-        <div *ngIf="filteredNotifications.length === 0" class="app-widget-card p-5 text-center">
-          <div class="d-flex flex-column align-items-center gap-3 py-5">
-            <i class="bi bi-bell-slash text-5xl text-muted-foreground opacity-50"></i>
-            <h3 class="text-xl font-bold text-foreground">No notifications</h3>
-            <p class="text-muted-foreground text-sm">
-              {{ activeFilter === 'all' ? 'You\'re all caught up!' : 'No ' + activeFilter + ' notifications' }}
-            </p>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  `,
+  templateUrl:"./notification-list.component.html"
 })
 export class NotificationListComponent implements OnInit {
-  notifications: any[] = []
+  notifications: Notification[] =[]
   activeFilter: 'all' | 'unread' | 'mentions' = 'all'
 
-  constructor(private notificationService: NotificationService) { }
+  constructor(private notificationService: NotificationService) {}
 
   ngOnInit() {
+    this.notificationService.getNotifications().subscribe()    
     this.notificationService.notifications$.subscribe((notifications) => {
       this.notifications = notifications
     })
@@ -121,15 +37,10 @@ export class NotificationListComponent implements OnInit {
   }
 
   markAsRead(notificationId: number) {
-    this.notificationService.markAsRead(notificationId).subscribe(() => {
-      this.notifications = this.notifications.map((n) => (n.id === notificationId ? { ...n, read: true } : n))
-    })
+    this.notificationService.markAsRead(notificationId).subscribe()
   }
 
   markAllAsRead() {
-    // In a real app, this would be a batch API call
-    this.notifications.filter(n => !n.read).forEach(n => {
-      this.markAsRead(n.id)
-    })
+    this.notificationService.markAllAsRead().subscribe()
   }
 }

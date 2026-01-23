@@ -1,6 +1,9 @@
 import { Injectable } from "@angular/core"
 import { HttpClient } from "@angular/common/http"
 import { Observable } from "rxjs"
+import { PostPage } from "./post.service"
+import { environment } from "../../../environments/environment"
+
 
 export interface User {
   id: string
@@ -8,15 +11,16 @@ export interface User {
   email: string
   bio: string
   avatarUrl?: string
-  createdAt: string
+  role: string
   postsCount: number
   followersCount: number
   followingCount: number
-  isFollowing?: boolean
+  createdAt: string
+  active: boolean
+  followed?: boolean
 }
 
 interface UpdateProfileRequest {
-  username?: string
   bio?: string
   avatar?: File
 }
@@ -25,7 +29,7 @@ interface UpdateProfileRequest {
   providedIn: "root",
 })
 export class UserService {
-  private apiUrl = "http://localhost:8000/api/users"
+  private apiUrl = `${environment.apiUrl}/users`
 
   constructor(private http: HttpClient) { }
 
@@ -33,8 +37,8 @@ export class UserService {
     return this.http.get<User>(`${this.apiUrl}/${id}`)
   }
 
-  getUserPosts(id: string, page = 0, limit = 10): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/${id}/posts?page=${page}&limit=${limit}`)
+  getUserPosts(id: string, page = 0, limit = 10): Observable<PostPage> {
+    return this.http.get<PostPage>(`${this.apiUrl}/${id}/posts?page=${page}&limit=${limit}`)
   }
 
   getUsers(page: number, limit: number): Observable<any> {
@@ -43,18 +47,17 @@ export class UserService {
 
   updateProfile(id: string, data: UpdateProfileRequest): Observable<User> {
     const formData = new FormData()
-    if (data.username) formData.append("username", data.username)
     if (data.bio) formData.append("bio", data.bio)
     if (data.avatar) formData.append("avatar", data.avatar)
     return this.http.put<User>(`${this.apiUrl}/${id}`, formData)
   }
 
-  followUser(id: string): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/${id}/follow`, {})
+  changePassword(id: string, data: any): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/${id}/change-password`, data)
   }
 
-  unfollowUser(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}/follow`)
+  toggleFollow(id: string): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/${id}/subscribe`, {})
   }
 
   getFollowers(id: string): Observable<User[]> {

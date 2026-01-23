@@ -1,19 +1,21 @@
 import { Injectable } from "@angular/core"
 import { HttpClient } from "@angular/common/http"
 import { Observable } from "rxjs"
+import { environment } from "../../../environments/environment"
 
 export interface Report {
   id: string
-  reporter_id: string
-  target_id: string
-  type: "post" | "user" | "comment"
+  reporter?: any
+  targetId: string
+  reportType: "POST" | "USER" | "COMMENT"
   reason: string
-  created_at: string
-  status: "pending" | "reviewed" | "resolved"
+  createdAt: string
+  status: "PENDING" | "REVIEWED" | "RESOLVED" | "REJECTED"
 }
 
 interface CreateReportRequest {
-  type: "post" | "user" | "comment"
+  targetId: string
+  reportType: "POST" | "USER" | "COMMENT"
   reason: string
 }
 
@@ -21,22 +23,23 @@ interface CreateReportRequest {
   providedIn: "root",
 })
 export class ReportService {
-  private apiUrl = "http://localhost:8000/api/reports"
+  private apiUrl = `${environment.apiUrl}/report`
 
   constructor(private http: HttpClient) { }
 
-  createReport(targetId: string, data: CreateReportRequest): Observable<Report> {
-    return this.http.post<Report>(`${this.apiUrl}`, {
-      target_id: targetId,
-      ...data,
-    })
+  createReport(request: CreateReportRequest): Observable<Report> {
+    return this.http.post<Report>(`${this.apiUrl}`, request)
   }
 
-  getReports(): Observable<Report[]> {
-    return this.http.get<Report[]>(`${this.apiUrl}`)
+  getReports(status: string = "PENDING"): Observable<Report[]> {
+    return this.http.get<Report[]>(`${environment.apiUrl}/admin/reports/${status}`)
   }
 
   updateReportStatus(id: string, status: string): Observable<Report> {
-    return this.http.put<Report>(`${this.apiUrl}/${id}`, { status })
+    return this.http.put<Report>(`${environment.apiUrl}/admin/reports/${id}/status`, status)
+  }
+
+  deleteReport(id: string): Observable<void> {
+    return this.http.delete<void>(`${environment.apiUrl}/admin/reports/${id}`)
   }
 }

@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.zeroOneBlog.Dto.AuthResponseDto;
 import com.zeroOneBlog.Dto.LoginRequestDto;
 import com.zeroOneBlog.Dto.RegisterRequestDto;
 import com.zeroOneBlog.Services.UserService;
@@ -29,11 +30,13 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody @Valid RegisterRequestDto dto) {
+    public ResponseEntity<AuthResponseDto> register(@RequestBody @Valid RegisterRequestDto dto) {
         userService.register(dto);
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(Map.of("message", "You have registered successfully"));
+        // Auto-login after registration
+        LoginRequestDto loginDto = new LoginRequestDto();
+        loginDto.setEmail(dto.getEmail());
+        loginDto.setPassword(dto.getPassword());
+        return ResponseEntity.status(HttpStatus.CREATED).body(userService.login(loginDto));
     }
 
 }

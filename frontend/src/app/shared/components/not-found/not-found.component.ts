@@ -7,13 +7,13 @@ import { RouterModule } from "@angular/router"
   imports: [RouterModule],
   template: `
     <div class="min-h-screen d-flex align-items-center justify-content-center bg-background">
-      <div class="container-m mx-auto p-4">
+      <div class="container-xl mx-auto p-4">
         <div class="text-center max-w-2xl mx-auto">
           
           <!-- 404 Illustration -->
           <div class="mb-5">
             <div class="mx-auto mb-4" style="max-width: 400px;">
-              <img src="assets/images/404-illustration.png" alt="404 Illustration" class="img-fluid">
+              <img src="../../../assets/images/404-illustration.png" alt="404 Illustration" class="img-fluid">
             </div>
             <h1 class="text-4xl font-bold text-foreground mb-2">Page Not Found</h1>
             <p class="text-lg text-muted-foreground mb-5">

@@ -47,8 +47,8 @@ public class ReportController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ReportDto> updateReportStatus(
             @PathVariable UUID id,
-            @RequestBody StatusTypes status) {
-        return ResponseEntity.ok(reportService.updateReportStatus(id, status));
+            @RequestBody ReportDto request) {
+        return ResponseEntity.ok(reportService.updateReportStatus(id, request.getStatus()));
     }
 
     @DeleteMapping("/admin/reports/{id}")

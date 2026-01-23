@@ -1,0 +1,200 @@
+<div class="min-h-screen bg-background">
+  <div class="container-xl mx-auto px-4">
+    <!-- Header Section with Back Button -->
+    <div class="py-4 border-bottom border-muted">
+      <a routerLink="/feed"
+        class="btn btn-ghost text-muted-foreground hover:text-foreground d-inline-flex align-items-center gap-2">
+        <i class="bi bi-arrow-left"></i>
+        <span>Back to Feed</span>
+      </a>
+    </div>
+
+    <!-- Loading State -->
+    <ng-container *ngIf="isLoading; else loaded">
+      <div class="d-flex justify-content-center align-items-center" style="min-height: 400px;">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- Loaded Content -->
+    <ng-template #loaded>
+      <ng-container *ngIf="post; else notFound">
+        <div class="row g-4 py-5">
+          <!-- Main Content Column -->
+          <div class="col-lg-10 mx-auto">
+            <!-- Post Header -->
+            <header class="mb-5">
+              <!-- Author Info -->
+              <a [routerLink]="['/profile', post.author.id]"
+                class="d-flex align-items-center gap-3 mb-4 text-decoration-none hover:opacity-75 transition">
+                <div class="avatar-placeholder rounded-circle"
+                  style="width: 48px; height: 48px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                  <img *ngIf="post.author.avatarUrl" [src]="post.author.avatarUrl"
+                    class="w-100 h-100 rounded-circle object-cover" />
+                </div>
+                <div>
+                  <div class="fw-semibold text-foreground">
+                    {{ post.author.username || 'Unknown author' }}
+                  </div>
+                  <div class="small text-muted-foreground">
+                    {{ post.createdAt | date: 'MMM d, y · h:mm a' }}
+                  </div>
+                </div>
+              </a>
+
+              <!-- Post Title -->
+              <p class=" title">
+                {{ post.title }}
+              </p>
+
+              <!-- Post Stats & Menu -->
+              <div class="d-flex align-items-center justify-content-between mb-4">
+                <div class="d-flex gap-4">
+                  <div class="d-flex align-items-center gap-2 text-muted-foreground">
+                    <i class="bi bi-heart"></i>
+                    <span class="small">{{ post.likeCount }}</span>
+                  </div>
+                  <div class="d-flex align-items-center gap-2 text-muted-foreground">
+                    <i class="bi bi-chat-dots"></i>
+                    <span class="small">{{ post.commentCount }}</span>
+                  </div>
+                </div>
+
+                <!-- Post Menu Button -->
+                <div class="position-relative">
+                  <button class="btn btn-ghost p-2 rounded-circle transition" (click)="toggleDropdown($event)"
+                    type="button" title="More options" style="width: 40px; height: 40px;">
+                    <i class="bi bi-three-dots-vertical fs-5"></i>
+                  </button>
+
+                  <div class="dropdown-menu-custom position-absolute end-0 mt-2 animate-in"
+                    [class.d-none]="!showDropdown" style="min-width: 200px; z-index: 1050; top: 100%;">
+                    <ng-container *ngIf="post.isOwner; else notOwner">
+                      <button class="dropdown-item d-flex align-items-center gap-2" (click)="editPost($event)">
+                        <i class="bi bi-pencil-square"></i>
+                        <span>Edit Post</span>
+                      </button>
+                      <div class="dropdown-divider"></div>
+                      <button class="dropdown-item d-flex align-items-center gap-2 text-destructive"
+                        (click)="deletePost($event)">
+                        <i class="bi bi-trash"></i>
+                        <span>Delete Post</span>
+                      </button>
+                    </ng-container>
+
+                    <ng-template #notOwner>
+                      <button class="dropdown-item d-flex align-items-center gap-2 text-destructive"
+                        (click)="reportPost($event)">
+                        <i class="bi bi-flag-fill"></i>
+                        <span>Report Post</span>
+                      </button>
+                    </ng-template>
+                  </div>
+                </div>
+              </div>
+            </header>
+
+
+
+            <!-- Post Content -->
+            <article class="mb-5">
+              <div class="fs-5 lh-lg text-foreground markdown-body" [innerHTML]="parsedContent"
+                style="line-height: 1.8;">
+              </div>
+            </article>
+
+            <!-- Divider -->
+            <hr class="my-5 border-muted">
+
+            <!-- Comments Section -->
+            <section class="comments-section">
+              <h2 class="h4 fw-bold mb-4">
+                Comments <span class="text-muted-foreground">({{ post.commentCount }})</span>
+              </h2>
+
+              <!-- Comment Input -->
+              <div class="app-widget-card p-4 mb-4">
+                <div class="d-flex gap-3">
+                  <div class="avatar-placeholder rounded-circle flex-shrink-0"
+                    style="width: 40px; height: 40px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                  </div>
+                  <div class="flex-grow-1">
+                    <textarea class="form-control border-0 bg-muted mb-3" rows="3" placeholder="Share your thoughts..."
+                      [(ngModel)]="commentContent" name="commentContent" style="resize: none;"></textarea>
+                    <div class="d-flex justify-content-end">
+                      <button class="btn btn-primary px-4" (click)="createComment()"
+                        [disabled]="isSubmittingComment || !commentContent.trim()">
+                        <span *ngIf="!isSubmittingComment">Post Comment</span>
+                        <span *ngIf="isSubmittingComment">
+                          <span class="spinner-border spinner-border-sm me-2"></span>
+                          Posting...
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Comments List -->
+              <div class="d-flex flex-column gap-3 overflow-auto pe-2" style="max-height: 600px;">
+                <div class="app-widget-card p-4 hover:shadow-sm transition" *ngFor="let comment of comments">
+                  <div class="d-flex gap-3">
+                    <div class="avatar-placeholder rounded-circle flex-shrink-0"
+                      style="width: 40px; height: 40px; background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);">
+                    </div>
+                    <div class="flex-grow-1">
+                      <!-- Comment Header -->
+                      <div class="d-flex align-items-center justify-content-between mb-2">
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                          <span class="fw-semibold text-foreground">
+                            {{ comment.author.username }}
+                          </span>
+                          <span class="text-muted-foreground">·</span>
+                          <span class="small text-muted-foreground">
+                            {{ comment.updatedAt }}
+                          </span>
+                        </div>
+                      </div>
+                      <!-- Comment Content -->
+                      <p class="mb-0 text-foreground" style="line-height: 1.6;">
+                        {{ comment.content }}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- Not Found Template -->
+      <ng-template #notFound>
+        <div class="text-center py-5" style="min-height: 400px;">
+          <div class="mb-4">
+            <i class="bi bi-file-earmark-x display-1 text-muted-foreground"></i>
+          </div>
+          <h2 class="h3 fw-bold mb-3">Post Not Found</h2>
+          <p class="text-muted-foreground mb-4">
+            The post you are looking for may have been removed or is no longer available.
+          </p>
+          <a routerLink="/feed" class="btn btn-primary px-4">
+            <i class="bi bi-arrow-left me-2"></i>Back to Feed
+          </a>
+        </div>
+      </ng-template>
+    </ng-template>
+  </div>
+
+  <!-- Report Modal -->
+  <app-report-modal [isOpen]="showReportModal" [reportType]="'POST'" [targetId]="post?.id || ''"
+    (close)="closeReportModal()" (submit)="handleReportSubmit($event)">
+  </app-report-modal>
+
+  <!-- Edit Post Modal -->
+  <app-create-edit-post-modal [isOpen]="showEditModal" [editMode]="true" [postToEdit]="post"
+    (postUpdated)="handlePostUpdated($event)" (closeModal)="closeEditModal()">
+  </app-create-edit-post-modal>
+</div>

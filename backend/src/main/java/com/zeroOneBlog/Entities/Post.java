@@ -30,7 +30,7 @@ public class Post {
     @Column(nullable = false, length = 100)
     private String title;
 
-    @Column(nullable = false, length = 10000)
+    @Column(nullable = false, length = 100000)
     private String content;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -6,7 +6,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractContro
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { SpinnerComponent } from '../../../shared/components/spinner/spinner.component';
-import { ToastService } from '../../../shared/services/toast.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-register',

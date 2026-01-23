@@ -1,0 +1,96 @@
+
+<div class="position-relative" ngbDropdown placement="bottom-end" [autoClose]="'outside'">
+  <!-- Bell Button -->
+  <button class="btn btn-ghost align-items-center justify-content-center position-relative text-muted-foreground hover:text-foreground"  
+          ngbDropdownToggle
+          id="notificationDropdown"
+          aria-label="Notifications">
+    <i class="bi bi-bell"></i>
+    <span *ngIf="unreadCount > 0" 
+          class="badge rounded-pill bg-danger">
+      {{ unreadCount > 9 ? '9+' : unreadCount }}
+    </span>
+  </button>
+  
+  <!-- Dropdown Menu -->
+  <div ngbDropdownMenu 
+       aria-labelledby="notificationDropdown"
+       class="shadow-lg border-0 rounded-3 p-2"
+       style="position: absolute; left: -250px; min-width: 350px; max-width:350">
+    
+    <!-- Header -->
+    <div class="px-3 py-2 border-bottom d-flex justify-content-between align-items-center">
+      <h6 class="fw-bold text-muted-foreground m-0">Notifications</h6>
+      <button 
+        *ngIf="unreadCount > 0"
+        (click)="markAllAsRead(); $event.stopPropagation()"
+        class="btn btn-link btn-sm text-primary p-0 text-decoration-none"
+        style="font-size: 0.875rem;">
+        Mark all read
+      </button>
+    </div>
+    
+    <!-- Notifications List -->
+    <div class="notification-list" style="max-height: 400px; overflow-y: auto;">
+      <ng-container *ngIf="recentNotifications.length > 0; else noNotifications">
+        <div *ngFor="let notification of recentNotifications; let last = last" 
+             class="notification-item px-3 py-2 cursor-pointer position-relative"
+             [class.notification-unread]="!notification.read"
+             [class.border-bottom]="!last"
+             (click)="handleNotificationClick(notification); $event.stopPropagation()">
+          <div class="d-flex gap-2 align-items-start hover:bg-muted/50 transition" >
+            <!-- Avatar -->
+            <div class="flex-shrink-0" style="width: 40px; height: 40px;">
+              <div class="rounded-circle overflow-hidden bg-secondary d-flex align-items-center justify-content-center "
+                   style="width: 40px; height: 40px;">
+                <img *ngIf="notification.author?.avatar_url; else defaultAvatar" 
+                     [src]="notification.author?.avatar_url" 
+                     [alt]="notification.author?.username"
+                     class="w-100 h-100 object-fit-cover">
+                <ng-template #defaultAvatar>
+                  <i class="bi bi-person-fill text-white"></i>
+                </ng-template>
+              </div>
+            </div>
+            
+            <!-- Content -->
+            <div class="flex-grow-1 min-w-0">
+              <p class="mb-1 text-muted-foreground" style="font-size: 0.875rem; line-height: 1.4;">
+                <strong class="fw-semibold">{{ notification.author?.username || 'Someone' }}</strong> 
+                <span class="text-muted-foreground "> {{ notification.message }}</span>
+              </p>
+              <p class="mb-0 text-muted-foreground" style="font-size: 0.75rem;">
+                {{ getTimeAgo(notification.created_at) }}
+              </p>
+            </div>
+            
+            <!-- Unread Indicator -->
+            <div class="flex-shrink-0" style="width: 12px;">
+              <span *ngIf="!notification.read" 
+                    class="d-block rounded-circle bg-primary" 
+                    style="width: 8px; height: 8px;">
+              </span>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+      
+      <ng-template #noNotifications>
+        <div class="text-center py-5">
+          <i class="bi bi-bell-slash text-muted-foreground d-block mb-2" style="font-size: 3rem; opacity: 0.5;"></i>
+          <p class="text-muted-foreground mb-0" style="font-size: 0.875rem;">No notifications yet</p>
+        </div>
+      </ng-template>
+    </div>
+    
+    <!-- Footer -->
+    <div class="border-top">
+      <a routerLink="/notifications" 
+         class="d-block text-center py-2 text-primary text-decoration-none fw-semibold"
+         style="font-size: 0.875rem;"
+         (click)="$event.stopPropagation()">
+        View all notifications
+      </a>
+    </div>
+  </div>
+</div>

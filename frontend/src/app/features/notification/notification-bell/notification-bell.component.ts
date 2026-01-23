@@ -1,63 +1,73 @@
-import { Component } from "@angular/core"
+import { Component, OnInit, OnDestroy } from "@angular/core"
 import { CommonModule } from "@angular/common"
 import { NgbDropdownModule } from "@ng-bootstrap/ng-bootstrap"
+import { RouterModule } from "@angular/router"
+import { NotificationService, Notification } from "../../../core/services/notification.service"
+import { Subject, takeUntil } from "rxjs"
 
 @Component({
   selector: "app-notification-bell",
   standalone: true,
-  imports: [CommonModule, NgbDropdownModule],
-  template: `
-    <div class="position-relative" ngbDropdown placement="bottom-end">
-      <button class="btn btn-ghost p-2 d-flex align-items-center justify-content-center position-relative text-muted-foreground hover:text-foreground" 
-              style="width: 2.5rem; height: 2.5rem; border-radius: 50%;" 
-              ngbDropdownToggle
-              id="notificationDropdown">
-        <i class="bi bi-bell h-6 w-6"></i>
-        <span class="indicator-dot" style="top: 0.25rem; right: 0.25rem;"></span>
-      </button>
-      
-      <div ngbDropdownMenu 
-           aria-labelledby="notificationDropdown"
-           class="dropdown-menu-custom shadow-lg py-0" 
-           style="min-width: 320px; max-width: 90vw; z-index: 1050;">
-        <div class="p-3 border-bottom border-muted d-flex justify-content-between align-items-center">
-          <h3 class="font-bold text-foreground text-sm m-0">Notifications</h3>
-          <button class="btn btn-ghost btn-sm text-xs text-primary p-1">Mark all read</button>
-        </div>
-        <div style="max-height: 400px; overflow-y: auto;">
-          <div class="dropdown-item p-3 border-bottom border-muted cursor-pointer hover:bg-muted/50">
-            <div class="d-flex gap-3">
-              <div class="avatar-placeholder w-10 h-10 flex-shrink-0"></div>
-              <div class="flex-grow-1 min-w-0">
-                <p class="text-foreground text-sm m-0"><strong>John Doe</strong> liked your post</p>
-                <p class="text-muted-foreground text-xs mt-1 m-0">2 hours ago</p>
-              </div>
-            </div>
-          </div>
-          <div class="dropdown-item p-3 border-bottom border-muted cursor-pointer hover:bg-muted/50">
-            <div class="d-flex gap-3">
-              <div class="avatar-placeholder w-10 h-10 flex-shrink-0"></div>
-              <div class="flex-grow-1 min-w-0">
-                <p class="text-foreground text-sm m-0"><strong>Jane Smith</strong> started following you</p>
-                <p class="text-muted-foreground text-xs mt-1 m-0">5 hours ago</p>
-              </div>
-            </div>
-          </div>
-          <div class="dropdown-item p-3 cursor-pointer hover:bg-muted/50">
-            <div class="d-flex gap-3">
-              <div class="avatar-placeholder w-10 h-10 flex-shrink-0"></div>
-              <div class="flex-grow-1 min-w-0">
-                <p class="text-foreground text-sm m-0">New comment on your post</p>
-                <p class="text-muted-foreground text-xs mt-1 m-0">1 day ago</p>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="p-2 border-top border-muted text-center">
-          <a href="/notifications" class="text-sm text-primary text-decoration-none hover:underline">View all notifications</a>
-        </div>
-      </div>
-    </div>
-  `,
+  imports: [CommonModule, NgbDropdownModule, RouterModule],
+  templateUrl:"notification-bell.component.html",
 })
-export class NotificationBellComponent { }
+export class NotificationBellComponent implements OnInit, OnDestroy {
+  notifications: Notification[] = []
+  unreadCount: number = 0
+  private destroy$ = new Subject<void>()
+
+  constructor(private notificationService: NotificationService) {}
+
+  ngOnInit() {
+    // Load notifications initially
+    this.notificationService.getNotifications().subscribe()
+
+    // Subscribe to notifications updates
+    this.notificationService.notifications$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((notifications) => {
+        this.notifications = notifications
+      })
+
+    // Subscribe to unread count updates
+    this.notificationService.unreadCount$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((count) => {
+        this.unreadCount = count
+      })
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next()
+    this.destroy$.complete()
+  }
+
+  get recentNotifications(): Notification[] {
+    // Show only the 5 most recent notifications
+    return this.notifications.slice(0, 5)
+  }
+
+  handleNotificationClick(notification: Notification) {
+    if (!notification.read) {
+      this.notificationService.markAsRead(notification.id).subscribe()
+    }
+    // You can add navigation logic here if needed
+  }
+
+  markAllAsRead() {
+    this.notificationService.markAllAsRead().subscribe()
+  }
+  
+  getTimeAgo(dateString: string): string {
+    const date = new Date(dateString)
+    const now = new Date()
+    const seconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+
+    if (seconds < 60) return 'just now'
+    if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`
+    if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`
+    if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`
+    if (seconds < 2592000) return `${Math.floor(seconds / 604800)}w ago`
+    return `${Math.floor(seconds / 2592000)}mo ago`
+  }
+}

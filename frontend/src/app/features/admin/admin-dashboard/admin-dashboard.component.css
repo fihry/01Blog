@@ -1,0 +1,59 @@
+.app-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  color: hsl(var(--foreground));
+  background-color: hsl(var(--card));
+}
+
+.app-table thead {
+  background-color: hsl(var(--muted));
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.app-table th {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: hsl(var(--muted-foreground));
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid hsl(var(--border));
+  white-space: nowrap;
+}
+
+.app-table td {
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid hsl(var(--border));
+  color: hsl(var(--foreground));
+  vertical-align: middle;
+}
+
+.app-table tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+.app-table tbody tr:hover {
+  background-color: hsl(var(--muted));
+}
+
+.table-responsive {
+  max-height: 520px;
+  overflow-y: auto;
+  overflow-x: auto;
+  border-radius: 0.75rem;
+}
+
+.app-table td,
+.app-table th {
+  white-space: nowrap;
+}
+
+.app-table .wrap {
+  white-space: normal;
+  max-width: 320px;
+}
+
+

@@ -2,9 +2,11 @@ package com.zeroOneBlog.Controllers;
 
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,16 +16,17 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.zeroOneBlog.Dto.PostDto;
 import com.zeroOneBlog.Dto.UserDto;
 import com.zeroOneBlog.Dto.UserUpdateDto;
+import com.zeroOneBlog.Dto.PasswordChangeDto;
 import com.zeroOneBlog.Exceptions.ApiException;
+import com.zeroOneBlog.Security.CustomUserDetails;
 import com.zeroOneBlog.Services.UserService;
+import com.zeroOneBlog.Services.PostService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 @RestController
 @RequestMapping("/api/users")
@@ -31,6 +34,7 @@ import org.springframework.data.domain.Pageable;
 public class UserController {
 
     private final UserService userService;
+    private final PostService postService;
 
     @GetMapping
     public ResponseEntity<Page<UserDto>> getAllUsers(Pageable pageable) {
@@ -45,10 +49,10 @@ public class UserController {
     @PutMapping(path = "/{id}", consumes = {"multipart/form-data"})
     public ResponseEntity<UserDto> updateUserMultipart(
             @PathVariable UUID id,
-            @ModelAttribute @Valid UserUpdateDto dto) throws Exception {
+            @ModelAttribute @Valid UserUpdateDto dto,
+            @AuthenticationPrincipal CustomUserDetails userDetails) throws Exception {
         // Check authorization: user can only update their own profile
-        UUID currentUserId = userService.getCurrentUserId();
-        if (!currentUserId.equals(id)) {
+        if (!userDetails.getId().equals(id)) {
             throw new ApiException(HttpStatus.FORBIDDEN, "You can only update your own profile");
         }
         UserDto updatedUser = userService.updateUser(id, dto);
@@ -59,10 +63,10 @@ public class UserController {
     @PutMapping(path = "/{id}", consumes = {"application/json"})
     public ResponseEntity<UserDto> updateUserJson(
             @PathVariable UUID id,
-            @RequestBody @Valid UserUpdateDto dto) {
+            @RequestBody @Valid UserUpdateDto dto,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
         // Check authorization: user can only update their own profile
-        UUID currentUserId = userService.getCurrentUserId();
-        if (!currentUserId.equals(id)) {
+        if (!userDetails.getId().equals(id)) {
             throw new ApiException(HttpStatus.FORBIDDEN, "You can only update your own profile");
         }
         UserDto updatedUser = userService.updateUser(id, dto);
@@ -71,13 +75,32 @@ public class UserController {
 
     @PostMapping("/{id}/subscribe")
     public ResponseEntity<?> subscribe(@PathVariable UUID id) {
-        userService.subscribeUser(userService.getCurrentUserId(), id);
-        return ResponseEntity.ok("Subscribed successfully");
+        userService.toggleFollowing(userService.getCurrentUserId(), id);
+        return ResponseEntity.ok().build();
     }
 
-    @DeleteMapping("/{id}/unsubscribe")
-    public ResponseEntity<?> unsubscribe(@PathVariable UUID id) {
-        userService.unsubscribeUser(id, id);
-        return ResponseEntity.ok("Unsubscribed successfully");
+    @PostMapping("/{id}/change-password")
+    public ResponseEntity<?> changePassword(
+            @PathVariable UUID id,
+            @RequestBody @Valid PasswordChangeDto dto,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        if (!userDetails.getId().equals(id)) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "You can only change your own password");
+        }
+        userService.changePassword(id, dto);
+        return ResponseEntity.ok().build();
+    }
+
+    // @DeleteMapping("/{id}/unsubscribe")
+    // public ResponseEntity<?> unsubscribe(@PathVariable UUID id) {
+    //     userService.unsubscribeUser(id, id);
+    //     return ResponseEntity.ok().build();
+    // }
+    @GetMapping("/{UserId}/posts")
+    public ResponseEntity<Page<PostDto>> getAllUserPosts(@PathVariable UUID UserId, @AuthenticationPrincipal CustomUserDetails userDetails){
+        Pageable page = Pageable.unpaged();
+
+        Page<PostDto> posts = postService.getAllUserPosts(page, UserId,userDetails.getId());
+        return ResponseEntity.ok(posts);
     }
 }

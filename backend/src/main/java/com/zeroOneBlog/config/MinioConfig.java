@@ -25,10 +25,18 @@ public class MinioConfig {
     public MinioClient minioClient() {
         return MinioClient.builder()
                 .endpoint(minioEndpoint)
+                .region("us-east-1")
                 .credentials(minioAccessKey, minioSecretKey)
                 .build();
     }
 
-
+    @Bean(name = "minioExternalClient")
+    public MinioClient minioExternalClient() {
+        return MinioClient.builder()
+                .endpoint(minioExternalEndpoint)
+                .region("us-east-1")
+                .credentials(minioAccessKey, minioSecretKey)
+                .build();
+    }
 }
 

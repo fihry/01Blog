@@ -1,0 +1,110 @@
+.title {
+    max-width: 100%;
+    width: 100%;
+    font-size: 2rem;
+    margin: 1rem 0 0.5rem;
+    font-weight: bold;
+    line-height: 1.2;
+    word-break: break-word;
+    /* Ensure long words break */
+    overflow-wrap: break-word;
+    /* Ensure standard wrapping */
+    hyphens: auto;
+    /* Optional: adds hyphens where appropriate */
+}
+
+.markdown-body {
+    position: relative;
+    max-width: 100%;
+    height: auto;
+
+    ::ng-deep iframe {
+        max-width: 100% !important;
+        height: auto !important;
+        aspect-ratio: 16/9;
+        margin: 1rem 0;
+    }
+
+    ::ng-deep p {
+        margin: 1rem 0 !important;
+    }
+
+    ::ng-deep img,
+    ::ng-deep video {
+        max-width: 100%;
+        height: auto;
+        border-radius: 4px;
+        margin: 0.5rem 0;
+    }
+
+    ::ng-deep h1 {
+        font-size: 2rem;
+        margin: 1rem 0 0.5rem;
+        font-weight: bold;
+    }
+
+    ::ng-deep h2 {
+        font-size: 1.75rem;
+        margin: 1rem 0 0.5rem;
+        font-weight: bold;
+    }
+
+    ::ng-deep h3 {
+        font-size: 1.5rem;
+        margin: 1rem 0 0.5rem;
+        font-weight: bold;
+    }
+
+    ::ng-deep h4 {
+        font-size: 1.25rem;
+        margin: 1rem 0 0.5rem;
+        font-weight: bold;
+    }
+
+    ::ng-deep p {
+        margin-bottom: 1rem;
+    }
+
+    ::ng-deep ul,
+    ::ng-deep ol {
+        margin-bottom: 1rem;
+        padding-left: 1.5rem;
+    }
+
+    ::ng-deep blockquote {
+        border-left: 4px solid #dee2e6;
+        padding-left: 1rem;
+        margin: 1rem 0;
+        color: #6c757d;
+        font-style: italic;
+    }
+
+    ::ng-deep code {
+        background: #e9ecef;
+        padding: 0.2rem 0.4rem;
+        border-radius: 3px;
+        font-family: 'Courier New', monospace;
+        font-size: 0.9em;
+    }
+
+    ::ng-deep pre {
+        background: #343a40;
+        color: #f8f9fa;
+        padding: 1rem;
+        border-radius: 4px;
+        overflow-x: auto;
+        margin: 1rem 0;
+    }
+
+    ::ng-deep pre code {
+        background: none;
+        padding: 0;
+        color: inherit;
+    }
+
+    ::ng-deep hr {
+        margin: 1.5rem 0;
+        border: none;
+        border-top: 2px solid #dee2e6;
+    }
+}
