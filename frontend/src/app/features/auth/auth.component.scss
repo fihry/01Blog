@@ -1,0 +1,71 @@
+/* --- Left Panel Content Styling --- */
+
+.left-panel {
+    /* Set the background image and its styling */
+    // background-image: ; /* 💡 Use your specific image path */
+    background-size: cover;
+    background-position: center;
+    color: var(--primary-foreground); /* White text over the image */
+    padding: 3rem;
+    position: relative;
+    
+    /* Ensure the panel takes full height of the container */
+    height: 100%;
+    min-height: 100vh;
+}
+
+/* Optional: Add a subtle dark overlay for better text readability */
+.left-panel::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: none;
+    z-index: 1;
+}
+
+.left-panel-content {
+    position: relative;
+    z-index: 2; /* Keep content above the overlay */
+    padding-top: 2rem;
+}
+
+.left-panel-content h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.left-panel-content p {
+    font-size: 1.1rem;
+    line-height: 1.6;
+}
+
+/* Adjust the main container to handle the full width/height split */
+.auth-split-container {
+    width: 100%;
+    height: 100vh; /* Takes full viewport height */
+    overflow: hidden; /* Prevent scrollbar if content slightly exceeds height */
+}
+
+/* Ensure the form card is still centered within its column */
+.login-card, .register-card {
+    /* Keep existing card styles, but ensure it is centered in the column */
+    margin: auto; 
+}
+
+/* Hide the left panel on small screens (Bootstrap 'd-none d-lg-block') */
+/* The main container (login-page-container) handles the centering of the form on small screens. */
+.auth-split-container {
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+}
+.row.h-100 { /* This is critical for the Bootstrap row to take full height */ }
+.left-panel {
+    // background-image: url('assets/images/auth-sidebar-bg.jpg'); /* ⬅️ Update this path! */
+    background-size: cover;
+    /* ... rest of the left-panel styles ... */
+}

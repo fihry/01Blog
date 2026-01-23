@@ -1,0 +1,108 @@
+<!-- Inline trigger card (only show when not in edit mode) -->
+<div class="app-widget-card mb-4 p-4 cursor-pointer" (click)="openOverlay()" *ngIf="!isOpen && !editMode"
+  style="cursor: pointer;">
+  <div class="d-flex align-items-start gap-3">
+    <div class="avatar-placeholder flex-shrink-0"></div>
+    <div class="flex-grow-1">
+      <div class="bg-muted rounded-3 px-4 py-3 text-muted-foreground text-sm">
+        What's on your mind? Start a post...
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Full screen modal overlay -->
+<div *ngIf="isOpen" class="modal-overlay d-flex align-items-center justify-content-center"
+  style="position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); z-index: 1050; padding: 20px;"
+  (click)="closeOverlay()">
+  <div class="app-widget-card w-100 h-100 shadow-lg d-flex flex-column animate-in"
+    style="max-width: 1400px; max-height: 95vh; overflow: hidden;" (click)="$event.stopPropagation()">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center px-4 py-3 border-bottom">
+      <div class="d-flex align-items-center gap-2">
+        <i class="bi" [class.bi-pencil-square]="editMode" [class.bi-file-earmark-plus]="!editMode"></i>
+        <span class="fw-semibold">{{ editMode ? 'Edit Post' : 'Create Post' }}</span>
+      </div>
+      <button type="button" class="btn-close" aria-label="Close" (click)="closeOverlay()" [disabled]="isSubmitting">
+      </button>
+    </div>
+
+    <!-- Form -->
+    <form class="d-flex flex-column flex-grow-1 overflow-hidden" (ngSubmit)="onSubmit()">
+
+      <!-- Toolbar -->
+      <div class="px-4 py-2 border-bottom d-flex align-items-center gap-2 flex-wrap bg-muted">
+        <button type="button" class="btn btn-ghost btn-sm" (click)="insertFormat('h1')" title="Heading 1">
+          <strong>H1</strong>
+        </button>
+        <button type="button" class="btn btn-ghost btn-sm" (click)="insertFormat('h2')" title="Heading 2">
+          <strong>H2</strong>
+        </button>
+        <button type="button" class="btn btn-ghost btn-sm" (click)="insertFormat('bold')" title="Bold">
+          <strong>B</strong>
+        </button>
+        <button type="button" class="btn btn-ghost btn-sm" (click)="insertFormat('italic')" title="Italic">
+          <em>I</em>
+        </button>
+        <button type="button" class="btn btn-ghost btn-sm" (click)="insertFormat('bullet')" title="Bullet List">
+          • List
+        </button>
+
+        <div class="vr mx-2"></div>
+
+        <label class="btn btn-ghost btn-sm d-flex align-items-center gap-2 mb-0" style="cursor: pointer;">
+          <i class="bi bi-image text-primary"></i>
+          <span class="text-xs">Add Media</span>
+          <input type="file" class="d-none" multiple accept="image/*,video/*" (change)="onFilesSelected($event)" />
+        </label>
+      </div>
+
+      <!-- Main Editor Area (Split Split) -->
+      <div class="px-4 py-3 d-flex flex-column flex-grow-1 overflow-hidden">
+        <input type="text" placeholder="Post title..." class="form-control border-0 fs-3 fw-bold px-0 mb-3"
+          style="box-shadow: none;" [(ngModel)]="title" name="title" required minlength="3" />
+
+        <div class="split-pane flex-grow-1 overflow-hidden">
+          <!-- Left: Type -->
+          <textarea #textarea class="editor-pane form-control" [(ngModel)]="content" name="content"
+            (input)="updatePreview()" placeholder="Write in Markdown..."></textarea>
+
+          <!-- Right: Preview -->
+          <div class="preview-pane" [innerHTML]="previewContent"></div>
+        </div>
+      </div>
+
+      <!-- Error Message -->
+      <div *ngIf="errorMessage"
+        class="alert alert-danger mb-0 mx-4 mb-2 py-2 px-3 text-sm d-flex align-items-center gap-2">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        {{ errorMessage }}
+      </div>
+
+      <!-- Footer -->
+      <div class="px-4 py-3 border-top d-flex justify-content-between align-items-center">
+        <div class="text-xs text-muted-foreground">
+          <i class="bi bi-markdown me-1"></i>
+          Markdown supported. Images/Videos will be uploaded on publish.
+        </div>
+        <div class="d-flex gap-2">
+          <button type="button" class="btn btn-outline-secondary btn-sm" (click)="closeOverlay()"
+            [disabled]="isSubmitting">
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-primary btn-sm"
+            [disabled]="isSubmitting || !title.trim() || !content.trim()">
+            <span *ngIf="!isSubmitting">
+              <i class="bi me-1" [class.bi-check-circle]="editMode" [class.bi-send]="!editMode"></i>
+              {{ editMode ? 'Update' : 'Publish' }}
+            </span>
+            <span *ngIf="isSubmitting" class="d-flex align-items-center gap-2">
+              <span class="spinner-border spinner-border-sm" role="status"></span>
+              {{ editMode ? 'Updating...' : 'Publishing...' }}
+            </span>
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,80 @@
+
+i {
+  vertical-align: middle;
+}
+
+.navbar-base {
+  background: var(--background);
+  padding: 0.5re;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(10px);
+}
+.navbar-brand{
+  color: var(--primary);
+}
+
+// .dropdown-menu-custom {
+//     background-color: var(--card); 
+//     border: 1px solid var(--border);
+//     .dropdown-item {
+//         color: var(--primary);
+//     }
+// }
+
+.navbar-toggler {
+  border-color: none;
+  padding: 0.25rem 0.5rem;
+
+  .bi {
+    color: var(--background);
+    size: .5rem;
+  }
+}
+
+// 2. Navigation Links (Text Color, Hover, Active)
+.nav-link {
+  color: var(--background);
+  transition: color 0.2s, background-color 0.2s;
+  cursor: pointer;
+  font-size: calc(var(--spacing) * 3);
+  border-radius: var(--radius);
+  padding: .2rem;
+  &:hover,
+  &:focus {
+    color: var(--primary);
+    background-color: var(--input);
+  }
+
+  &.active {
+    color: var(--primary);
+    font-weight: 600;
+    background-color: var(--input);
+  }
+}
+
+.login-btn {
+  background-color: var(--primary); 
+  color: var(--primary-foreground);
+  border-color: var(--primary);
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: color-mix(in srgb, var(--primary) 90%, black) !important;
+    border-color: color-mix(in srgb, var(--primary) 90%, black) !important;
+  }
+}
+
+.avatar {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  border: 2px solid var(--color-green-400);
+  margin-right:10px;
+}
+/* --- Fix: Ensure Navbar Control Icons are Visible in Both Themes --- */
+.navbar-nav .nav-item button.nav-link i {
+    color: hsl(var(--foreground)) !important; 
+}

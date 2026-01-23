@@ -1,0 +1,137 @@
+// post-card.component.scss
+
+.post-card {
+  position: relative;
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  gap: 0.8rem;
+  overflow: hidden;
+
+  // Subtle hover effect for engagement
+  &:hover {
+    border-color: var(--ring);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  }
+}
+
+.author-avatar-placeholder {
+  height: 3rem;
+  width: 3rem;
+  border-radius: 50%;
+  background-color: var(--muted);
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.post-author {
+  color: var(--foreground);
+}
+
+.post-title {
+  color: var(--foreground);
+  overflow: hidden;
+}
+
+.title {
+  word-break: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+.post-content {
+  color: var(--muted-foreground);
+  line-height: 1.6;
+}
+
+.engagement-bar {
+  // Ensures the divider line uses the theme color
+  border-color: var(--border) !important;
+}
+
+.action-btn {
+  // Styling the interaction buttons
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  color: var(--muted-foreground);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.2s;
+
+  // Use the primary color for action feedback
+  &:hover {
+    color: var(--primary);
+  }
+}
+
+.markdown-body {
+
+  h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0.5rem 0;
+  }
+
+  h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0.5rem 0;
+  }
+
+  strong {
+    font-weight: 600;
+  }
+
+  em {
+    font-style: italic;
+  }
+
+  li {
+    margin-left: 1.25rem;
+    list-style-type: disc;
+  }
+
+  br {
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+}
+
+.action-panel {
+  background: var(--card);
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 0.25rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 120px;
+  z-index: 1000;
+
+  button.action-btn {
+    padding: 0.5rem 1rem;
+    text-align: left;
+    background: transparent;
+    border: none;
+    font-size: 0.875rem;
+
+    &:hover {
+      background: var(--primary)/10;
+    }
+
+    &.text-danger:hover {
+      background: rgba(255, 0, 0, 0.1);
+    }
+
+    &.text-warning:hover {
+      background: rgba(255, 165, 0, 0.1);
+    }
+  }
+}

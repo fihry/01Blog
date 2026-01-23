@@ -1,0 +1,260 @@
+package com.zeroOneBlog.Services;
+
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+
+import com.zeroOneBlog.Dto.MediaDto;
+import com.zeroOneBlog.Dto.PostCreateDto;
+import com.zeroOneBlog.Dto.PostDto;
+import com.zeroOneBlog.Dto.UserSummaryDto;
+import com.zeroOneBlog.Entities.Like;
+import com.zeroOneBlog.Entities.Media;
+import com.zeroOneBlog.Entities.Post;
+import com.zeroOneBlog.Entities.User;
+import com.zeroOneBlog.Exceptions.ApiException;
+import com.zeroOneBlog.Repositories.CommentRepository;
+import com.zeroOneBlog.Repositories.LikeRepository;
+import com.zeroOneBlog.Repositories.PostRepository;
+import com.zeroOneBlog.Repositories.UserRepository;
+import com.zeroOneBlog.Types.MinioBucketTypes;
+
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
+public class PostService {
+
+    private final PostRepository postRepository;
+    private final UserRepository userRepository;
+    private final CommentRepository commentRepository;
+    private final LikeRepository likeRepository;
+    private final MinioService minioService;
+
+    // Fetch post entity or throw 404
+    public Post getById(UUID postId) {
+        return postRepository.findById(postId)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Post not found"));
+    }
+
+    // Get post as DTO with counts and current user like info
+    public PostDto getByPostId(UUID postId, UUID currentUserId) {
+        Post post = getById(postId);
+        return mapToDto(post, currentUserId);
+    }
+
+    private PostDto mapToDto(Post post, UUID currentUserId) {
+        String avatarUrl = post.getAuthor().getAvatarUrl();
+        if (avatarUrl != null) {
+            avatarUrl = minioService.getMediaUrl(avatarUrl);
+        }
+        UserSummaryDto authorSummary = new UserSummaryDto(
+                post.getAuthor().getId(),
+                post.getAuthor().getUsername(),
+                avatarUrl);
+
+        List<MediaDto> mediaDtos = post.getMedia() != null ? post.getMedia().stream()
+                .map(media -> MediaDto.builder()
+                        .id(media.getId())
+                        .mediaUrl(minioService.getMediaUrl(media.getMediaUrl()))
+                        .mediaType(media.getMediaType())
+                        .build())
+                .collect(Collectors.toList()) : List.of();
+
+        int likeCount = likeRepository.countByPostId(post.getId());
+        int commentCount = commentRepository.countByPostId(post.getId());
+        boolean likedByUser = likeRepository.existsByPostIdAndUserId(post.getId(), currentUserId);
+
+        return new PostDto(
+                post.getId(),
+                post.getTitle(),
+                post.getContent(),
+                mediaDtos,
+                authorSummary,
+                post.getCreatedAt(),
+                post.getUpdatedAt(),
+                likeCount,
+                commentCount,
+                likedByUser);
+    }
+
+    public PostDto createPost(PostCreateDto dto, UUID currentUserId) {
+        User author = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new ApiException(HttpStatus.BAD_REQUEST, "User not found"));
+
+        Post post = new Post();
+        post.setTitle(dto.getTitle());
+        post.setContent(dto.getContent());
+        post.setAuthor(author);
+
+        Post savedPost = postRepository.save(post);
+
+        // Process media files
+        if (dto.getMediaFiles() != null && !dto.getMediaFiles().isEmpty()) {
+            String newContent = processMediaFiles(savedPost, dto.getMediaFiles(), dto.getContent());
+            savedPost.setContent(newContent);
+            postRepository.save(savedPost);
+        }
+
+        return mapToDto(savedPost, currentUserId);
+    }
+
+    public Page<PostDto> getAllPosts(Pageable pageable, UUID currentUserId) {
+        pageable = (pageable == null) ? Pageable.unpaged() : pageable;
+        Page<Post> postsPage = postRepository.findAllByOrderByCreatedAtDesc(pageable);
+        return postsPage.map(post -> mapToDto(post, currentUserId));
+    }
+
+    public PostDto updatePost(UUID postId, PostCreateDto dto, UUID currentUserId) {
+        Post post = getById(postId);
+
+        // Check if current user is the author
+        if (!post.getAuthor().getId().equals(currentUserId)) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "You can only update your own posts");
+        }
+
+        post.setTitle(dto.getTitle());
+        post.setUpdatedAt(new java.sql.Timestamp(System.currentTimeMillis()));
+
+        // Sync existing media: remove media records that are no longer referenced in the content
+        if (post.getMedia() != null) {
+            String updatedContent = dto.getContent();
+            java.util.Iterator<Media> iterator = post.getMedia().iterator();
+            while (iterator.hasNext()) {
+                Media media = iterator.next();
+                String relativeUrl = minioService.getPermalink(media.getMediaUrl());
+                if (!updatedContent.contains(relativeUrl)) {
+                    minioService.deleteFile(media.getMediaUrl());
+                    iterator.remove(); // Hibernate handles delete via orphanRemoval=true
+                }
+            }
+        }
+
+        // Handle new media uploads
+        if (dto.getMediaFiles() != null && !dto.getMediaFiles().isEmpty()) {
+            String finalContent = processMediaFiles(post, dto.getMediaFiles(), dto.getContent());
+            post.setContent(finalContent);
+        } else {
+            post.setContent(dto.getContent());
+        }
+
+        Post updatedPost = postRepository.save(post);
+        return mapToDto(updatedPost, currentUserId);
+    }
+
+    private String processMediaFiles(Post post, List<org.springframework.web.multipart.MultipartFile> files, String content) {
+        if (files == null || files.isEmpty()) return content;
+
+        String mutableContent = content; // String is immutable, but we reassign
+        
+        if (post.getMedia() == null) {
+            post.setMedia(new java.util.ArrayList<>());
+        }
+
+        for (int i = 0; i < files.size(); i++) {
+            org.springframework.web.multipart.MultipartFile file = files.get(i);
+            if (file == null || file.isEmpty()) continue;
+
+            String mediaUrl = minioService.uploadFile(file);
+            MinioBucketTypes mediaType = getPostMediaType(file.getContentType());
+
+            if (mediaType == null) {
+                // Should we delete the uploaded file if type is wrong? Theoretically yes.
+                // But for now keeping error behavior simple.
+                throw new ApiException(HttpStatus.BAD_REQUEST, "Posts only support images and videos");
+            }
+
+            Media media = new Media();
+            media.setPost(post);
+            media.setMediaUrl(mediaUrl);
+            media.setMediaType(mediaType);
+            post.getMedia().add(media);
+
+            String relativeUrl = minioService.getPermalink(mediaUrl);
+
+            // Replace the placeholder {{MEDIA_INDEX_i}} with the relative URL
+            // We use replace (not replaceAll) because we expect specific instances, but replace() replaces all occurrences in String (which is fine)
+            // relativeUrl is e.g., /media/images/key.png
+            String placeholder = "{{MEDIA_INDEX_" + i + "}}";
+            mutableContent = mutableContent.replace(placeholder, relativeUrl);
+        }
+
+        return mutableContent;
+    }
+
+    public void deletePost(UUID postId, UUID currentUserId) {
+        Post post = getById(postId);
+
+        // Check if current user is the author
+        if (!post.getAuthor().getId().equals(currentUserId)) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "You can only delete your own posts");
+        }
+        deletePostInternal(post);
+    }
+
+    public void deletePostByAdmin(UUID postId) {
+        Post post = getById(postId);
+        deletePostInternal(post);
+    }
+
+    private void deletePostInternal(Post post) {
+        // Delete associated media files from Minio
+        if (post.getMedia() != null) {
+            for (Media media : post.getMedia()) {
+                minioService.deleteFile(media.getMediaUrl());
+            }
+        }
+        postRepository.delete(post);
+    }
+
+    // Toggle like for a post by the current user
+    @Transactional
+    public void toggleLike(UUID postId, UUID currentUserId) {
+        Post post = getById(postId);
+        User user = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new ApiException(HttpStatus.BAD_REQUEST, "User not found"));
+
+        boolean alreadyLiked = likeRepository.existsByPostIdAndUserId(postId, currentUserId);
+        if (alreadyLiked) {
+            likeRepository.deleteByPostIdAndUserId(postId, currentUserId);
+        } else {
+            Like like = new Like();
+            like.setPost(post);
+            like.setUser(user);
+            likeRepository.save(like);
+        }
+    }
+
+    // Helper method to determine media type from content type (only images and
+    // videos for posts)
+    private MinioBucketTypes getPostMediaType(String contentType) {
+        if (contentType == null) {
+            return null;
+        }
+        if (contentType.startsWith("video")) {
+            return MinioBucketTypes.VIDEOS;
+        }
+        if (contentType.startsWith("image")) {
+            return MinioBucketTypes.IMAGES;
+        }
+        return null; // Reject audio and other types
+    }
+
+    public long getPostCount() {
+        return postRepository.count();
+    }
+
+    public Page<PostDto> getAllUserPosts(Pageable pageable, UUID useruUuid, UUID currentUserId) {
+        pageable = (pageable == null) ? Pageable.unpaged() : pageable;
+        User user = userRepository.findById(useruUuid)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "User not found"));
+        Page<Post> postsPage = postRepository.findByAuthorOrderByCreatedAtDesc(user, pageable);
+        return postsPage.map(post -> mapToDto(post, currentUserId));
+    }
+}
