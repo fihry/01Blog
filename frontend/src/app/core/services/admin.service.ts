@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core"
 import { HttpClient } from "@angular/common/http"
 import type { Observable } from "rxjs"
-import { Post, PostPage } from "./post.service"
+import { Post } from "./post.service"
 
 export interface AdminStats {
   total_users: number
@@ -54,7 +54,7 @@ export class AdminService {
     return this.http.delete<void>(`${this.apiUrl}/users/${id}`)
   }
 
-  getUsers(page = 0, limit = 20): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/users?page=${page}&limit=${limit}`)
+  getUsers(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/users`)
   }
 }

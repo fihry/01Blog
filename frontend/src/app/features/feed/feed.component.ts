@@ -6,7 +6,7 @@ import { FormsModule } from "@angular/forms"
 import { RouterModule } from "@angular/router"
 import { PostCardComponent } from "../../shared/components/post-card/post-card.component"
 import { CreateEditPostModalComponent } from "../../shared/components/create-post-modal/create-edit-post-modal.component"
-import { Post, PostService, type Post as ApiPost, type PostPage } from "../../core/services/post.service"
+import { Post, PostService, type Post as ApiPost, } from "../../core/services/post.service"
 import { UserService } from "../../core/services/user.service"
 import { AuthService } from "../../core/services/auth.service"
 
@@ -21,6 +21,7 @@ import { AuthService } from "../../core/services/auth.service"
 export class FeedComponent implements OnInit {
   posts: Post[] = []
   searchQuery: string = ''
+  categorySelected: 'All' | 'Following' = 'All';
 
   isLoading = false
   errorMessage: string | null = null
@@ -38,12 +39,13 @@ export class FeedComponent implements OnInit {
     });
   }
 
-  private loadFeed(page = 0, limit = 10): void {
+  private loadFeed(): void {
     this.isLoading = true
     this.errorMessage = null
-    this.postService.getFeed(page, limit).subscribe({
-      next: (pageResp: PostPage) => {
-        this.posts = pageResp.content.map((post) => this.mapPost({
+    const feed$ = this.categorySelected == "All" ? this.postService.getFeed() : this.postService.getFollowingUsersPosts()
+    feed$.subscribe({
+      next: (pageResp: Post[]) => {
+        this.posts = pageResp.map((post) => this.mapPost({
           ...post,
           createdAt: new Date(post.createdAt).toLocaleString(),
           updatedAt: new Date(post.updatedAt).toLocaleString(),
@@ -57,6 +59,13 @@ export class FeedComponent implements OnInit {
       },
     })
   }
+  selectCategory(category: 'All' | 'Following') {
+    if (this.categorySelected !== category) {
+      this.categorySelected = category;
+      this.loadFeed();
+    }
+  }
+
 
   private mapPost(apiPost: ApiPost): Post {
     return apiPost

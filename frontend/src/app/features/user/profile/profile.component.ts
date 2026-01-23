@@ -4,7 +4,7 @@ import { ActivatedRoute, RouterModule, Router } from "@angular/router"
 import { UserService } from "../../../core/services/user.service"
 import { AuthService } from "../../../core/services/auth.service"
 import { PostCardComponent } from "../../../shared/components/post-card/post-card.component"
-import { Post, PostService, PostPage } from "../../../core/services/post.service"
+import { Post, PostService } from "../../../core/services/post.service"
 import { ToastService } from "../../../core/services/toast.service"
 import { ReportService } from "../../../core/services/report.service"
 import { ReportModalComponent, type ReportData } from "../../../shared/components/report-modal/report-modal.component"
@@ -68,8 +68,8 @@ export class ProfileComponent implements OnInit {
   }
   loadPosts(userId: string) {
     this.userService.getUserPosts(userId).subscribe({
-      next: (pageResp: PostPage) => {
-        this.posts = pageResp.content.map((post) => ({
+      next: (pageResp: Post[]) => {
+        this.posts = pageResp.map((post) => ({
           ...post,
           createdAt: new Date(post.createdAt).toLocaleString(),
           updatedAt: new Date(post.updatedAt).toLocaleString(),

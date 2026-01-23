@@ -1,9 +1,8 @@
 package com.zeroOneBlog.Controllers;
 
+import java.util.List;
 import java.util.UUID;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -37,8 +36,8 @@ public class UserController {
     private final PostService postService;
 
     @GetMapping
-    public ResponseEntity<Page<UserDto>> getAllUsers(Pageable pageable) {
-        return ResponseEntity.ok(userService.getAllUsers(pageable));
+    public ResponseEntity<List<UserDto>> getAllUsers() {
+        return ResponseEntity.ok(userService.getAllUsers());
     }
 
     @GetMapping("/{id}")
@@ -97,10 +96,8 @@ public class UserController {
     //     return ResponseEntity.ok().build();
     // }
     @GetMapping("/{UserId}/posts")
-    public ResponseEntity<Page<PostDto>> getAllUserPosts(@PathVariable UUID UserId, @AuthenticationPrincipal CustomUserDetails userDetails){
-        Pageable page = Pageable.unpaged();
-
-        Page<PostDto> posts = postService.getAllUserPosts(page, UserId,userDetails.getId());
+    public ResponseEntity<List<PostDto>> getAllUserPosts(@PathVariable UUID UserId, @AuthenticationPrincipal CustomUserDetails userDetails){
+        List<PostDto> posts = postService.getAllUserPosts(UserId,userDetails.getId());
         return ResponseEntity.ok(posts);
     }
 }

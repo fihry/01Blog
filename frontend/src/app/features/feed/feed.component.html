@@ -64,8 +64,14 @@
                         <p class="text-sm text-muted-foreground m-0">Stay updated with the latest posts</p>
                     </div>
                     <div class="segmented-control">
-                        <button class="segment active">For You</button>
-                        <button class="segment">Following</button>
+                        <button class="segment" [class.active]="categorySelected === 'All'"
+                            (click)="selectCategory('All')">
+                            For You
+                        </button>
+                        <button class="segment" [class.active]="categorySelected === 'Following'"
+                            (click)="selectCategory('Following')">
+                            Following
+                        </button>
                     </div>
                 </div>
 
@@ -76,13 +82,6 @@
                 <!-- Posts List -->
                 <div class="d-flex flex-column gap-4">
                     <app-post-card *ngFor="let post of posts" [post]="post"></app-post-card>
-                </div>
-
-                <!-- Load More -->
-                <div class="text-center py-5">
-                    <button class="btn btn-outline-secondary rounded-pill px-4">
-                        <i class="bi bi-arrow-clockwise me-2"></i> Load more posts
-                    </button>
                 </div>
             </div>
 

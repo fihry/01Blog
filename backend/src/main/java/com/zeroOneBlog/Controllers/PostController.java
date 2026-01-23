@@ -3,8 +3,6 @@ package com.zeroOneBlog.Controllers;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -33,16 +31,18 @@ public class PostController {
 
     private final PostService postService;
 
-        @GetMapping({"", "/"})
-        public ResponseEntity<Page<PostDto>> getAllPosts(
-            @AuthenticationPrincipal CustomUserDetails userDetails
-    ) {
+    @GetMapping({ "", "/" })
+    public ResponseEntity<List<PostDto>> getAllPosts(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
         UUID currentUserId = userDetails.getId();
-
-        // Allow Spring to bind pageable params (page,size,sort) from the request
-        Pageable page = Pageable.unpaged();
-
-        Page<PostDto> posts = postService.getAllPosts(page, currentUserId);
+        List<PostDto> posts = postService.getAllPosts(currentUserId);
+        return ResponseEntity.ok(posts);
+    }
+    @GetMapping("/following")
+    public ResponseEntity<List<PostDto>> getFollwedUsersPosts(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        UUID currentUserId = userDetails.getId();
+        List<PostDto> posts = postService.getAllFollowedUsersPosts(currentUserId);
         return ResponseEntity.ok(posts);
     }
 
@@ -56,13 +56,14 @@ public class PostController {
         return ResponseEntity.ok(post);
     }
 
-    @PostMapping(path = {"", "/"})
+    @PostMapping(path = { "", "/" })
     public ResponseEntity<PostDto> createPost(
             @RequestPart("post") @Valid PostCreateDto postCreateDto,
             @RequestPart(value = "media", required = false) List<MultipartFile> mediaFiles,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
-        // If files were uploaded in the 'media' part, set them into the DTO so the service can handle them
+        // If files were uploaded in the 'media' part, set them into the DTO so the
+        // service can handle them
         if (mediaFiles != null && !mediaFiles.isEmpty()) {
             postCreateDto.setMediaFiles(mediaFiles);
         }

@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core"
 import { HttpClient } from "@angular/common/http"
 import { Observable } from "rxjs"
-import { PostPage } from "./post.service"
+import { Post} from "./post.service"
 import { environment } from "../../../environments/environment"
 
 
@@ -37,12 +37,12 @@ export class UserService {
     return this.http.get<User>(`${this.apiUrl}/${id}`)
   }
 
-  getUserPosts(id: string, page = 0, limit = 10): Observable<PostPage> {
-    return this.http.get<PostPage>(`${this.apiUrl}/${id}/posts?page=${page}&limit=${limit}`)
+  getUserPosts(id: string, page = 0, limit = 10): Observable<Post[]> {
+    return this.http.get<Post[]>(`${this.apiUrl}/${id}/posts?page=${page}&limit=${limit}`)
   }
 
-  getUsers(page: number, limit: number): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}?page=${page}&size=${limit}`)
+  getUsers(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}`)
   }
 
   updateProfile(id: string, data: UpdateProfileRequest): Observable<User> {

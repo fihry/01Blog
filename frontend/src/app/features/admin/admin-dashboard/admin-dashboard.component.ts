@@ -46,8 +46,8 @@ export class AdminDashboardComponent {
       this.statsCards[3].value = s.pending_reports;
     });
 
-    this.adminService.getUsers(0, 50).subscribe(p => this.users = p.content);
-    this.postService.getFeed().subscribe(p => this.posts = p.content);
+    this.adminService.getUsers().subscribe(p => this.users = p);
+    this.postService.getFeed().subscribe(p => this.posts = p);
     this.adminService.getReports('PENDING').subscribe(r => this.reports = r);
   }
 
