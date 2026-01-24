@@ -37,12 +37,15 @@ export class UserService {
     return this.http.get<User>(`${this.apiUrl}/${id}`)
   }
 
-  getUserPosts(id: string, page = 0, limit = 10): Observable<Post[]> {
-    return this.http.get<Post[]>(`${this.apiUrl}/${id}/posts?page=${page}&limit=${limit}`)
+  getUserPosts(id :string): Observable<Post[]> {
+    return this.http.get<Post[]>(`${this.apiUrl}/${id}/posts`)
   }
 
   getUsers(): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}`)
+  }
+  getSuggestions(): Observable<any> {
+    return this.http.get<User[]>(`${this.apiUrl}/suggestions`)
   }
 
   updateProfile(id: string, data: UpdateProfileRequest): Observable<User> {

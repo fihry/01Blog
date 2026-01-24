@@ -78,10 +78,6 @@ export class ProfileComponent implements OnInit {
       error: (err) => console.error("Failed to load posts", err)
     })
   }
-  private mapPost(apiPost: Post): Post {
-    return apiPost
-  }
-
   toggleFollow() {
     if (!this.user) return
     this.userService.toggleFollow(this.user.id).subscribe({

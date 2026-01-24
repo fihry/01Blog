@@ -7,8 +7,9 @@ import { RouterModule } from "@angular/router"
 import { PostCardComponent } from "../../shared/components/post-card/post-card.component"
 import { CreateEditPostModalComponent } from "../../shared/components/create-post-modal/create-edit-post-modal.component"
 import { Post, PostService, type Post as ApiPost, } from "../../core/services/post.service"
-import { UserService } from "../../core/services/user.service"
+import { User, UserService } from "../../core/services/user.service"
 import { AuthService } from "../../core/services/auth.service"
+import { ToastService } from "../../core/services/toast.service"
 
 
 @Component({
@@ -20,16 +21,17 @@ import { AuthService } from "../../core/services/auth.service"
 })
 export class FeedComponent implements OnInit {
   posts: Post[] = []
+  SuggestionsUsers: User[] = []
   searchQuery: string = ''
   categorySelected: 'All' | 'Following' = 'All';
-
   isLoading = false
   errorMessage: string | null = null
   currentUser: any = null
-  constructor(private postService: PostService, private userService: UserService, private authService: AuthService) { }
+  constructor(private postService: PostService, private userService: UserService, private authService: AuthService, private toast: ToastService) { }
 
   ngOnInit(): void {
     this.loadFeed()
+    this.loadSuggestions()
     this.authService.currentUser$.subscribe(user => {
       if (user) {
         this.userService.getUserById(user.id).subscribe(userData => {
@@ -54,7 +56,7 @@ export class FeedComponent implements OnInit {
       },
       error: (err) => {
         console.error("Failed to load feed", err)
-        this.errorMessage = "Unable to load posts. Please try again later."
+        this.toast.showError("Error", "Failed to load feed")
         this.isLoading = false
       },
     })
@@ -65,6 +67,23 @@ export class FeedComponent implements OnInit {
       this.loadFeed();
     }
   }
+  loadSuggestions(): void {
+    this.userService.getUsers().subscribe(
+      {
+        next: (Sug: User[]) => {
+          this.SuggestionsUsers = Sug.filter(u => !u.followed)
+          console.log(this.SuggestionsUsers)
+        },
+        error: (err) => {
+          console.error("Failed to load Suggestions users", err)
+          this.toast.showError("Error", "Failed to load Suggestions users")
+          this.isLoading = false
+        },
+      }
+    )
+  }
+
+
 
 
   private mapPost(apiPost: ApiPost): Post {

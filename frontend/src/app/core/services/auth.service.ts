@@ -3,6 +3,7 @@ import { HttpClient } from "@angular/common/http"
 import { BehaviorSubject, type Observable } from "rxjs"
 import { tap } from "rxjs/operators"
 import { environment } from "../../../environments/environment"
+import { User } from "./user.service"
 
 interface AuthResponse {
   accessToken: string
@@ -74,7 +75,13 @@ export class AuthService {
     return localStorage.getItem("token")
   }
 
-  private loadUser(): void {
+  public updateCurrentUser(user: User) {
+    this.currentUserSubject.next(user);
+  }
+
+
+
+  public loadUser(): void {
     const token = this.getToken()
     const userStr = localStorage.getItem("user")
     if (token && userStr) {
@@ -91,3 +98,6 @@ export class AuthService {
     }
   }
 }
+
+
+
