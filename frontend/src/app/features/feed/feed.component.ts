@@ -71,7 +71,7 @@ export class FeedComponent implements OnInit {
     this.userService.getUsers().subscribe(
       {
         next: (Sug: User[]) => {
-          this.SuggestionsUsers = Sug.filter(u => !u.followed)
+          this.SuggestionsUsers = Sug.filter(u => !u.followed && u.id !== this.currentUser?.id).slice(0, 8)
           console.log(this.SuggestionsUsers)
         },
         error: (err) => {
@@ -81,6 +81,17 @@ export class FeedComponent implements OnInit {
         },
       }
     )
+  }
+
+  toggleFollow(user: User) {
+    this.userService.toggleFollow(user.id).subscribe({
+      next: () => {
+        user.followed = !user.followed;
+      },
+      error: (err) => {
+        console.error('Failed to toggle follow', err);
+      }
+    });
   }
 
 
