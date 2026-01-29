@@ -16,6 +16,7 @@ import com.zeroOneBlog.Exceptions.ApiException;
 import com.zeroOneBlog.Repositories.CommentRepository;
 import com.zeroOneBlog.Repositories.PostRepository;
 import com.zeroOneBlog.Repositories.UserRepository;
+import com.zeroOneBlog.Types.NotificationTypes;
 import com.zeroOneBlog.Types.RoleTypes;
 
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,7 @@ public class CommentService {
     private final UserRepository userRepository;
     private final PostRepository postRepository;
     private final MinioService minioService;
+    private final NotificationService notificationService;
 
     public List<CommentDto> getCommentsByPostId(UUID postId) {
         List<Comment> comments = commentRepository.findByPostId(postId);
@@ -80,6 +82,31 @@ public class CommentService {
         }
 
         Comment savedComment = commentRepository.save(newComment);
+
+        // Notify post author (if not the commenter)
+        try {
+            User postAuthor = post.getAuthor();
+            String commenterName = author.getUsername();
+            if (postAuthor != null && !postAuthor.getId().equals(author.getId())) {
+                String message = commenterName + " commented on your post";
+                if (post.getTitle() != null) message += ": " + post.getTitle();
+                if (message.length() > 200) message = message.substring(0, 197) + "...";
+                notificationService.createNotification(postAuthor, message, NotificationTypes.COMMENT);
+            }
+
+            // If replying to a comment, notify the parent comment's author (if different)
+            if (savedComment.getParentComment() != null) {
+                User parentAuthor = savedComment.getParentComment().getAuthor();
+                if (parentAuthor != null && !parentAuthor.getId().equals(author.getId()) && !parentAuthor.getId().equals(post.getAuthor().getId())) {
+                    String replyMessage = commenterName + " replied to your comment";
+                    if (post.getTitle() != null) replyMessage += " on: " + post.getTitle();
+                    if (replyMessage.length() > 200) replyMessage = replyMessage.substring(0, 197) + "...";
+                    notificationService.createNotification(parentAuthor, replyMessage, NotificationTypes.COMMENT);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         return new CommentCreateDto(
                 savedComment.getId(),

@@ -23,6 +23,7 @@ import com.zeroOneBlog.Repositories.LikeRepository;
 import com.zeroOneBlog.Repositories.PostRepository;
 import com.zeroOneBlog.Repositories.UserRepository;
 import com.zeroOneBlog.Types.MinioBucketTypes;
+import com.zeroOneBlog.Types.NotificationTypes;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +37,7 @@ public class PostService {
     private final CommentRepository commentRepository;
     private final LikeRepository likeRepository;
     private final MinioService minioService;
+    private final NotificationService notificationService;
 
     // Fetch post entity or throw 404
     public Post getById(UUID postId) {
@@ -100,6 +102,25 @@ public class PostService {
             String newContent = processMediaFiles(savedPost, dto.getMediaFiles(), dto.getContent());
             savedPost.setContent(newContent);
             postRepository.save(savedPost);
+        }
+
+        // Notify followers about the new post
+        try {
+            List<User> followers = author.getFollowers();
+            if (followers != null && !followers.isEmpty()) {
+                String baseMessage = author.getUsername() + " published a new post";
+                String title = savedPost.getTitle() != null ? ": " + savedPost.getTitle() : "";
+                String message = (baseMessage + title);
+                if (message.length() > 200) message = message.substring(0, 197) + "...";
+                for (User follower : followers) {
+                    if (follower != null && !follower.getId().equals(author.getId())) {
+                        notificationService.createNotification(follower, message, NotificationTypes.NEW_POST);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // Do not block post creation on notification failures; just log
+            e.printStackTrace();
         }
 
         return mapToDto(savedPost, currentUserId);
