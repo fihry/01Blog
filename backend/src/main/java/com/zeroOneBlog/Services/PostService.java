@@ -111,7 +111,6 @@ public class PostService {
                 String baseMessage = author.getUsername() + " published a new post";
                 String title = savedPost.getTitle() != null ? ": " + savedPost.getTitle() : "";
                 String message = (baseMessage + title);
-                if (message.length() > 200) message = message.substring(0, 197) + "...";
                 for (User follower : followers) {
                     if (follower != null && !follower.getId().equals(author.getId())) {
                         notificationService.createNotification(follower, message, NotificationTypes.NEW_POST);

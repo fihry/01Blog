@@ -90,7 +90,6 @@ public class CommentService {
             if (postAuthor != null && !postAuthor.getId().equals(author.getId())) {
                 String message = commenterName + " commented on your post";
                 if (post.getTitle() != null) message += ": " + post.getTitle();
-                if (message.length() > 200) message = message.substring(0, 197) + "...";
                 notificationService.createNotification(postAuthor, message, NotificationTypes.COMMENT);
             }
 
@@ -100,7 +99,6 @@ public class CommentService {
                 if (parentAuthor != null && !parentAuthor.getId().equals(author.getId()) && !parentAuthor.getId().equals(post.getAuthor().getId())) {
                     String replyMessage = commenterName + " replied to your comment";
                     if (post.getTitle() != null) replyMessage += " on: " + post.getTitle();
-                    if (replyMessage.length() > 200) replyMessage = replyMessage.substring(0, 197) + "...";
                     notificationService.createNotification(parentAuthor, replyMessage, NotificationTypes.COMMENT);
                 }
             }
