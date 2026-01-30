@@ -1,11 +1,10 @@
 package com.zeroOneBlog.Services;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -189,8 +188,8 @@ public class UserService {
         userRepository.save(follower);
     }
 
-    public Page<UserDto> getAllUsers(Pageable pageable) {
-        return userRepository.findAll(pageable).map(user -> {
+    public List<UserDto> getAllUsers() {
+        return userRepository.findAll().stream().map(user -> {
             // Only generate presigned URL if avatar exists
             String avatarUrl = user.getAvatarUrl();
             if (avatarUrl != null && !avatarUrl.isBlank()) {
@@ -213,7 +212,7 @@ public class UserService {
                     user.getFollowers() != null ? user.getFollowers().size() : 0,
                     user.getFollowing() != null ? user.getFollowing().size() : 0,
                     user.getCreatedAt().toString());
-        });
+        }).toList();
     }
 
     public UserDto updateUserRole(UUID id, RoleTypes role) {

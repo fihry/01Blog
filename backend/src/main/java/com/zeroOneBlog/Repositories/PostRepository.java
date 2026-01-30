@@ -4,8 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.zeroOneBlog.Entities.Post;
@@ -15,28 +14,22 @@ public interface PostRepository extends JpaRepository<Post, UUID> {
     @Override
     Optional<Post> findById(UUID id);
 
-    // Replace all "user" with "author"
-    List<Post> findByAuthor(User author);
-
     List<Post> findByAuthorOrderByCreatedAtDesc(User author);
 
-    Page<Post> findByAuthor(User author, Pageable pageable);
+    List<Post> findByAuthor(User author);
 
-    Page<Post> findByAuthorOrderByCreatedAtDesc(User author, Pageable pageable);
+    List<Post> findAllByOrderByCreatedAtDesc();
 
-    List<Post> findByAuthorId(UUID authorId);
+    @EntityGraph(attributePaths = {"author"})
+    List<Post>findByAuthorInOrderByCreatedAtDesc(List<User> foolowedList);
 
-    List<Post> findByAuthorIdOrderByCreatedAtDesc(UUID authorId);
+    // List<Post> findByAuthorIdOrderByCreatedAtDesc(UUID authorId);
 
-    Page<Post> findByAuthorId(UUID authorId, Pageable pageable);
+    // List<Post> findTop10ByOrderByCreatedAtDesc();
 
-    Page<Post> findAllByOrderByCreatedAtDesc(Pageable pageable);
+    // List<Post> findByTitleContainingIgnoreCase(String title);
 
-    List<Post> findTop10ByOrderByCreatedAtDesc();
-
-    List<Post> findByTitleContainingIgnoreCase(String title);
-
-    List<Post> findByContentContainingIgnoreCase(String content);
+    // List<Post> findByContentContainingIgnoreCase(String content);
 }
 
 

@@ -23,6 +23,7 @@ import com.zeroOneBlog.Repositories.LikeRepository;
 import com.zeroOneBlog.Repositories.PostRepository;
 import com.zeroOneBlog.Repositories.UserRepository;
 import com.zeroOneBlog.Types.MinioBucketTypes;
+import com.zeroOneBlog.Types.NotificationTypes;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +37,7 @@ public class PostService {
     private final CommentRepository commentRepository;
     private final LikeRepository likeRepository;
     private final MinioService minioService;
+    private final NotificationService notificationService;
 
     // Fetch post entity or throw 404
     public Post getById(UUID postId) {
@@ -102,13 +104,38 @@ public class PostService {
             postRepository.save(savedPost);
         }
 
+        // Notify followers about the new post
+        try {
+            List<User> followers = author.getFollowers();
+            if (followers != null && !followers.isEmpty()) {
+                String baseMessage = author.getUsername() + " published a new post";
+                String title = savedPost.getTitle() != null ? ": " + savedPost.getTitle() : "";
+                String message = (baseMessage + title);
+                for (User follower : followers) {
+                    if (follower != null && !follower.getId().equals(author.getId())) {
+                        notificationService.createNotification(follower, message, NotificationTypes.NEW_POST);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // Do not block post creation on notification failures; just log
+            e.printStackTrace();
+        }
+
         return mapToDto(savedPost, currentUserId);
     }
 
-    public Page<PostDto> getAllPosts(Pageable pageable, UUID currentUserId) {
-        pageable = (pageable == null) ? Pageable.unpaged() : pageable;
-        Page<Post> postsPage = postRepository.findAllByOrderByCreatedAtDesc(pageable);
-        return postsPage.map(post -> mapToDto(post, currentUserId));
+    public List<PostDto> getAllPosts(UUID currentUserId) {
+        List<Post> postsPage = postRepository.findAllByOrderByCreatedAtDesc();
+        return postsPage.stream().map(post -> mapToDto(post, currentUserId)).toList();
+    }
+
+    public List<PostDto> getAllFollowedUsersPosts(UUID currentUserId) {
+        User user = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "User not found"));
+        List<User> followedUsers = user.getFollowing();
+        List<Post> postsPage = postRepository.findByAuthorInOrderByCreatedAtDesc(followedUsers);
+        return postsPage.stream().map(post -> mapToDto(post, currentUserId)).toList();
     }
 
     public PostDto updatePost(UUID postId, PostCreateDto dto, UUID currentUserId) {
@@ -122,7 +149,8 @@ public class PostService {
         post.setTitle(dto.getTitle());
         post.setUpdatedAt(new java.sql.Timestamp(System.currentTimeMillis()));
 
-        // Sync existing media: remove media records that are no longer referenced in the content
+        // Sync existing media: remove media records that are no longer referenced in
+        // the content
         if (post.getMedia() != null) {
             String updatedContent = dto.getContent();
             java.util.Iterator<Media> iterator = post.getMedia().iterator();
@@ -148,18 +176,21 @@ public class PostService {
         return mapToDto(updatedPost, currentUserId);
     }
 
-    private String processMediaFiles(Post post, List<org.springframework.web.multipart.MultipartFile> files, String content) {
-        if (files == null || files.isEmpty()) return content;
+    private String processMediaFiles(Post post, List<org.springframework.web.multipart.MultipartFile> files,
+            String content) {
+        if (files == null || files.isEmpty())
+            return content;
 
         String mutableContent = content; // String is immutable, but we reassign
-        
+
         if (post.getMedia() == null) {
             post.setMedia(new java.util.ArrayList<>());
         }
 
         for (int i = 0; i < files.size(); i++) {
             org.springframework.web.multipart.MultipartFile file = files.get(i);
-            if (file == null || file.isEmpty()) continue;
+            if (file == null || file.isEmpty())
+                continue;
 
             String mediaUrl = minioService.uploadFile(file);
             MinioBucketTypes mediaType = getPostMediaType(file.getContentType());
@@ -179,7 +210,8 @@ public class PostService {
             String relativeUrl = minioService.getPermalink(mediaUrl);
 
             // Replace the placeholder {{MEDIA_INDEX_i}} with the relative URL
-            // We use replace (not replaceAll) because we expect specific instances, but replace() replaces all occurrences in String (which is fine)
+            // We use replace (not replaceAll) because we expect specific instances, but
+            // replace() replaces all occurrences in String (which is fine)
             // relativeUrl is e.g., /media/images/key.png
             String placeholder = "{{MEDIA_INDEX_" + i + "}}";
             mutableContent = mutableContent.replace(placeholder, relativeUrl);
@@ -250,11 +282,10 @@ public class PostService {
         return postRepository.count();
     }
 
-    public Page<PostDto> getAllUserPosts(Pageable pageable, UUID useruUuid, UUID currentUserId) {
-        pageable = (pageable == null) ? Pageable.unpaged() : pageable;
+    public List<PostDto> getAllUserPosts(UUID useruUuid, UUID currentUserId) {
         User user = userRepository.findById(useruUuid)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "User not found"));
-        Page<Post> postsPage = postRepository.findByAuthorOrderByCreatedAtDesc(user, pageable);
-        return postsPage.map(post -> mapToDto(post, currentUserId));
+        List<Post> postsPage = postRepository.findByAuthorOrderByCreatedAtDesc(user);
+        return postsPage.stream().map(post -> mapToDto(post, currentUserId)).toList();
     }
 }

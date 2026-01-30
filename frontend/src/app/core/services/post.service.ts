@@ -27,14 +27,6 @@ export interface Post {
   isOwner?: boolean
 }
 
-export interface PostPage {
-  content: Post[]
-  totalElements: number
-  totalPages: number
-  number: number
-  size: number
-}
-
 export interface CreatePostRequest {
   title: string
   content: string
@@ -51,11 +43,20 @@ export class PostService {
 
   constructor(private http: HttpClient) { }
 
-  getFeed(page = 0, size = 10): Observable<PostPage> {
-    return this.http.get<PostPage>(`${this.apiUrl}?page=${page}&size=${size}`).pipe(
+  getFeed(): Observable<Post[]> {
+    return this.http.get<Post[]>(`${this.apiUrl}`).pipe(
       tap((pageResp) => {
         const currentPosts = this.postsSubject.value
-        this.postsSubject.next([...currentPosts, ...pageResp.content])
+        this.postsSubject.next([...currentPosts, ...pageResp])
+      })
+    )
+  }
+
+  getFollowingUsersPosts(): Observable<Post[]> {
+    return this.http.get<Post[]>(`${this.apiUrl}/following`).pipe(
+      tap((pageResp) => {
+        const currentPosts = this.postsSubject.value
+        this.postsSubject.next([...currentPosts, ...pageResp])
       })
     )
   }

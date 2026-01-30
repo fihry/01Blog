@@ -28,9 +28,9 @@ export class UsersComponent {
   }
 
   loadUsers() {
-    this.userService.getUsers(0, 50).subscribe({
-      next: (page: any) => {
-        this.users = page.content.filter((user: User) => {
+    this.userService.getUsers().subscribe({
+      next: (page: User[]) => {
+        this.users = page.filter((user: User) => {
           return user.id !== this.currentUserId;
         });
       },

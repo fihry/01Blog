@@ -245,6 +245,8 @@ export class SettingsComponent implements OnInit {
                 this.profileForm.markAsPristine();
                 this.selectedFile = null;
                 this.toastService.showSuccess('Success', 'Profile updated successfully');
+                localStorage.setItem("user", JSON.stringify(updatedUser))
+                this.authService.updateCurrentUser(updatedUser);
             },
             error: (err: any) => {
                 this.loading = false;

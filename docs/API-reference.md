@@ -31,7 +31,6 @@ All endpoints below are mounted under the API base: `/api` — e.g. `GET /api/po
 
 ### GET /api/posts
 - Description: List posts (paginated). Returns a Page of `PostDto` objects ordered by `createdAt` desc.
-- Query params: optional `page`, `size`, `sort` (Spring `Pageable`). Example: `/api/posts?page=0&size=10&sort=createdAt,desc`
 - Example curl:
 ```bash
 curl -H "Authorization: Bearer $TOKEN" "http://localhost:8000/api/posts"
