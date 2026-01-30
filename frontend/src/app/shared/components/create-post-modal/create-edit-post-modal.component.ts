@@ -4,6 +4,7 @@ import {
   Output,
   EventEmitter,
   Input,
+  OnInit,
   OnChanges,
   SimpleChanges,
   OnDestroy,
@@ -16,6 +17,9 @@ import { ToastService } from "../../../core/services/toast.service";
 import { MarkdownService } from "../../../core/services/markdown.service";
 import type { Post } from "../../../core/services/post.service";
 import { Router } from "@angular/router";
+import { Subscription } from 'rxjs';
+import { CreatePostModalService, CreatePostModalOpenPayload } from '../create-post-trigger/create-post-modal.service';
+
 
 interface MediaFile {
   file: File;
@@ -27,9 +31,10 @@ interface MediaFile {
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: "./create-edit-post-modal.component.html",
-  styleUrl:"create-edit-post-modal.component.scss"
+  styleUrl: "create-edit-post-modal.component.scss"
 })
-export class CreateEditPostModalComponent implements OnChanges, OnDestroy {
+export class CreateEditPostModalComponent implements OnInit, OnChanges, OnDestroy {
+  private openSub: Subscription | null = null;
   @Input() isOpen = false;
   @Input() editMode = false;
   @Input() postToEdit: Post | null = null;
@@ -43,15 +48,30 @@ export class CreateEditPostModalComponent implements OnChanges, OnDestroy {
   previewContent = "";
   isSubmitting = false;
   errorMessage: string | null = null;
-
   private mediaFiles: MediaFile[] = [];
 
   constructor(
     private readonly postService: PostService,
     private readonly toastService: ToastService,
     private readonly markdownService: MarkdownService,
-    private readonly router: Router
-  ) { }
+    private readonly router: Router,
+    private readonly modalService: CreatePostModalService,
+  ) {
+
+  }
+
+  ngOnInit(): void {
+    this.openSub = this.modalService.open$.subscribe((payload?: CreatePostModalOpenPayload) => {
+      if (!payload) {
+        this.editMode = false;
+        this.postToEdit = null;
+      } else {
+        this.editMode = !!payload.editMode;
+        this.postToEdit = (payload as any).post || null;
+      }
+      this.openOverlay();
+    });
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (this.shouldLoadPostForEditing(changes)) this.loadPostForEditing();
@@ -60,6 +80,7 @@ export class CreateEditPostModalComponent implements OnChanges, OnDestroy {
 
   ngOnDestroy(): void {
     this.revokePreviewUrls();
+    if (this.openSub) this.openSub.unsubscribe();
   }
 
   openOverlay(): void {
@@ -225,7 +246,6 @@ export class CreateEditPostModalComponent implements OnChanges, OnDestroy {
 
   private updateExistingPost(postData: any): void {
     if (!this.postToEdit) return;
-
     this.postService.updatePost(this.postToEdit.id, postData).subscribe({
       next: post => this.handleSuccess(post, "Post updated successfully"),
       error: err => this.handleError(err, "Failed to update post"),
@@ -243,7 +263,7 @@ export class CreateEditPostModalComponent implements OnChanges, OnDestroy {
     }
 
     this.closeOverlay();
-    this.router.navigate(['/posts', post.id]);
+    this.router.navigate(['/post', post.id]);
   }
 
   private handleError(error: any, defaultMessage: string): void {
@@ -259,7 +279,7 @@ export class CreateEditPostModalComponent implements OnChanges, OnDestroy {
   }
 
   private shouldLoadPostForEditing(changes: SimpleChanges): boolean {
-    return Boolean(changes["postToEdit"] && this.postToEdit && this.editMode);
+    return Boolean(changes["postToEdit"] && this.editMode && this.postToEdit);
   }
 
   private shouldResetForm(changes: SimpleChanges): boolean {

@@ -76,8 +76,8 @@
                 </div>
 
                 <!-- Inline LinkedIn-style Create Post Composer -->
-                <app-create-edit-post-modal (postCreated)="onPostCreated($event)">
-                </app-create-edit-post-modal>
+                <app-create-post-trigger [avatar$]="currentUserAvatar$"></app-create-post-trigger>
+                <app-create-edit-post-modal (postCreated)="onPostCreated($event)"></app-create-edit-post-modal>
 
                 <!-- Posts List -->
                 <div class="d-flex flex-column gap-4">

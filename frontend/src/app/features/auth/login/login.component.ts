@@ -5,7 +5,6 @@ import { CommonModule } from "@angular/common"
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl } from "@angular/forms"
 import { Router, RouterLink } from "@angular/router"
 import { AuthService } from "../../../core/services/auth.service"
-import { SpinnerComponent } from "../../../shared/components/spinner/spinner.component"
 import { ToastService } from "../../../core/services/toast.service"
 
 @Component({
@@ -61,8 +60,7 @@ export class LoginComponent {
         error: (err) => {
           this.isLoading = false;
           // Use a generic message for security, regardless of the API error detail
-          this.errorMessage = "Login failed: Invalid email or password.";
-          this.toastService.showError("Authentication Failed", this.errorMessage);
+          this.errorMessage = err?.error?.message || "Invalid email or password. Please try again.";
           console.error("Login failed:", err);
         },
       });

@@ -6,16 +6,19 @@ import { FormsModule } from "@angular/forms"
 import { RouterModule } from "@angular/router"
 import { PostCardComponent } from "../../shared/components/post-card/post-card.component"
 import { CreateEditPostModalComponent } from "../../shared/components/create-post-modal/create-edit-post-modal.component"
+import { CreatePostTriggerComponent } from "../../shared/components/create-post-trigger/create-post-trigger.component"
 import { Post, PostService, type Post as ApiPost, } from "../../core/services/post.service"
 import { User, UserService } from "../../core/services/user.service"
 import { AuthService } from "../../core/services/auth.service"
 import { ToastService } from "../../core/services/toast.service"
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators'
 
 
 @Component({
   selector: "app-feed",
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, PostCardComponent, CreateEditPostModalComponent],
+  imports: [CommonModule, FormsModule, RouterModule, PostCardComponent, CreateEditPostModalComponent, CreatePostTriggerComponent],
   templateUrl: "./feed.component.html",
   styleUrls: ["./feed.component.scss"],
 })
@@ -27,11 +30,14 @@ export class FeedComponent implements OnInit {
   isLoading = false
   errorMessage: string | null = null
   currentUser: any = null
+  currentUserAvatar$?: Observable<string | null>
   constructor(private postService: PostService, private userService: UserService, private authService: AuthService, private toast: ToastService) { }
 
   ngOnInit(): void {
     this.loadFeed()
     this.loadSuggestions()
+    this.currentUserAvatar$ = this.authService.currentUser$.pipe(map(u => u?.avatarUrl || null));
+
     this.authService.currentUser$.subscribe(user => {
       if (user) {
         this.userService.getUserById(user.id).subscribe(userData => {

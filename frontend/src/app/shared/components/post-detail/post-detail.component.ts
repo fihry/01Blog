@@ -3,22 +3,21 @@ import { CommonModule } from "@angular/common"
 import { ActivatedRoute, RouterModule, Router } from "@angular/router"
 import { FormsModule } from "@angular/forms"
 import { Subscription } from "rxjs"
-import { PostService, type Post } from "../../../core/services/post.service"
-import { CommentService, type Comment } from "../../../core/services/comment.service"
+import { PostService, Post } from "../../../core/services/post.service"
+import { CommentService, Comment } from "../../../core/services/comment.service"
 import { MarkdownService } from "../../../core/services/markdown.service"
 import { ToastService } from "../../../core/services/toast.service"
 import { ReportService } from "../../../core/services/report.service"
-import { ReportModalComponent, type ReportData } from "../report-modal/report-modal.component"
+import { ReportModalComponent, ReportData } from "../report-modal/report-modal.component"
 import { CreateEditPostModalComponent } from "../create-post-modal/create-edit-post-modal.component"
 import { AuthService } from "../../../core/services/auth.service"
-import markdownit from "markdown-it";
 
 @Component({
   selector: "app-post-detail",
   standalone: true,
   imports: [CommonModule, RouterModule, FormsModule, ReportModalComponent, CreateEditPostModalComponent],
   templateUrl: "./post-detail.component.html",
-  styleUrl:"./post-detail.component.scss"
+  styleUrl: "./post-detail.component.scss"
 })
 export class PostDetailComponent implements OnInit, OnDestroy {
   @ViewChild(ReportModalComponent) reportModal?: ReportModalComponent
@@ -37,7 +36,6 @@ export class PostDetailComponent implements OnInit, OnDestroy {
   showEditModal = false
 
   private routeSubscription?: Subscription
-  private md = markdownit({ html: true, linkify: true, breaks: true });
   constructor(
     private route: ActivatedRoute,
     private router: Router,

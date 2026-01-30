@@ -68,6 +68,10 @@ public class UserService {
         if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Invalid credentials");
         }
+        // Prevent login if user is not active/deactivated
+        if (!user.isActive()) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "User account is deactivated");
+        }
         // Successful login
         AuthResponseDto response = new AuthResponseDto();
         // generate token or session here if needed

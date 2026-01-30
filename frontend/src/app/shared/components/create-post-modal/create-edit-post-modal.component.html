@@ -1,17 +1,3 @@
-<!-- Inline trigger card (only show when not in edit mode) -->
-<div class="app-widget-card mb-4 p-4 cursor-pointer" (click)="openOverlay()" *ngIf="!isOpen && !editMode"
-  style="cursor: pointer;">
-  <div class="d-flex align-items-start gap-3">
-    <div class="avatar-placeholder flex-shrink-0"></div>
-    <div class="flex-grow-1">
-      <div class="bg-muted rounded-3 px-4 py-3 text-muted-foreground text-sm">
-        What's on your mind? Start a post...
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Full screen modal overlay -->
 <div *ngIf="isOpen" class="modal-overlay d-flex align-items-center justify-content-center"
   style="position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); z-index: 1050; padding: 20px;"
   (click)="closeOverlay()">
