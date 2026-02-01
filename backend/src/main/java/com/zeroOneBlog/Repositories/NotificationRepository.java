@@ -7,12 +7,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import com.zeroOneBlog.Entities.Notification;
-import com.zeroOneBlog.Entities.User;
 
 @Repository
 public interface NotificationRepository extends JpaRepository<Notification, UUID> {
-    
-    List<Notification> findByUserOrderByCreatedAtDesc(User user);
-    
-    long countByUserAndReadFalse(User user);
+
+    List<Notification> findAllByUserIdOrderByCreatedAtDesc(UUID userId);
+
+    long countByUserIdAndReadFalse(UUID userId);
 }

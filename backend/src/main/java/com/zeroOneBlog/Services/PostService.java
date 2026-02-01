@@ -3,13 +3,11 @@ package com.zeroOneBlog.Services;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import com.zeroOneBlog.Dto.MediaDto;
+import com.zeroOneBlog.Dto.NotificationDto;
 import com.zeroOneBlog.Dto.PostCreateDto;
 import com.zeroOneBlog.Dto.PostDto;
 import com.zeroOneBlog.Dto.UserSummaryDto;
@@ -107,13 +105,22 @@ public class PostService {
         // Notify followers about the new post
         try {
             List<User> followers = author.getFollowers();
+            var avatarUrl = author.getAvatarUrl() != null ? minioService.getMediaUrl(author.getAvatarUrl()) : null;
             if (followers != null && !followers.isEmpty()) {
-                String baseMessage = author.getUsername() + " published a new post";
-                String title = savedPost.getTitle() != null ? ": " + savedPost.getTitle() : "";
-                String message = (baseMessage + title);
+                NotificationDto notificationDto = new NotificationDto(
+                        null,
+                        NotificationTypes.POST,
+                        "New post from " + author.getUsername(),
+                        savedPost.getId(),
+                        false,
+                        null,
+                        new UserSummaryDto(
+                                author.getId(),
+                                author.getUsername(),
+                                avatarUrl));
                 for (User follower : followers) {
                     if (follower != null && !follower.getId().equals(author.getId())) {
-                        notificationService.createNotification(follower, message, NotificationTypes.NEW_POST);
+                        notificationService.createNotification(follower, notificationDto);
                     }
                 }
             }
@@ -149,8 +156,6 @@ public class PostService {
         post.setTitle(dto.getTitle());
         post.setUpdatedAt(new java.sql.Timestamp(System.currentTimeMillis()));
 
-        // Sync existing media: remove media records that are no longer referenced in
-        // the content
         if (post.getMedia() != null) {
             String updatedContent = dto.getContent();
             java.util.Iterator<Media> iterator = post.getMedia().iterator();
@@ -159,7 +164,7 @@ public class PostService {
                 String relativeUrl = minioService.getPermalink(media.getMediaUrl());
                 if (!updatedContent.contains(relativeUrl)) {
                     minioService.deleteFile(media.getMediaUrl());
-                    iterator.remove(); // Hibernate handles delete via orphanRemoval=true
+                    iterator.remove();
                 }
             }
         }

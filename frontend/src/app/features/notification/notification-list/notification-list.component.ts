@@ -1,11 +1,12 @@
 import { Component, type OnInit } from "@angular/core"
 import { CommonModule } from "@angular/common"
 import { NotificationService, Notification } from "../../../core/services/notification.service"
+import { RouterModule } from "@angular/router"
 
 @Component({
   selector: "app-notification-list",
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule,RouterModule],
   templateUrl:"./notification-list.component.html"
 })
 export class NotificationListComponent implements OnInit {
@@ -26,8 +27,6 @@ export class NotificationListComponent implements OnInit {
       return this.notifications
     } else if (this.activeFilter === 'unread') {
       return this.notifications.filter(n => !n.read)
-    } else if (this.activeFilter === 'mentions') {
-      return this.notifications.filter(n => n.type === 'mention')
     }
     return this.notifications
   }
@@ -42,5 +41,10 @@ export class NotificationListComponent implements OnInit {
 
   markAllAsRead() {
     this.notificationService.markAllAsRead().subscribe()
+  }
+  deleteNotification(notificationId: number) {
+    this.notificationService.deleteNotification(notificationId).subscribe(() => {
+      this.notifications = this.notifications.filter(n => n.id !== notificationId)
+    })
   }
 }

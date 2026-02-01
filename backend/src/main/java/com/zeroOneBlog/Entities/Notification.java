@@ -34,6 +34,7 @@ public class Notification {
     private NotificationTypes type;
 
     private String message;
+    private UUID referenceId;
     private boolean read = false;
     private Timestamp createdAt = new Timestamp(System.currentTimeMillis());
 }

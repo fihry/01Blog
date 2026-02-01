@@ -12,9 +12,11 @@ import org.springframework.stereotype.Service;
 
 import com.zeroOneBlog.Dto.AuthResponseDto;
 import com.zeroOneBlog.Dto.LoginRequestDto;
+import com.zeroOneBlog.Dto.NotificationDto;
 import com.zeroOneBlog.Dto.RegisterRequestDto;
 import com.zeroOneBlog.Dto.PasswordChangeDto;
 import com.zeroOneBlog.Dto.UserDto;
+import com.zeroOneBlog.Dto.UserSummaryDto;
 import com.zeroOneBlog.Dto.UserUpdateDto;
 import com.zeroOneBlog.Entities.Media;
 import com.zeroOneBlog.Entities.Post;
@@ -23,6 +25,7 @@ import com.zeroOneBlog.Exceptions.ApiException;
 import com.zeroOneBlog.Repositories.UserRepository;
 import com.zeroOneBlog.Security.CustomUserDetails;
 import com.zeroOneBlog.Security.JwtService;
+import com.zeroOneBlog.Types.NotificationTypes;
 import com.zeroOneBlog.Types.RoleTypes;
 
 import jakarta.transaction.Transactional;
@@ -37,6 +40,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final MinioService minioService;
+    private final NotificationService notificationService;
 
     // Registration
     public User register(@Valid RegisterRequestDto dto) {
@@ -76,7 +80,7 @@ public class UserService {
         AuthResponseDto response = new AuthResponseDto();
         // generate token or session here if needed
         String token = jwtService.generateToken(user.getUsername(), dto.isRememberMe());
-        
+
         // Generate full media URL for avatar if it exists
         String avatarUrl = user.getAvatarUrl();
         if (avatarUrl != null && !avatarUrl.isBlank()) {
@@ -87,7 +91,7 @@ public class UserService {
                 // Keep original path if URL generation fails
             }
         }
-        
+
         response.setAccessToken(token);
         response.setUser(new UserDto(
                 user.getId().toString(),
@@ -118,7 +122,7 @@ public class UserService {
         }
         boolean isFollowed = userRepository.findById(getCurrentUserId())
                 .map(currentUser -> currentUser.getFollowing().stream()
-                .anyMatch(u -> u.getId().equals(id)))
+                        .anyMatch(u -> u.getId().equals(id)))
                 .orElse(false);
         return new UserDto(
                 user.getId().toString(),
@@ -146,7 +150,7 @@ public class UserService {
             user.setAvatarUrl(avatar_url);
         }
         userRepository.save(user);
-        
+
         String responseAvatarUrl = user.getAvatarUrl();
         if (responseAvatarUrl != null && !responseAvatarUrl.isBlank()) {
             responseAvatarUrl = minioService.getMediaUrl(responseAvatarUrl);
@@ -154,7 +158,7 @@ public class UserService {
 
         boolean isFollowed = userRepository.findById(getCurrentUserId())
                 .map(currentUser -> currentUser.getFollowing().stream()
-                .anyMatch(u -> u.getId().equals(id)))
+                        .anyMatch(u -> u.getId().equals(id)))
                 .orElse(false);
         return new UserDto(
                 user.getId().toString(),
@@ -184,9 +188,21 @@ public class UserService {
                 .anyMatch(user -> user.getId().equals(followingId));
 
         if (isFollowing) {
-            follower.getFollowing().removeIf(user -> user.getId().equals(followingId));
+            follower.getFollowing().removeIf(user -> user.getId().equals(followingId));            
         } else {
             follower.getFollowing().add(followed);
+            notificationService.createNotification(followed, new NotificationDto(
+                    null,
+                    NotificationTypes.FOLLOW,
+                    follower.getUsername() + " started following you.",
+                    null,
+                    false,
+                    null,
+                    new UserSummaryDto(
+                            follower.getId(),
+                            follower.getUsername(),
+                            follower.getAvatarUrl())
+            ));
         }
 
         userRepository.save(follower);
@@ -201,7 +217,7 @@ public class UserService {
             }
             boolean isFollowed = userRepository.findById(getCurrentUserId())
                     .map(currentUser -> currentUser.getFollowing().stream()
-                    .anyMatch(u -> u.getId().equals(user.getId())))
+                            .anyMatch(u -> u.getId().equals(user.getId())))
                     .orElse(false);
             return new UserDto(
                     user.getId().toString(),
@@ -230,7 +246,7 @@ public class UserService {
         }
         boolean isFollowed = userRepository.findById(getCurrentUserId())
                 .map(currentUser -> currentUser.getFollowing().stream()
-                .anyMatch(u -> u.getId().equals(id)))
+                        .anyMatch(u -> u.getId().equals(id)))
                 .orElse(false);
         return new UserDto(
                 savedUser.getId().toString(),
@@ -266,14 +282,16 @@ public class UserService {
             minioService.deleteFile(user.getAvatarUrl());
         }
 
-        // 2. Clear subscriptions (ManyToMany relationships usually need manual clearing)
+        // 2. Clear subscriptions (ManyToMany relationships usually need manual
+        // clearing)
         for (User follower : user.getFollowers()) {
             follower.getFollowing().remove(user);
         }
         user.getFollowing().clear();
         user.getFollowers().clear();
 
-        // 3. Final Delete - Cascades handle Posts, Comments, Likes, Notifications, Reports
+        // 3. Final Delete - Cascades handle Posts, Comments, Likes, Notifications,
+        // Reports
         userRepository.delete(user);
     }
 

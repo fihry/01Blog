@@ -1,5 +1,5 @@
 import type { Routes } from "@angular/router"
-import { AccessGuard} from './core/guards/acsess.guard';
+import { AccessGuard } from './core/guards/acsess.guard';
 import { LoginComponent } from "../app/features/auth/login/login.component"
 import { RegisterComponent } from "../app/features/auth/register/register.component"
 import { FeedComponent } from "./features/feed/feed.component"
@@ -13,58 +13,71 @@ import { NotFoundComponent } from "./shared/components/not-found/not-found.compo
 
 export const routes: Routes = [
 
-  { path: "login",
+  {
+    path: "login",
     component: LoginComponent,
     canActivate: [AccessGuard],
     data: { access: 'guest' }
   },
 
-  { path: "register",
+  {
+    path: "register",
     component: RegisterComponent,
     canActivate: [AccessGuard],
     data: { access: 'guest' }
   },
 
-  { path: "feed",
+  {
+    path: "feed",
     component: FeedComponent,
     canActivate: [AccessGuard],
     data: { access: 'auth' }
   },
 
-  { path: "profile/:id",
+  {
+    path: "profile/:id",
     component: ProfileComponent,
     canActivate: [AccessGuard],
     data: { access: 'auth' }
   },
-  { path: "users",
+  {
+    path: "users",
     component: UsersComponent,
     canActivate: [AccessGuard],
     data: { access: 'auth' }
   },
 
-  { path: "post/:id",
+  {
+    path: "post/:id",
     component: PostDetailComponent,
     canActivate: [AccessGuard],
     data: { access: 'auth' }
   },
 
-  { path: "notifications",
+  {
+    path: "notifications",
     component: NotificationListComponent,
     canActivate: [AccessGuard],
     data: { access: 'auth' }
   },
 
-  { path: "settings",
+  {
+    path: "settings",
     component: SettingsComponent,
     canActivate: [AccessGuard],
     data: { access: 'auth' }
   },
 
-  { path: "admin",
+  {
+    path: "admin",
     component: AdminDashboardComponent,
     canActivate: [AccessGuard],
     data: { access: 'admin' }
   },
-
+  {
+    path: "",
+    redirectTo: "feed",
+    pathMatch: "full",
+  },
   { path: "**", component: NotFoundComponent }
 ];

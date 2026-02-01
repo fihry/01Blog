@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.zeroOneBlog.Dto.CommentCreateDto;
 import com.zeroOneBlog.Dto.CommentDto;
+import com.zeroOneBlog.Dto.NotificationDto;
 import com.zeroOneBlog.Dto.UserSummaryDto;
 import com.zeroOneBlog.Entities.Comment;
 import com.zeroOneBlog.Entities.Post;
@@ -36,12 +37,13 @@ public class CommentService {
         List<Comment> comments = commentRepository.findByPostId(postId);
         return comments.stream().map(comment -> {
             UUID parentCommentId = comment.getParentComment() != null ? comment.getParentComment().getId() : null;
-            String author = comment.getAuthor().getAvatarUrl() != null ? minioService.getMediaUrl(comment.getAuthor().getAvatarUrl()) : null;
+            String author = comment.getAuthor().getAvatarUrl() != null
+                    ? minioService.getMediaUrl(comment.getAuthor().getAvatarUrl())
+                    : null;
             UserSummaryDto authorSummary = new UserSummaryDto(
                     comment.getAuthor().getId(),
                     comment.getAuthor().getUsername(),
-                    author
-            );
+                    author);
             CommentDto dto = new CommentDto(
                     comment.getId(),
                     comment.getPost().getId(),
@@ -49,8 +51,7 @@ public class CommentService {
                     parentCommentId,
                     comment.getContent(),
                     comment.getCreatedAt(),
-                    comment.getUpdatedAt()
-            );
+                    comment.getUpdatedAt());
             return dto;
         }).toList();
     }
@@ -67,8 +68,7 @@ public class CommentService {
             avatarUrl = minioService.getMediaUrl(avatarUrl);
         }
         UserSummaryDto authorSummary = new UserSummaryDto(
-                author.getId(), author.getUsername(), avatarUrl
-        );
+                author.getId(), author.getUsername(), avatarUrl);
 
         Comment newComment = new Comment();
         newComment.setContent(comment.getContent());
@@ -88,18 +88,36 @@ public class CommentService {
             User postAuthor = post.getAuthor();
             String commenterName = author.getUsername();
             if (postAuthor != null && !postAuthor.getId().equals(author.getId())) {
-                String message = commenterName + " commented on your post";
-                if (post.getTitle() != null) message += ": " + post.getTitle();
-                notificationService.createNotification(postAuthor, message, NotificationTypes.COMMENT);
+                NotificationDto notificationDto = new NotificationDto(
+                        null,
+                        NotificationTypes.COMMENT,
+                        commenterName + " commented on your post"
+                                + (post.getTitle() != null ? ": " + post.getTitle() : ""),
+                        post.getId(),
+                        false,
+                        null,
+                        authorSummary);
+                notificationService.createNotification(postAuthor, notificationDto);
             }
 
             // If replying to a comment, notify the parent comment's author (if different)
             if (savedComment.getParentComment() != null) {
                 User parentAuthor = savedComment.getParentComment().getAuthor();
-                if (parentAuthor != null && !parentAuthor.getId().equals(author.getId()) && !parentAuthor.getId().equals(post.getAuthor().getId())) {
+                if (parentAuthor != null && !parentAuthor.getId().equals(author.getId())
+                        && !parentAuthor.getId().equals(post.getAuthor().getId())) {
                     String replyMessage = commenterName + " replied to your comment";
-                    if (post.getTitle() != null) replyMessage += " on: " + post.getTitle();
-                    notificationService.createNotification(parentAuthor, replyMessage, NotificationTypes.COMMENT);
+                    if (post.getTitle() != null)
+                        replyMessage += " on: " + post.getTitle();
+                    NotificationDto replyNotificationDto = new NotificationDto(
+                            null,
+                            NotificationTypes.COMMENT,
+                            replyMessage,
+                            post.getId(),
+                            false,
+                            null,
+                            authorSummary
+                        );
+                    notificationService.createNotification(parentAuthor, replyNotificationDto);
                 }
             }
         } catch (Exception e) {
@@ -112,8 +130,7 @@ public class CommentService {
                 savedComment.getContent(),
                 authorSummary,
                 savedComment.getCreatedAt(),
-                savedComment.getUpdatedAt()
-        );
+                savedComment.getUpdatedAt());
     }
 
     public CommentCreateDto updateComment(CommentDto comment, UUID userId) {
@@ -138,8 +155,7 @@ public class CommentService {
                 updatedComment.getContent(),
                 authorSummary,
                 updatedComment.getCreatedAt(),
-                updatedComment.getUpdatedAt()
-        );
+                updatedComment.getUpdatedAt());
     }
 
     public void deleteCommentById(UUID commentId, UUID userId) {
