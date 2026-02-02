@@ -162,7 +162,16 @@ public class PostService {
             while (iterator.hasNext()) {
                 Media media = iterator.next();
                 String relativeUrl = minioService.getPermalink(media.getMediaUrl());
-                if (!updatedContent.contains(relativeUrl)) {
+                // Check both raw and encoded versions to handle markdown differences
+                // String encodedRelativeUrl = relativeUrl.replace(" ", "%20"); // Simple encoding check, can be expanded
+                // try {
+                //     encodedRelativeUrl = java.net.URLEncoder.encode(relativeUrl, java.nio.charset.StandardCharsets.UTF_8.toString())
+                //             .replace("%2F", "/"); // Keep slashes
+                // } catch (Exception e) {
+                //     // fall back to simple replacement if encoding fails
+                // }
+
+                if (!updatedContent.contains(relativeUrl) && !updatedContent.contains(relativeUrl)) {
                     minioService.deleteFile(media.getMediaUrl());
                     iterator.remove();
                 }

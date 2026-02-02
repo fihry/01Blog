@@ -74,8 +74,19 @@ export class CreateEditPostModalComponent implements OnInit, OnChanges, OnDestro
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (this.shouldLoadPostForEditing(changes)) this.loadPostForEditing();
-    if (this.shouldResetForm(changes)) this.resetForm();
+    const isOpenChange = changes['isOpen'];
+    const postToEditChange = changes['postToEdit'];
+
+    // Load post if modal opens in edit mode, OR if post data updates while open
+    if ((isOpenChange?.currentValue === true && this.editMode && this.postToEdit) ||
+      (postToEditChange && this.editMode && this.isOpen && this.postToEdit)) {
+      this.loadPostForEditing();
+    }
+
+    // Reset form only when closing (not on init)
+    if (isOpenChange && !isOpenChange.firstChange && !isOpenChange.currentValue) {
+      this.resetForm();
+    }
   }
 
   ngOnDestroy(): void {
@@ -301,7 +312,6 @@ export class CreateEditPostModalComponent implements OnInit, OnChanges, OnDestro
     this.revokePreviewUrls();
     this.mediaFiles = [];
     this.errorMessage = null;
-    this.editMode = false;
-    this.postToEdit = null;
+    // Do not reset editMode or postToEdit here; they are controlled by Inputs or Service
   }
 }

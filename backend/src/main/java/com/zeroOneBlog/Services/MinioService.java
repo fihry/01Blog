@@ -38,7 +38,10 @@ public class MinioService {
     public String uploadFile(MultipartFile file) {
         MinioBucketTypes bucketType = getBucketByContentType(file.getContentType());
         String bucketName = bucketType.name().toLowerCase(); // images, videos, audios
-        String objectName = UUID.randomUUID() + "-" + file.getOriginalFilename();
+        String originalFilename = file.getOriginalFilename();
+        if (originalFilename == null) originalFilename = "unknown";
+        // String sanitizedFilename = originalFilename.replaceAll("[^a-zA-Z0-9._-]", "_");
+        String objectName = UUID.randomUUID() + "-" + originalFilename;
 
         try {
             // Auto-create bucket if missing
