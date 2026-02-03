@@ -21,7 +21,8 @@
           <i class="bi bi-search text-muted-foreground"></i>
         </span>
         <input type="text" class="form-control border-0 shadow-none" placeholder="Search users..."
-          [(ngModel)]="searchQuery">
+          [(ngModel)]="searchQuery"
+          (ngModelChange)="searchUsers()">
       </div>
     </div>
 

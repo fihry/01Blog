@@ -70,4 +70,7 @@ export class UserService {
   getFollowing(id: string): Observable<User[]> {
     return this.http.get<User[]>(`${this.apiUrl}/${id}/following`)
   }
+  deleteAccount(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`)
+  }
 }

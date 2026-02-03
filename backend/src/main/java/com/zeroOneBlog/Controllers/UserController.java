@@ -6,6 +6,7 @@ import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -99,5 +100,14 @@ public class UserController {
     public ResponseEntity<List<PostDto>> getAllUserPosts(@PathVariable UUID UserId, @AuthenticationPrincipal CustomUserDetails userDetails){
         List<PostDto> posts = postService.getAllUserPosts(UserId,userDetails.getId());
         return ResponseEntity.ok(posts);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteUser(@PathVariable UUID id, @AuthenticationPrincipal CustomUserDetails userDetails) {
+        if (!userDetails.getId().equals(id)) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "You can only delete your own account");
+        }
+        userService.deleteUser(id);
+        return ResponseEntity.ok().build();
     }
 }

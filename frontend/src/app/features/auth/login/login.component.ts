@@ -10,7 +10,6 @@ import { ToastService } from "../../../core/services/toast.service"
 @Component({
   selector: "app-login",
   standalone: true,
-  // 💡 Note: SpinnerComponent should be included here if you are using it in the template.
   imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: "./login.component.html",
   styleUrls: ["../auth.component.scss"],

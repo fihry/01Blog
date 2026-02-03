@@ -51,4 +51,25 @@ export class UsersComponent {
       }
     });
   }
+
+  searchUsers() {
+    if (this.searchQuery.trim() === '') {
+      this.loadUsers();
+      return;
+    }
+    
+    this.userService.getUsers().subscribe({
+      next: (page: User[]) => {
+        const query = this.searchQuery.toLowerCase();
+        this.users = page.filter((user: User) => {
+          return user.id !== this.currentUserId && 
+                 (user.username.toLowerCase().includes(query) || 
+                  (user.bio && user.bio.toLowerCase().includes(query)));
+        });
+      },
+      error: (err) => {
+        console.error('Failed to search users', err);
+      }
+    });
+  }
 }

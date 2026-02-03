@@ -1,3 +1,14 @@
+.navbar {
+  z-index: 1000;
+
+}
+
+.navbar-brand span {
+  color: var(--primary);
+  span{
+    color: var(--foreground);
+  }
+}
 
 i {
   vertical-align: middle;
@@ -12,25 +23,34 @@ i {
   z-index: 100;
   backdrop-filter: blur(10px);
 }
-.navbar-brand{
+
+.navbar-brand {
   color: var(--primary);
 }
 
-// .dropdown-menu-custom {
-//     background-color: var(--card); 
-//     border: 1px solid var(--border);
-//     .dropdown-item {
-//         color: var(--primary);
-//     }
-// }
+.dropdown-menu-custom {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+
+  .dropdown-item {
+    color: var(--primary);
+  }
+}
 
 .navbar-toggler {
   border-color: none;
   padding: 0.25rem 0.5rem;
+  background: transparent;
+  border: 1px solid var(--background) !important;
+
+  &:focus {
+    outline: none;
+    box-shadow: none;
+  }
 
   .bi {
-    color: var(--background);
-    size: .5rem;
+    color: var(--foreground);
+    size: calc(var(--spacing) * 4);
   }
 }
 
@@ -42,6 +62,7 @@ i {
   font-size: calc(var(--spacing) * 3);
   border-radius: var(--radius);
   padding: .2rem;
+
   &:hover,
   &:focus {
     color: var(--primary);
@@ -56,7 +77,7 @@ i {
 }
 
 .login-btn {
-  background-color: var(--primary); 
+  background-color: var(--primary);
   color: var(--primary-foreground);
   border-color: var(--primary);
   transition: background-color 0.2s;
@@ -72,9 +93,10 @@ i {
   height: 35px;
   border-radius: 50%;
   border: 2px solid var(--color-green-400);
-  margin-right:10px;
+  margin-right: 10px;
 }
+
 /* --- Fix: Ensure Navbar Control Icons are Visible in Both Themes --- */
 .navbar-nav .nav-item button.nav-link i {
-    color: hsl(var(--foreground)) !important; 
+  color: hsl(var(--foreground)) !important;
 }

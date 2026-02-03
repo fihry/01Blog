@@ -188,7 +188,7 @@ public class UserService {
                 .anyMatch(user -> user.getId().equals(followingId));
 
         if (isFollowing) {
-            follower.getFollowing().removeIf(user -> user.getId().equals(followingId));            
+            follower.getFollowing().removeIf(user -> user.getId().equals(followingId));
         } else {
             follower.getFollowing().add(followed);
             notificationService.createNotification(followed, new NotificationDto(
@@ -201,8 +201,7 @@ public class UserService {
                     new UserSummaryDto(
                             follower.getId(),
                             follower.getUsername(),
-                            follower.getAvatarUrl())
-            ));
+                            follower.getAvatarUrl())));
         }
 
         userRepository.save(follower);
@@ -282,16 +281,14 @@ public class UserService {
             minioService.deleteFile(user.getAvatarUrl());
         }
 
-        // 2. Clear subscriptions (ManyToMany relationships usually need manual
-        // clearing)
+        // Remove this user from other users following lists
         for (User follower : user.getFollowers()) {
             follower.getFollowing().remove(user);
         }
-        user.getFollowing().clear();
-        user.getFollowers().clear();
 
-        // 3. Final Delete - Cascades handle Posts, Comments, Likes, Notifications,
-        // Reports
+        // Clear owning side
+        user.getFollowing().clear();
+
         userRepository.delete(user);
     }
 

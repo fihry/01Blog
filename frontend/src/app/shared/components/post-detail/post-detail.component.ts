@@ -88,7 +88,7 @@ export class PostDetailComponent implements OnInit, OnDestroy {
         this.isLoadingPost = false
       },
       error: (err) => {
-        console.error("Failed to load post", err)
+        this.toastService.showError("Error", err?.error?.message || "Failed to load post.")
         this.post = null
         this.parsedContent = ""
         this.isLoadingPost = false
@@ -100,17 +100,18 @@ export class PostDetailComponent implements OnInit, OnDestroy {
     this.isLoadingComments = true
     this.commentService.getComments(id).subscribe({
       next: (comments) => {
-        this.comments = comments
+        this.comments = comments.map(comment => ({
+          ...comment,
+          isOwner: comment.author.id === this.currentUserId
+        }))
 
         if (this.post) {
           this.post = { ...this.post, commentCount: comments.length }
         }
-
-        console.log("Comments loaded:", comments)
         this.isLoadingComments = false
       },
       error: (err) => {
-        console.error("Failed to load comments", err)
+        this.toastService.showError("Error", err?.error?.message || "Failed to load comments.")
         this.isLoadingComments = false
       },
     })
@@ -118,7 +119,6 @@ export class PostDetailComponent implements OnInit, OnDestroy {
 
   createComment(): void {
     if (!this.id) {
-      console.error("Post ID is missing. Cannot create comment.")
       this.toastService.showError("Error", "Post ID is missing. Cannot create comment.")
       return
     } else if (!this.commentContent.trim()) {
@@ -131,7 +131,7 @@ export class PostDetailComponent implements OnInit, OnDestroy {
     this.isSubmittingComment = true
     this.commentService.createComment(this.id, { content }).subscribe({
       next: (comment) => {
-        this.comments.unshift(comment)
+        this.comments.unshift({...comment, isOwner: comment.author.id === this.currentUserId})
 
         if (this.post) {
           this.post = { ...this.post, commentCount: this.post.commentCount + 1 }
@@ -141,7 +141,6 @@ export class PostDetailComponent implements OnInit, OnDestroy {
         this.isSubmittingComment = false
       },
       error: (err) => {
-        console.error("Failed to create comment", err)
         this.toastService.showError("Error", err?.error?.message || "Failed to create comment.")
         this.isSubmittingComment = false
       },
@@ -191,6 +190,24 @@ export class PostDetailComponent implements OnInit, OnDestroy {
         error: (err) => {
           console.error("Failed to delete post", err)
           this.toastService.showError("Error", err?.error?.message || "Failed to delete post.")
+        },
+      })
+    }
+  }
+  deleteComment(commentId: string): void {
+    if (!this.id) return
+    if (confirm('Are you sure you want to delete this comment?')) {
+      this.commentService.deleteComment(this.id, commentId).subscribe({
+        next: () => {
+          this.comments = this.comments.filter(c => c.id !== commentId)
+          if (this.post) {
+            this.post = { ...this.post, commentCount: this.post.commentCount - 1 }
+          }
+          this.toastService.showSuccess("Success", "Comment deleted successfully.")
+        },
+        error: (err) => {
+          console.error("Failed to delete comment", err)
+          this.toastService.showError("Error", err?.error?.message || "Failed to delete comment.")
         },
       })
     }

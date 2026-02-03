@@ -11,6 +11,7 @@ export interface Comment {
         username: string
         avatarUrl?: string
     };
+    isOwner: boolean;
     createdAt: string;
     updatedAt: string;
 };

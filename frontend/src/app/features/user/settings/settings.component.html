@@ -1,0 +1,129 @@
+
+    <div class="min-h-screen pt-5 mt-5">
+      <div class="container-xl mx-auto py-5 px-4">
+        
+        <h1 class="text-3xl font-bold text-foreground mb-5">Settings</h1>
+
+        <div class="row g-4">
+            <!-- Sidebar Navigation -->
+            <div class="col-lg-3">
+                <div class="app-widget-card p-2 sticky-top" style="top: 100px;">
+                    <ul class="nav flex-column nav-pills gap-1">
+                        <li class="nav-item">
+                            <a class="nav-link d-flex align-items-center gap-3 px-3 py-2 font-medium cursor-pointer" 
+                               [class.active]="activeTab === 'profile'" 
+                               (click)="activeTab = 'profile'">
+                                <i class="bi bi-person"></i> Profile
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link d-flex align-items-center gap-3 px-3 py-2 font-medium cursor-pointer text-muted-foreground hover:text-foreground"
+                               [class.active]="activeTab === 'account'" 
+                               (click)="activeTab = 'account'">
+                                <i class="bi bi-shield-lock"></i> Account
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Content Area -->
+            <div class="col-lg-9">
+                
+                <!-- Profile Settings -->
+                <div class="app-widget-card p-5 animate-in" *ngIf="activeTab === 'profile'">
+                    <div class="mb-5 border-bottom border-muted pb-4">
+                        <h2 class="text-xl font-bold mb-1">Public Profile</h2>
+                        <p class="text-sm text-muted-foreground">Manage how you appear to others on ZeroOneBlog.</p>
+                    </div>
+
+                    <form [formGroup]="profileForm" (ngSubmit)="saveProfile()">
+                        <div class="d-flex align-items-center gap-4 mb-5">
+                            <div class="avatar-wrapper position-relative">
+                                <img [src]="avatarPreview || user?.avatarUrl || 'assets/images/default-avatar.png'" 
+                                     class="rounded-circle object-fit-cover shadow-sm" 
+                                     style="width: 80px; height: 80px;" 
+                                     alt="Avatar">
+                                <label for="avatar-input" class="avatar-edit-overlay position-absolute bottom-0 end-0 bg-primary text-white rounded-circle d-flex align-items-center justify-content-center cursor-pointer shadow" style="width: 28px; height: 28px;">
+                                    <i class="bi bi-camera-fill text-xs"></i>
+                                    <input type="file" id="avatar-input" class="visually-hidden" (change)="onFileSelected($event)" accept="image/*">
+                                </label>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold mb-0">@{{ user?.username }}</h3>
+                                <p class="text-xs text-muted-foreground m-0">Recommended 400x400px. JPG or PNG.</p>
+                            </div>
+                        </div>
+
+                        <div class="row g-4">
+                            <div class="col-12">
+                                <label class="form-label text-sm font-medium">Bio</label>
+                                <textarea class="form-control" rows="4" formControlName="bio" placeholder="Tell us about yourself..."></textarea>
+                                <div class="form-text text-xs text-end">{{ profileForm.get('bio')?.value?.length || 0 }} / 255 characters</div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end mt-5">
+                            <button type="submit" class="btn btn-primary px-4" [disabled]="profileForm.pristine || loading">
+                                <span class="spinner-border spinner-border-sm me-2" *ngIf="loading"></span>
+                                Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Account Settings -->
+                <div class="app-widget-card p-5 animate-in" *ngIf="activeTab === 'account'">
+                    <div class="mb-5 border-bottom border-muted pb-4">
+                        <h2 class="text-xl font-bold mb-1">Account Security</h2>
+                        <p class="text-sm text-muted-foreground">Manage your password and security preferences.</p>
+                    </div>
+
+                    <div class="mb-4">
+                         <label class="form-label text-sm font-medium">Email Address</label>
+                         <input type="email" class="form-control " [value]="user?.email" disabled >
+                         <div class="form-text text-xs">Email cannot be changed directly. Contact support.</div>
+                    </div>
+
+                    <form [formGroup]="passwordForm" (ngSubmit)="updatePassword()">
+                        <div class="border rounded-3 p-4 bg-muted/20 mb-5">
+                            <h3 class="text-sm font-bold mb-3">Change Password</h3>
+                            <div class="row g-3">
+                                <div class="col-md-5">
+                                    <input type="password" class="form-control" formControlName="currentPassword" placeholder="Current Password">
+                                </div>
+                                <div class="col-md-5">
+                                    <input type="password" class="form-control" formControlName="newPassword" placeholder="New Password">
+                                </div>
+                                <div class="col-md-2">
+                                    <button type="submit" class="btn btn-outline-secondary w-100" [disabled]="passwordForm.invalid || loading">
+                                        Update
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+
+                    <hr class="border-muted my-5">
+
+                    <div>
+                        <h3 class="text-sm font-bold text-danger mb-2">Delete Account</h3>
+                        <p class="text-sm text-muted-foreground mb-3">
+                            Permanently delete your account and all of your content. This action cannot be undone.
+                        </p>
+                        <button class="btn btn-destructive text-sm" (click)="deleteAccount()">Delete Account</button>
+                    </div>
+                </div>
+
+                 <!-- Appearance Settings -->
+                 <div class="app-widget-card p-5 animate-in" *ngIf="activeTab === 'appearance'">
+                    <div class="mb-5 border-bottom border-muted pb-4">
+                        <h2 class="text-xl font-bold mb-1">Appearance</h2>
+                        <p class="text-sm text-muted-foreground">Customize how the app looks on your device.</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+      </div>
+    </div>
