@@ -71,13 +71,13 @@
 
                   <div class="dropdown-menu-custom position-absolute end-0 mt-2 animate-in"
                     [class.d-none]="!showDropdown" style="min-width: 200px; z-index: 1050; top: 100%;">
-                    <ng-container *ngIf="post.isOwner; else notOwner">
-                      <button class="dropdown-item d-flex align-items-center gap-2" (click)="editPost($event)">
+                    <ng-container *ngIf="post.isOwner || currentUser?.role === 'ADMIN'; else notOwner">
+                      <button *ngIf="post.isOwner" class="dropdown-item d-flex align-items-center gap-2" (click)="editPost($event)">
                         <i class="bi bi-pencil-square"></i>
                         <span>Edit Post</span>
                       </button>
                       <div class="dropdown-divider"></div>
-                      <button class="dropdown-item d-flex align-items-center gap-2 text-destructive"
+                      <button  class="dropdown-item d-flex align-items-center gap-2 text-destructive"
                         (click)="deletePost($event)">
                         <i class="bi bi-trash"></i>
                         <span>Delete Post</span>

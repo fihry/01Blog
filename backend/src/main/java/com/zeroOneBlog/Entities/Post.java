@@ -53,4 +53,5 @@ public class Post {
     public void onUpdate() {
         updatedAt = new Timestamp(System.currentTimeMillis());
     }
+    private boolean visible = true;
 }

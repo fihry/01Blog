@@ -1,10 +1,12 @@
 package com.zeroOneBlog.Services;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.zeroOneBlog.Dto.MediaDto;
 import com.zeroOneBlog.Dto.NotificationDto;
@@ -20,8 +22,10 @@ import com.zeroOneBlog.Repositories.CommentRepository;
 import com.zeroOneBlog.Repositories.LikeRepository;
 import com.zeroOneBlog.Repositories.PostRepository;
 import com.zeroOneBlog.Repositories.UserRepository;
+import com.zeroOneBlog.Security.CustomUserDetails;
 import com.zeroOneBlog.Types.MinioBucketTypes;
 import com.zeroOneBlog.Types.NotificationTypes;
+import com.zeroOneBlog.Types.RoleTypes;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -81,7 +85,9 @@ public class PostService {
                 post.getUpdatedAt(),
                 likeCount,
                 commentCount,
-                likedByUser);
+                likedByUser,
+                post.isVisible()
+            );
     }
 
     public PostDto createPost(PostCreateDto dto, UUID currentUserId) {
@@ -133,8 +139,13 @@ public class PostService {
     }
 
     public List<PostDto> getAllPosts(UUID currentUserId) {
-        List<Post> postsPage = postRepository.findAllByOrderByCreatedAtDesc();
+        List<Post> postsPage = postRepository.findByVisibleTrueOrderByCreatedAtDesc();
         return postsPage.stream().map(post -> mapToDto(post, currentUserId)).toList();
+    }
+
+    public List<PostDto> getAllPostsForAdmin() {
+        List<Post> postsPage = postRepository.findAllByOrderByCreatedAtDesc();
+        return postsPage.stream().map(post -> mapToDto(post, null)).toList();
     }
 
     public List<PostDto> getAllFollowedUsersPosts(UUID currentUserId) {
@@ -158,17 +169,19 @@ public class PostService {
 
         if (post.getMedia() != null) {
             String updatedContent = dto.getContent();
-            java.util.Iterator<Media> iterator = post.getMedia().iterator();
+            Iterator<Media> iterator = post.getMedia().iterator();
             while (iterator.hasNext()) {
                 Media media = iterator.next();
                 String relativeUrl = minioService.getPermalink(media.getMediaUrl());
                 // Check both raw and encoded versions to handle markdown differences
-                // String encodedRelativeUrl = relativeUrl.replace(" ", "%20"); // Simple encoding check, can be expanded
+                // String encodedRelativeUrl = relativeUrl.replace(" ", "%20"); // Simple
+                // encoding check, can be expanded
                 // try {
-                //     encodedRelativeUrl = java.net.URLEncoder.encode(relativeUrl, java.nio.charset.StandardCharsets.UTF_8.toString())
-                //             .replace("%2F", "/"); // Keep slashes
+                // encodedRelativeUrl = java.net.URLEncoder.encode(relativeUrl,
+                // java.nio.charset.StandardCharsets.UTF_8.toString())
+                // .replace("%2F", "/"); // Keep slashes
                 // } catch (Exception e) {
-                //     // fall back to simple replacement if encoding fails
+                // // fall back to simple replacement if encoding fails
                 // }
 
                 if (!updatedContent.contains(relativeUrl) && !updatedContent.contains(relativeUrl)) {
@@ -190,7 +203,7 @@ public class PostService {
         return mapToDto(updatedPost, currentUserId);
     }
 
-    private String processMediaFiles(Post post, List<org.springframework.web.multipart.MultipartFile> files,
+    private String processMediaFiles(Post post, List<MultipartFile> files,
             String content) {
         if (files == null || files.isEmpty())
             return content;
@@ -202,7 +215,7 @@ public class PostService {
         }
 
         for (int i = 0; i < files.size(); i++) {
-            org.springframework.web.multipart.MultipartFile file = files.get(i);
+            MultipartFile file = files.get(i);
             if (file == null || file.isEmpty())
                 continue;
 
@@ -234,11 +247,13 @@ public class PostService {
         return mutableContent;
     }
 
-    public void deletePost(UUID postId, UUID currentUserId) {
+    public void deletePost(UUID postId, CustomUserDetails currentUserDetails) {
         Post post = getById(postId);
+        User currentUser = userRepository.findById(currentUserDetails.getId())
+                .orElseThrow(() -> new ApiException(HttpStatus.BAD_REQUEST, "User not found"));
 
-        // Check if current user is the author
-        if (!post.getAuthor().getId().equals(currentUserId)) {
+        // Check if current user is the author or admin
+        if (!post.getAuthor().getId().equals(currentUser.getId()) && currentUser.getRole() != RoleTypes.ADMIN) {
             throw new ApiException(HttpStatus.FORBIDDEN, "You can only delete your own posts");
         }
         deletePostInternal(post);
@@ -257,6 +272,12 @@ public class PostService {
             }
         }
         postRepository.delete(post);
+    }
+
+    public void toggleHidePost(UUID postId) {
+        Post post = getById(postId);
+        post.setVisible(!post.isVisible());
+        postRepository.save(post);
     }
 
     // Toggle like for a post by the current user
@@ -299,7 +320,7 @@ public class PostService {
     public List<PostDto> getAllUserPosts(UUID useruUuid, UUID currentUserId) {
         User user = userRepository.findById(useruUuid)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "User not found"));
-        List<Post> postsPage = postRepository.findByAuthorOrderByCreatedAtDesc(user);
+        List<Post> postsPage = postRepository.findByAuthorAndVisibleTrueOrderByCreatedAtDesc(user);
         return postsPage.stream().map(post -> mapToDto(post, currentUserId)).toList();
     }
 }

@@ -25,6 +25,7 @@ export interface Post {
   commentCount: number
   likedByCurrentUser: boolean
   isOwner?: boolean
+  visible?: boolean
 }
 
 export interface CreatePostRequest {

@@ -22,4 +22,5 @@ public class PostDto {
     private int likeCount;
     private int commentCount;
     private boolean likedByCurrentUser;
+    private boolean isVisible;
 }

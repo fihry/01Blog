@@ -49,6 +49,9 @@ export class AdminService {
   banUser(id: string): Observable<void> {
     return this.http.post<void>(`${this.apiUrl}/users/${id}/ban`, {})
   }
+  hidePost(id: string): Observable<void> {
+    return this.http.put<void>(`${this.apiUrl}/posts/${id}/hide`, {})
+  }
 
   deleteUser(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/users/${id}`)
@@ -56,5 +59,8 @@ export class AdminService {
 
   getUsers(): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/users`)
+  }
+  getPosts(): Observable<Post[]> {
+    return this.http.get<Post[]>(`${this.apiUrl}/posts`)
   }
 }

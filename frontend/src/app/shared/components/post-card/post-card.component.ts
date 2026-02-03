@@ -81,4 +81,14 @@ export class PostCardComponent {
       this.deletePost.emit(this.post.id);
     }
   }
+
+  onShare() {
+    const postUrl = `${window.location.origin}/post/${this.post.id}`;
+    navigator.clipboard.writeText(postUrl).then(() => {
+      this.toastService.showSuccess("Success", "Post URL copied to clipboard!");
+    }).catch(err => {
+      console.error("Failed to copy post URL", err);
+      this.toastService.showError("Error", "Failed to copy post URL.");
+    });
+  }
 }

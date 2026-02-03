@@ -14,14 +14,14 @@ public interface PostRepository extends JpaRepository<Post, UUID> {
     @Override
     Optional<Post> findById(UUID id);
 
-    List<Post> findByAuthorOrderByCreatedAtDesc(User author);
+    List<Post> findByAuthorAndVisibleTrueOrderByCreatedAtDesc(User author);
 
     List<Post> findByAuthor(User author);
 
+    List<Post> findByVisibleTrueOrderByCreatedAtDesc();
     List<Post> findAllByOrderByCreatedAtDesc();
-
     @EntityGraph(attributePaths = {"author"})
-    List<Post>findByAuthorInOrderByCreatedAtDesc(List<User> foolowedList);
+    List<Post> findByAuthorInOrderByCreatedAtDesc(List<User> foolowedList);
 
     // List<Post> findByAuthorIdOrderByCreatedAtDesc(UUID authorId);
 

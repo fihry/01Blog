@@ -11,6 +11,7 @@ import { ReportService } from "../../../core/services/report.service"
 import { ReportModalComponent, ReportData } from "../report-modal/report-modal.component"
 import { CreateEditPostModalComponent } from "../create-post-modal/create-edit-post-modal.component"
 import { AuthService } from "../../../core/services/auth.service"
+import { User } from "../../../core/services/user.service"
 
 @Component({
   selector: "app-post-detail",
@@ -29,7 +30,7 @@ export class PostDetailComponent implements OnInit, OnDestroy {
   parsedContent = ""
   comments: Array<Comment> = []
   id = ""
-  currentUserId: string | undefined
+  currentUser: any | null = null
   commentContent = ""
   showDropdown = false
   showReportModal = false
@@ -63,7 +64,7 @@ export class PostDetailComponent implements OnInit, OnDestroy {
       this.fetchComments(id)
     })
     this.authService.currentUser$.subscribe(user => {
-      this.currentUserId = user?.id
+      this.currentUser = user
     })
     // Close dropdown when clicking outside
     document.addEventListener('click', this.closeDropdown.bind(this))
@@ -82,7 +83,7 @@ export class PostDetailComponent implements OnInit, OnDestroy {
     this.isLoadingPost = true
     this.postService.getPost(id).subscribe({
       next: (post) => {
-        post.isOwner = post.author.id == this.currentUserId
+        post.isOwner = post.author.id == this.currentUser?.id
         this.post = post
         this.parsedContent = this.markdown.parse(post.content || "", false, post.media)
         this.isLoadingPost = false
@@ -102,7 +103,7 @@ export class PostDetailComponent implements OnInit, OnDestroy {
       next: (comments) => {
         this.comments = comments.map(comment => ({
           ...comment,
-          isOwner: comment.author.id === this.currentUserId
+          isOwner: comment.author.id === this.currentUser?.id
         }))
 
         if (this.post) {
@@ -131,7 +132,7 @@ export class PostDetailComponent implements OnInit, OnDestroy {
     this.isSubmittingComment = true
     this.commentService.createComment(this.id, { content }).subscribe({
       next: (comment) => {
-        this.comments.unshift({...comment, isOwner: comment.author.id === this.currentUserId})
+        this.comments.unshift({...comment, isOwner: comment.author.id === this.currentUser?.id})
 
         if (this.post) {
           this.post = { ...this.post, commentCount: this.post.commentCount + 1 }

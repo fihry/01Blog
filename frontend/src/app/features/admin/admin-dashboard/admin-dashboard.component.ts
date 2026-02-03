@@ -7,6 +7,7 @@ import { AdminService, AdminReport } from "../../../core/services/admin.service"
 import { PostService, Post } from "../../../core/services/post.service";
 import { ReportService } from "../../../core/services/report.service";
 import { User } from "../../../core/services/user.service";
+import { ToastService } from "../../../core/services/toast.service";
 
 @Component({
   selector: "app-admin-dashboard",
@@ -33,9 +34,9 @@ export class AdminDashboardComponent {
 
   constructor(
     private adminService: AdminService,
-    private postService: PostService,
     private reportService: ReportService,
-    private router: Router
+    private router: Router,
+    private toastService: ToastService
   ) { }
 
   ngOnInit() {
@@ -47,7 +48,7 @@ export class AdminDashboardComponent {
     });
 
     this.adminService.getUsers().subscribe(p => this.users = p);
-    this.postService.getFeed().subscribe(p => this.posts = p);
+    this.adminService.getPosts().subscribe(p => this.posts = p);
     this.adminService.getReports('PENDING').subscribe(r => this.reports = r);
   }
 
@@ -69,10 +70,20 @@ export class AdminDashboardComponent {
     this.adminService.banUser(u.id).subscribe(() => u.active = !u.active);
   }
 
+  togglePost(p: Post) {
+    if (p.visible && !confirm('Are you sure you want to hide this post?')) return;
+    if (!p.visible && !confirm('Are you sure you want to unhide this post?')) return;
+    this.adminService.hidePost(p.id).subscribe(() => {
+      p.visible = !p.visible;
+    });
+  }
+
   deleteUser(id: string) {
-    if (confirm('Delete user?'))
-      this.adminService.deleteUser(id).subscribe(() =>
-        this.users = this.users.filter(u => u.id !== id));
+    if (confirm('Are you sure you want to delete this user?'))
+      this.adminService.deleteUser(id).subscribe(() => {
+        this.users = this.users.filter(u => u.id !== id);
+        this.toastService.showSuccess("Success", "User deleted successfully.");
+      });
   }
 
   deletePost(id: string) {
@@ -83,17 +94,22 @@ export class AdminDashboardComponent {
 
   updateReport(id: string, status: 'REVIEWED' | 'RESOLVED') {
     this.adminService.updateReportStatus(id, status).subscribe({
-      next: (updatedReport) => {
+      next: () => {
         this.reports = this.reports.filter(r => r.id !== id);
-        // Optional: you could re-fetch or keep it if you want to show it in the filtered list
+        this.toastService.showSuccess("Success", "Report updated successfully.");
       },
-      error: (err) => console.error("Failed to update report", err)
+      error: (err) => {
+        this.toastService.showError("Error", "Failed to update report.");
+        console.error("Failed to update report", err);
+      }
     });
   }
 
   deleteReport(id: string) {
     if (confirm('Delete report?'))
-      this.reportService.deleteReport(id).subscribe(() =>
-        this.reports = this.reports.filter(r => r.id !== id));
+      this.reportService.deleteReport(id).subscribe(() => {
+        this.reports = this.reports.filter(r => r.id !== id);
+        this.toastService.showSuccess("Success", "Report deleted successfully.");
+      });
   }
 }

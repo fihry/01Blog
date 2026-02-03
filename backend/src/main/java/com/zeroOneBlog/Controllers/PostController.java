@@ -38,6 +38,7 @@ public class PostController {
         List<PostDto> posts = postService.getAllPosts(currentUserId);
         return ResponseEntity.ok(posts);
     }
+
     @GetMapping("/following")
     public ResponseEntity<List<PostDto>> getFollwedUsersPosts(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -95,9 +96,7 @@ public class PostController {
     public ResponseEntity<Void> deletePost(
             @PathVariable UUID postId,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-
-        UUID currentUserId = userDetails.getId();
-        postService.deletePost(postId, currentUserId);
+        postService.deletePost(postId, userDetails);
         return ResponseEntity.noContent().build();
     }
 
