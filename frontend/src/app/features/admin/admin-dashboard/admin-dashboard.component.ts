@@ -55,6 +55,7 @@ export class AdminDashboardComponent {
   switchTab(tab: any) { this.activeTab = tab; }
 
   setReportStatus(status: 'PENDING' | 'REVIEWED' | 'RESOLVED' | 'REJECTED') {
+    if (confirm('Changing report status will reload the reports list. Continue?'))
     this.reportStatus = status;
     this.adminService.getReports(status).subscribe(r => this.reports = r);
   }
@@ -67,6 +68,8 @@ export class AdminDashboardComponent {
   goToPost(id: string) { this.router.navigate(['/post', id]); }
 
   toggleUser(u: User) {
+    if (u.active && !confirm('Are you sure you want to ban this user?')) return;
+    if (!u.active && !confirm('Are you sure you want to unban this user?')) return;
     this.adminService.banUser(u.id).subscribe(() => u.active = !u.active);
   }
 
@@ -93,6 +96,7 @@ export class AdminDashboardComponent {
   }
 
   updateReport(id: string, status: 'REVIEWED' | 'RESOLVED') {
+    if (!confirm('Are you sure you want to update this report status?')) return;
     this.adminService.updateReportStatus(id, status).subscribe({
       next: () => {
         this.reports = this.reports.filter(r => r.id !== id);
